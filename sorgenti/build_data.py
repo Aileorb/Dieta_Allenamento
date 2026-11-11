@@ -66,6 +66,7 @@ d['food'] = {k: [DB[k][0], 'ml' if k in ('latte','latte_soia','salsa_soia') else
 d['cats'] = [[n, [k for k in ks if k in used]] for n, ks in CATS]
 for ph in ('f1','f2'): d[ph].pop('shopping', None)
 import preparazioni; preparazioni.apply(d)
+import ricette_menu; ricette_menu.apply(d)
 json.dump(d, open('diet2.json','w'), ensure_ascii=False)
 print(len(extra), sum(r['new'] for r in extra))
 # copertura alternative

@@ -242,6 +242,10 @@ img.fig{object-fit:cover}
 .meal .hd .tm{font-size:13px;color:var(--label2);font-variant-numeric:tabular-nums}
 .mtitle{padding:12px 16px 10px}
 .mtitle .tt{font-size:17px;line-height:22px;font-weight:600}
+.mlink{display:flex;align-items:center;gap:10px;width:100%;border:none;background:none;text-align:left;color:inherit;font:inherit}
+.mlink .grow{flex:1;min-width:0}
+.mlink .chev{width:8px;height:14px;color:var(--label3);flex:none}
+.mlink:active{background:var(--fill)}
 .mtitle .mm{font-size:13px;line-height:18px;color:var(--label2);margin-top:2px;font-variant-numeric:tabular-nums}
 .food{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 16px;position:relative}
 .food::before{content:"";position:absolute;top:0;right:0;left:16px;height:.5px;background:var(--sep)}
@@ -1344,6 +1348,7 @@ function nextApprovalBanner(){
 }
 function leftTxt(ms){ const h = Math.floor(ms / 36e5), g = Math.floor(h / 24); return g >= 1 ? `mancano ${g} ${g === 1 ? 'giorno' : 'giorni'} e ${h % 24} ore` : h >= 1 ? `mancano ${h} ${h === 1 ? 'ora' : 'ore'}` : `mancano ${Math.max(1, Math.ceil(ms / 6e4))} minuti`; }
 function renderMenu(){
+  if (S.meal) return renderMealPage();
   const ph = PH(), wk = menuWk(), d = ph.days[S.day], veg = Store.get('veg', false), mk = wk + S.phase + S.day, modOn = !!S.mod[mk];
   const locked = isLocked(wk), r0 = settle(wk), isNow = wk === WK_NOW();
   const tot = dayTotals(wk, S.day, veg, modOn);
@@ -1370,7 +1375,7 @@ function renderMenu(){
     else if (res.vtag) badge = `<span class="badge b-green">${esc(res.vtag)}</span>`;
     else badge = `<span class="tm">${esc(m.time)}</span>`;
     h += `<div class="meal${m.mod && !modOn ? ' off' : ''}"><div class="hd"><span class="n">${esc(m.name)}${protIcon(res.items)}${badge.includes('class="tm"') ? '' : ' · ' + esc(m.time)}</span>${badge}</div><div class="list">
-      <div class="mtitle"><div class="tt">${esc(res.title)}</div><div class="mm">${macStr(res)}</div></div>
+      <button class="mtitle mlink" ${res.kind === 'rec' ? `data-recopen="extra|${res.rec.n}"` : res.kind === 'mine' ? `data-recopen="mine|${res.rec.n}"` : `data-mealopen="${S.day}|${mi}"`} aria-label="Apri la ricetta: ${esc(res.title)}"><span class="grow"><span class="tt" style="display:block">${esc(res.title)}</span><span class="mm" style="display:block">${macStr(res)}</span></span>${I.chev}</button>
       ${res.foods.map(f => `<div class="food"><div><div class="fn">${esc(cap(f.n))}</div>${f.h ? `<div class="fh">${esc(f.h)}</div>` : ''}</div><div class="fq">${esc(f.q)}</div></div>`).join('')}`;
     if (res.kind === 'rec') h += `<div class="mnote">${Math.abs(res.f - 1) > .04 ? `Porzione adattata al pasto (×${res.f.toFixed(2).replace('.', ',')}). ` : ''}<button class="rl" data-recopen="extra|${res.rec.n}">Vedi la ricetta</button></div>`;
     else if (res.kind === 'mine') h += `<div class="mnote"><button class="rl" data-recopen="mine|${res.rec.n}">Vedi la tua ricetta</button></div>`;
@@ -1397,6 +1402,26 @@ function renderMenu(){
   return h + `</div>`;
 }
 const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+// pagina di un pasto del menu: macro, ingredienti, passaggi e cosa preparare il giorno prima
+function renderMealPage(){
+  const ph = PH(), wk = menuWk(), [di, mi] = S.meal.map(Number), d = ph.days[di], m = d && d.meals[mi];
+  if (!m){ S.meal = null; return renderMenu(); }
+  const veg = Store.get('veg', false), r = resolve(m, choiceOf(wk, di, mi), veg), p = PROT[proteinOf(r.items)];
+  const vegan = r.vtag === 'Vegana' || (r.kind === 'def' && veg && m.alt);
+  let h = navbar(r.title, {back:'mealback', backLabel:'Menu'}) + `<div class="wrap rhead"><div>`;
+  h += `<span class="badge${vegan ? ' b-green' : ' b-blue'}">${esc(m.name)}</span><div class="badge" style="margin:0 0 0 6px;gap:4px">${p[1].replace('<svg', '<svg width="14" height="14"')}Proteina: ${p[0]}</div>`;
+  h += `<h2>${esc(r.title)}</h2><p class="sub-lt" style="margin:0 0 14px">${esc(cap(d.name))} ${weekDate(wk, di).getDate()} · ${esc(m.time)}${vegan ? ' · versione vegana' : ''}</p></div>`;
+  h += `<div class="macros"><div><span class="c-kcal">Calorie</span><b>${nf(r.k)}</b><small>kcal</small></div><div><span class="c-p">Proteine</span><b>${r.p}</b><small>g</small></div><div><span class="c-c">Carbo</span><b>${r.c}</b><small>g</small></div><div><span class="c-g">Grassi</span><b>${r.g}</b><small>g</small></div></div>`;
+  h += `<div class="sec"><div class="sec-h">Ingredienti</div><div class="list">${r.foods.map(f => `<div class="food" style="padding-top:11px;padding-bottom:11px"><div><div class="fn">${esc(cap(f.n))}</div>${f.h ? `<div class="fh">${esc(f.h)}</div>` : ''}</div><div class="fq">${esc(f.q)}</div></div>`).join('')}</div>
+    <div class="sec-f">Sale, pepe, spezie, erbe, aglio, limone e aceto sono liberi.</div></div>`;
+  if ((r.steps || []).length) h += `<div class="sec"><div class="sec-h">Preparazione</div><div class="list">${r.steps.map((s, i) => `<div class="step"><span class="num">${i + 1}</span><span>${esc(s)}</span></div>`).join('')}</div></div>`;
+  const rr = r.ref && (ph.recipes || []).find(x => String(x.n) === String(r.ref));
+  if (rr) h += `<div class="sec"><div class="list"><button class="row" data-recopen="menu|${rr.n}">${iconTile(I.book, 'orange')}<span class="grow"><span class="tt" style="display:block">Ricetta n. ${rr.n}</span><span class="st" style="display:block">${esc(rr.title)}</span></span>${I.chev}</button></div></div>`;
+  const pre = prepLines(d, di, wk, veg).filter(x => x.startsWith(m.name + ':')).map(x => cap(x.slice(m.name.length + 1).trim()));
+  if (pre.length) h += `<div class="sec"><div class="sec-h">Da preparare il giorno prima</div><div class="list">${pre.map(x => `<div class="row"><span class="grow" style="font-size:16px;line-height:21px">${esc(x)}</span></div>`).join('')}</div></div>`;
+  if (r.note) h += `<div class="callout">${I.bulb}<span>${noteHtml(r.note)}</span></div>`;
+  return h + `</div>`;
+}
 function noteHtml(t){ return esc(t).replace(/(ricetta n\. ?)(\d+)/gi, (m, a, n) => `<button class="rl" data-recopen="menu|${n}">${a}${n}</button>`); }
 
 /* ---------- foglio delle alternative ---------- */
@@ -1825,7 +1850,7 @@ function render(keepScroll = true){
 }
 function switchTab(t){
   S.phaseOpen = false;
-  if (t === S.tab){ if (S.tab === 'ricette' && S.rec){ S.rec = null; render(false); } window.scrollTo({top:0, behavior:'smooth'}); return; }
+  if (t === S.tab){ if (S.tab === 'ricette' && S.rec){ S.rec = null; render(false); } if (S.tab === 'menu' && S.meal){ S.meal = null; render(false); } window.scrollTo({top:0, behavior:'smooth'}); return; }
   S.scroll[S.tab] = window.scrollY;
   document.getElementById('s-' + S.tab).classList.add('hidden');
   S.tab = t; Store.set('tab', t);
@@ -1884,6 +1909,8 @@ document.addEventListener('click', ev => {
   else if (d.rtag){ S.rtag = d.rtag; render(); }
   else if (d.recopen){ const [src, n] = d.recopen.split('|'); S.scroll.reclist = S.tab === 'ricette' ? window.scrollY : 0; S.rec = [src, n]; S.rsrc = src;
     if (S.tab !== 'ricette'){ S.scroll.ricette = 0; switchTab('ricette'); } else { render(false); } window.scrollTo(0, 0); onScroll(); }
+  else if (d.mealopen){ S.scroll.mealback = window.scrollY; S.meal = d.mealopen.split('|'); render(false); window.scrollTo(0, 0); onScroll(); }
+  else if (d.a === 'mealback'){ S.meal = null; render(false); window.scrollTo(0, S.scroll.mealback || 0); onScroll(); }
   else if (d.a === 'recback'){ S.rec = null; render(false); window.scrollTo(0, S.scroll.reclist || 0); onScroll(); }
   else if (d.a === 'shopreset'){ if (confirm('Togliere tutte le spunte della spesa? Anche i prodotti aggiunti alla dispensa con queste spunte verranno tolti.')){ const key = 'chk_' + shopWk() + '_' + S.phase, c = Store.get(key, {}), st = Object.assign({}, stock()); Object.entries(c).forEach(([k, v]) => { if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; } }); buysDel(Object.keys(c).map(k => shopWk() + '|' + S.phase + '|' + k)); Store.set('stock', st); Store.set(key, {}); ledgerWeek(shopWk()); render(); } }
   else if (d.price){ openPrice(d.price); }
