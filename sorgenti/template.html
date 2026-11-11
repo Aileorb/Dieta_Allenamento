@@ -973,6 +973,13 @@ function drawOtherLog(){
   openSheet('Registra allenamento', body, 'Annulla', 'Salva', saveOtherLog);
   $('#shB').scrollTop = keep;
 }
+// sedute già nello storico per un giorno (aaaa-mm-gg)
+const sameDaySessions = iso => HIST.sedute.filter(x => keyOf(new Date(x.inizio)) === iso);
+function dupOk(iso){
+  const l = sameDaySessions(iso); if (!l.length) return true;
+  const quando = iso === isoToday() ? 'oggi' : 'in questo giorno', nomi = l.map(x => '«' + (x.titolo || 'Allenamento') + '»').join(', ');
+  return confirm(`Hai già ${l.length === 1 ? 'un allenamento registrato' : l.length + ' allenamenti registrati'} ${quando}: ${nomi}. Aggiungere questo come seduta in più? Quello già salvato resta com'è.`);
+}
 async function saveOtherLog(){
   const o = S.ol, s = otherSession(); if (!s) return;
   const [y, m, d] = o.date.split('-').map(Number), tt = t => { const [h, mi] = String(t || '0:0').split(':').map(Number); return new Date(y, m - 1, d, h || 0, mi || 0).getTime(); };
@@ -982,6 +989,7 @@ async function saveOtherLog(){
     sets: o.ex[e.id].sets.map((st, i) => ({n: i + 1, load: String(st.l || '').trim(), reps: parseInt(st.r, 10) || 0, at: start + Math.round((end - start) * (i + 1) / (o.ex[e.id].sets.length + 1))})).filter(st => st.reps || st.load)}))
     .filter(e => e.sets.length);
   if (!ex.length){ toast('Inserisci almeno una serie'); return; }
+  if (!dupOk(o.date)) return;
   const rec = {id: uid('s'), prog: o.prog, progName: o.progName, day: o.day, title: o.title, week: null, start, end, ex};
   const rows = rowsFromSession(rec);
   HIST.sedute = [rows.seduta].concat(HIST.sedute).sort((a, b) => b.inizio - a.inizio); HIST.serie = HIST.serie.concat(rows.serie);
@@ -1955,7 +1963,7 @@ document.addEventListener('click', ev => {
       <button class="row ind" data-othgo="1">${iconTile(I.play, 'green')}<span class="grow"><span class="tt" style="display:block">Avviala adesso</span><span class="st" style="display:block">Apre l'allenamento a schermo intero con il timer</span></span>${I.chev}</button></div>
       <button class="btn plain" data-other="2" style="margin-top:8px">‹ Scegli un'altra seduta</button>`, 'Chiudi'); }
   else if (d.othlog){ openOtherLog(S.othDay); }
-  else if (d.othgo){ closeSheetQuiet(); startWorkout(0, S.oth.prog, S.othDay); }
+  else if (d.othgo){ if (!W() && !dupOk(isoToday())) return; closeSheetQuiet(); startWorkout(0, S.oth.prog, S.othDay); }
   else if (d.olon){ const [id, v] = d.olon.split('|'); if (S.ol && S.ol.ex[id]){ S.ol.ex[id].on = v === '1'; drawOtherLog(); } }
   else if (d.olset){ const [id, v] = d.olset.split('|'), x = S.ol && S.ol.ex[id]; if (x){ if (+v > 0){ const last = x.sets[x.sets.length - 1] || {l: '', r: ''}; x.sets.push({l: last.l, r: last.r}); } else if (x.sets.length > 1) x.sets.pop(); drawOtherLog(); } }
   else if (d.a === 'space') openSpace();
