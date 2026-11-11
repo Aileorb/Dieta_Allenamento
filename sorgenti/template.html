@@ -713,6 +713,37 @@ function resolve(m, choice, veg){
   const f = b.k / r.k, items = r.items.map(([k, g]) => [k, roundG(k, g * f)]);
   return {kind:'rec', title:r.title, items, foods: items.map(([k, g]) => fmtFood(k, g)), k: Math.round(r.k * f), p: Math.round(r.p * f), c: Math.round(r.c * f), g: Math.round(r.g * f), rec:r, f, vtag:r.tag};
 }
+// «Da preparare»: righe del giorno per i pasti della proposta; per alternative, ricette e ricette tue quelle della ricetta scelta
+const dot = s => /[.!?]$/.test(s) ? s : s + '.';
+function recPrepLines(name, title, src, workday){
+  if (name === 'Pranzo' && workday && (src.slot || 'Pranzo o cena') === 'Pranzo o cena'){
+    if (src.pl) return ['Pranzo: ' + src.pl];
+    const out = [`Pranzo: prepara stasera «${title}»${src.thawL ? ' (' + src.thawL + ')' : ''} e porta tutto al lavoro${src.box ? ': ' + src.box : ''}.`];
+    if (src.prep) out.push('Pranzo: ' + dot(src.prep));
+    return out;
+  }
+  return [src.thaw, src.prep].filter(Boolean).map(x => name + ': ' + dot(x));
+}
+function prepLines(nx, ni, nwk, veg){
+  const cnt = {}, workday = ni < 5, own = {}, taken = new Set();
+  nx.meals.forEach(m => cnt[m.name] = (cnt[m.name] || 0) + 1);
+  nx.meals.forEach((m, mi) => {
+    const r = resolve(m, choiceOf(nwk, ni, mi), veg);
+    const base = (r.kind === 'def' && !(veg && m.alt)) || (r.kind === 'alt' && veg) || m.mod;
+    if (base) return;
+    if (cnt[m.name] === 1) taken.add(m.name);
+    own[mi] = r.kind === 'rec' ? recPrepLines(m.name, r.title, r.rec, workday)
+            : r.kind === 'mine' ? recPrepLines(m.name, r.title, {slot: r.rec.slot, prep: r.rec.prep}, workday)
+            : (m.alt && m.alt.prep ? [m.name + ': ' + m.alt.prep] : []);
+  });
+  const pre = p => p.split(':')[0], names = new Set(nx.meals.map(m => m.name)), used = new Set(), out = [];
+  nx.meals.forEach((m, mi) => {
+    if (own[mi]) { out.push(...own[mi]); return; }
+    if (taken.has(m.name) || used.has(m.name)) return; used.add(m.name);
+    out.push(...nx.prep.filter(p => pre(p) === m.name));
+  });
+  return out.concat(nx.prep.filter(p => !names.has(pre(p))));
+}
 const choiceOf = (wk, d, m) => settle(wk).ch[chKey(d, m)] || null;
 
 /* ================== SPAZIO LOCALE: STORICO A TABELLA, FOTO, PULIZIA ================== */
@@ -1114,7 +1145,7 @@ function myRecView(x){
   const items = [];
   (x.ing || []).forEach(i => { const k = foodByName(i.n), g = k ? ingGrams(k, i.q) : 0; if (k && g) items.push([k, g]); });
   return {n: x.id, mine: true, title: x.title, tag: 'Mia', slot: x.slot, time: x.time || '', when: x.slot, k: x.k, p: x.p, c: x.c, g: x.g,
-    foods: (x.ing || []).filter(i => i.n || i.q).map(i => ({q: i.q || '', n: i.n || '', h: ''})), items, steps: (x.steps || []).filter(s => s.trim()), raw: x};
+    foods: (x.ing || []).filter(i => i.n || i.q).map(i => ({q: i.q || '', n: i.n || '', h: ''})), items, steps: (x.steps || []).filter(s => s.trim()), prep: (x.prep || '').trim(), raw: x};
 }
 const myRecList = () => myRecs().map(myRecView);
 function freeItems(wk, phase, veg){
@@ -1152,6 +1183,8 @@ function drawRecForm(){
     <div class="sec-f" style="margin:6px 4px 14px">Scegli il nome dai suggerimenti (pallino verde) e la quantità in g o ml: se usi la ricetta nel menu, finisce nella lista della spesa con la confezione Esselunga. Gli altri ingredienti compaiono a parte in «Dalle tue ricette».</div>
     <div class="sec-h">Preparazione</div><div class="list">${f.steps.map((t, n) => `<div class="row frow ing"><span class="num">${n + 1}</span><textarea class="stin" data-rfs="${n}" rows="2" placeholder="Descrivi il passaggio">${esc(t)}</textarea><button class="xbtn" data-rfa="stdel|${n}" aria-label="Togli">×</button></div>`).join('')}
       <button class="row" data-rfa="stadd"><span class="grow tt link">+ Aggiungi passaggio</span></button></div>
+    <div class="sec-h" style="margin-top:22px">Da preparare il giorno prima</div><div class="list"><div class="row frow"><textarea class="stin" data-rf="prep" rows="2" placeholder="Facoltativo: es. scongela il pollo in frigo, metti i ceci in ammollo">${esc(f.prep || '')}</textarea></div></div>
+    <div class="sec-f" style="margin:6px 4px 14px">Se la scegli nel menu, compare nella sezione «Da preparare» del giorno prima. Per il pranzo dei giorni feriali ti ricordo anche di prepararla la sera e portarla al lavoro.</div>
     ${f.id ? `<div class="list" style="margin-top:22px"><button class="row" data-rfa="del"><span class="grow tt destr" style="text-align:center">Elimina ricetta</span></button></div>` : ''}`;
   const keep = $('#sheet').classList.contains('on') && $('#shT').textContent.includes('ricetta') ? $('#shB').scrollTop : 0;
   openSheet(f.id ? 'Modifica ricetta' : 'Nuova ricetta', body, 'Annulla', 'Salva', saveRec);
@@ -1172,7 +1205,7 @@ async function saveRec(){
   if (!f.title.trim()){ toast('Dai un nome alla ricetta'); return; }
   const n = v => Math.max(0, Math.round(parseFloat(String(v).replace(',', '.')) || 0));
   const x = {id: f.id || uid('u'), title: f.title.trim(), slot: f.slot, time: (f.time || '').trim(), p: n(f.p), c: n(f.c), g: n(f.g), k: 0,
-    ing: f.ing.filter(i => (i.n || '').trim() || (i.q || '').trim()).map(i => ({q: (i.q || '').trim(), n: (i.n || '').trim()})), steps: f.steps.map(s => s.trim()).filter(Boolean)};
+    ing: f.ing.filter(i => (i.n || '').trim() || (i.q || '').trim()).map(i => ({q: (i.q || '').trim(), n: (i.n || '').trim()})), steps: f.steps.map(s => s.trim()).filter(Boolean), prep: (f.prep || '').trim()};
   x.k = n(f.k) || Math.round(4 * x.p + 4 * x.c + 9 * x.g);
   if (!x.k){ toast('Inserisci calorie o macro'); return; }
   const all = myRecs().filter(y => y.id !== x.id); all.push(x); Store.set('myrec', all);
@@ -1347,9 +1380,7 @@ function renderMenu(){
   });
   // preparazioni per domani
   const ni = (S.day + 1) % 7, nwk = S.day === 6 ? keyOf(weekDate(wk, 7)) : wk, nx = ph.days[ni];
-  const extraPrep = nx.meals.map((m, mi) => [m, resolve(m, choiceOf(nwk, ni, mi), veg)]).filter(([m, r]) => r.kind === 'rec' || r.kind === 'mine')
-    .map(([m, r]) => `${m.name}: hai scelto «${r.title}». Controlla la ricetta per cosa preparare o scongelare in anticipo.`);
-  const pk = 'prep-' + keyOf(weekDate(nwk, ni)) + '-' + S.phase, done = Store.get(pk, {}), lines = extraPrep.concat(nx.prep);
+  const pk = 'prep-' + keyOf(weekDate(nwk, ni)) + '-' + S.phase, done = Store.get(pk, {}), lines = prepLines(nx, ni, nwk, veg);
   h += `<div class="sec"><div class="sec-h">Da preparare per ${nx.name.toLowerCase()} ${weekDate(nwk, ni).getDate()}</div><div class="list">
     ${lines.map((p, i) => `<div class="row ck${done[i] ? ' on' : ''}" role="checkbox" aria-checked="${!!done[i]}" tabindex="0" data-prep="${pk}|${i}"><span class="chk">${I.check}</span><span class="grow tt" style="font-size:16px;line-height:21px">${esc(p)}</span></div>`).join('')}
   </div><div class="sec-f">Cose da fare oggi per arrivare pronto ai pasti di domani.</div></div>`;
@@ -1429,6 +1460,13 @@ function renderRecipes(){
   if (!any) h += `<p class="sub-lt" style="text-align:center;margin-top:30px">${S.rsrc === 'mine' && !recs.length ? 'Non hai ancora ricette tue. Tocca il + in alto per crearne una con foto, ingredienti, calorie, macro e passaggi: la troverai tra le alternative dei pasti.' : 'Nessuna ricetta trovata.'}</p>`;
   return h + `</div>`;
 }
+function prepBox(r){
+  const rows = [r.thaw, r.prep].filter(Boolean).map(x => cap(dot(x)));
+  if (r.box || (r.slot === 'Pranzo o cena' && !r.pl)) rows.push(`Se la porti al lavoro: preparala la sera prima${r.thawL ? ' (' + r.thawL + ')' : ''}${r.box ? '; ' + r.box : ''}.`);
+  else if (r.pl) rows.push('Se la porti al lavoro: ' + r.pl);
+  if (!rows.length) return '';
+  return `<div class="sec"><div class="sec-h">Da preparare il giorno prima</div><div class="list">${rows.map(x => `<div class="row"><span class="grow" style="font-size:16px;line-height:21px">${esc(x)}</span></div>`).join('')}</div><div class="sec-f">Quando scegli questa ricetta nel menu, lo trovi nella sezione «Da preparare» del giorno prima.</div></div>`;
+}
 function renderMyRecipe(r){
   const ph0 = photoOf('mine', r.n);
   let h = navbar(r.title, {back:'recback', backLabel:'Ricette', right:`<button class="navbtn" data-editrec="${r.n}">Modifica</button>`}) + `<div class="wrap rhead"><div class="rtop"><div>`;
@@ -1441,6 +1479,7 @@ function renderMyRecipe(r){
   if (r.foods.length) h += `<div class="sec"><div class="sec-h">Ingredienti</div><div class="list">${r.foods.map(f => `<div class="food" style="padding-top:11px;padding-bottom:11px"><div><div class="fn">${esc(cap(f.n))}</div></div><div class="fq">${esc(f.q)}</div></div>`).join('')}</div>
     <div class="sec-f">${r.items.length ? r.items.length + ' ' + (r.items.length === 1 ? 'ingrediente va' : 'ingredienti vanno') + ' nella lista della spesa con la confezione Esselunga quando usi la ricetta nel menu.' : ''}</div></div>`;
   if (r.steps.length) h += `<div class="sec"><div class="sec-h">Preparazione</div><div class="list">${r.steps.map((t, i) => `<div class="step"><span class="num">${i+1}</span><span>${esc(t)}</span></div>`).join('')}</div></div>`;
+  if (r.prep) h += `<div class="sec"><div class="sec-h">Da preparare il giorno prima</div><div class="list"><div class="row"><span class="grow" style="font-size:16px;line-height:21px">${esc(cap(dot(r.prep)))}</span></div></div></div>`;
   h += `<div class="callout">${I.bulb}<span>La trovi tra le alternative di ${r.slot === 'Pranzo o cena' ? 'pranzi e cene' : r.slot === 'Colazione' ? 'colazione' : 'spuntini'} nella pagina Menu.</span></div>`;
   return h + `</div>`;
 }
@@ -1462,6 +1501,7 @@ function renderRecipe(){
   h += `<div class="sec"><div class="sec-h">Ingredienti per una porzione</div><div class="list">${r.foods.map(f => `<div class="food" style="padding-top:11px;padding-bottom:11px"><div><div class="fn">${esc(cap(f.n))}</div>${f.h ? `<div class="fh">${esc(f.h)}</div>` : ''}</div><div class="fq">${esc(f.q)}</div></div>`).join('').replace('<div class="food"', '<div class="food" data-first')}</div>
     <div class="sec-f">Liberi: ${esc(r.extra)}.${r.dose ? `<br><br><b>Dose intera:</b> ${esc(r.dose)}` : ''}</div></div>`;
   h += `<div class="sec"><div class="sec-h">Preparazione</div><div class="list">${r.steps.map((s, i) => `<div class="step"><span class="num">${i+1}</span><span>${esc(s)}</span></div>`).join('')}</div></div>`;
+  h += prepBox(r);
   h += `<div class="callout">${I.bulb}<span>${esc(r.tip)}</span></div>`;
   return h + `</div>`;
 }
