@@ -233,6 +233,12 @@ button.row:active,label.row:active{background:var(--fill2)}
 .note-card{background:var(--card);border-radius:12px;padding:12px 16px;margin:0 0 12px;font-size:15px;line-height:20px;letter-spacing:-.24px}
 .note-card.warn{background:rgba(255,149,0,.13)}
 .note-card b{font-weight:600}
+.danger{display:inline-flex;align-items:center;justify-content:center;vertical-align:-4px;margin-left:6px;padding:2px;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.danger svg{width:20px;height:20px;display:block}
+.danger[aria-expanded="true"] svg{filter:drop-shadow(0 0 3px rgba(255,204,0,.8))}
+.note-card.yellow{background:rgba(255,204,0,.2);box-shadow:inset 0 0 0 1px rgba(255,204,0,.55);display:flex;gap:10px;align-items:flex-start}
+.note-card.yellow svg{width:22px;height:22px;flex:none;margin-top:-1px}
+.note-card.yellow[hidden]{display:none}
 
 /* icone proteina */
 .pi{display:inline-grid;place-items:center;width:22px;height:22px;flex:none;vertical-align:-5px;margin-right:7px}
@@ -768,12 +774,12 @@ function renderTrain(){
         <div class="sec-f">Con fastidi a ginocchia o tendini: cyclette, ellittica o camminata in salita.</div></div>`;
     } else h += `<div class="note-card">Il recupero fa parte dell'allenamento. Una passeggiata va benissimo.</div>`;
   } else {
-    h += `<div class="sess"><h2>${esc(s.title)}</h2><div class="meta">${DAYN[di]}${s.sub ? ' · ' + esc(s.sub) : ''}${s.optional ? ' · facoltativa' : ''} · ${s.ex.length} esercizi · ~${s.dur} min</div></div>`;
+    h += `<div class="sess"><h2>${esc(s.title)}</h2><div class="meta">${DAYN[di]}${s.sub ? ' · ' + esc(s.sub) : ''}${s.optional ? ' · facoltativa' : ''} · ${s.ex.length} esercizi · ~${s.dur} min<button class="danger" data-statin="1" aria-expanded="${!!S.statin}" aria-controls="statinBox" aria-label="Avviso statina"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.4a2 2 0 0 1 3.4 0l8.4 14.6a2 2 0 0 1-1.7 3H3.6a2 2 0 0 1-1.7-3z" fill="var(--yellow)"/><path d="M12 8.6v5.2" stroke="#1C1C1E" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="#1C1C1E"/></svg></button></div></div>`;
+    h += `<div class="note-card yellow" id="statinBox" ${S.statin ? '' : 'hidden'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.4a2 2 0 0 1 3.4 0l8.4 14.6a2 2 0 0 1-1.7 3H3.6a2 2 0 0 1-1.7-3z" fill="var(--yellow)"/><path d="M12 8.6v5.2" stroke="#1C1C1E" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="#1C1C1E"/></svg><span><b>Statina.</b> Dolore muscolare intenso e diffuso che non è il solito indolenzimento, debolezza o urine scure: fermati e senti il medico.</span></div>`;
     if (s.optional && wi.skipD) h += `<div class="note-card warn">${rientro() ? 'Nelle prime 2 settimane di rientro la sessione del mercoledì si salta.' : 'Settimana di scarico: la sessione del mercoledì si salta.'}</div>`;
     if (rientro()) h += `<div class="note-card warn"><b>Rientro.</b> Niente cedimento, rest-pause o discese lentissime per tutto il mese. Se il carico indicato ti sembra leggero puoi salire, ma resta al RIR indicato.</div>`;
     if (s.note) h += `<div class="note-card">${esc(s.note)}</div>`;
     h += `<div class="note-card"><b>Riscaldamento, 8-10 min.</b> 5 minuti di cyclette o vogatore, mobilità, poi 3-4 serie di avvicinamento sul primo esercizio.</div>`;
-    h += `<div class="note-card"><b>Statina.</b> Dolore muscolare intenso e diffuso che non è il solito indolenzimento, debolezza o urine scure: fermati e senti il medico.</div>`;
     const L0 = loads();
     groupsOf(s.ex).forEach((g, gi) => {
       const ss = g.ex.length > 1;
@@ -863,6 +869,7 @@ document.addEventListener('click', ev => {
   else if (d.prog){ S.prog = d.prog; Store.set('prog', d.prog); render(); }
   else if (d.wk){ const p = prog(); Store.set((rientro() ? 'rw_' : 'week_') + p.id, +d.wk); render(); }
   else if (d.tday){ S.tday = d.tday; render(); }
+  else if (d.statin){ S.statin = !S.statin; const bx = document.getElementById('statinBox'); if (bx) bx.hidden = !S.statin; b.setAttribute('aria-expanded', S.statin); }
   else if (d.timer !== undefined) openTimer(+d.timer);
   else if (d.a === 'export') exportLoads();
   else if (d.a === 'importfile') $('#fileIn').click();
