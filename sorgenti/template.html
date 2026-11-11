@@ -201,7 +201,8 @@ img.fig{object-fit:cover}
 .macros span{display:block;font-size:12px;line-height:16px;font-weight:600}
 .macros b{display:block;font:700 22px/28px var(--rounded);font-variant-numeric:tabular-nums;letter-spacing:.35px}
 .macros small{font-size:12px;color:var(--label2);font-weight:500}
-.c-kcal{color:var(--red)} .c-p{color:var(--blue)} .c-c{color:var(--green)} .c-g{color:var(--orange)}
+.c-kcal{color:var(--red)}
+.kv{font-weight:600;font-variant-numeric:tabular-nums} .c-p{color:var(--blue)} .c-c{color:var(--green)} .c-g{color:var(--orange)}
 
 /* pasti */
 .meal{margin:0 0 22px}
@@ -1190,7 +1191,7 @@ function renderRecipes(){
   SLOTS.forEach(([k, lab]) => {
     const l = list.filter(r => recSlot(r) === k); if (!l.length) return; any = true;
     h += `<div class="sec"><div class="sec-h">${lab}<span class="r">${l.length}</span></div><div class="list">${l.map(r => `<button class="row" data-recopen="${S.rsrc}|${r.n}">
-      ${k === 'Pranzo o cena' ? protIcon(r.items) : ''}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span><span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)} · ${esc(r.time || r.when)}</span></span>${thumbOf(S.rsrc, r.n) ? `<img class="thumb" src="${thumbOf(S.rsrc, r.n)}" alt="">` : ''}<span class="val">${nf(r.k)} kcal</span>${I.chev}</button>`).join('')}</div></div>`;
+      ${k === 'Pranzo o cena' ? protIcon(r.items) : ''}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span><span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)} · ${esc(r.time || r.when)}</span>${macroLine(r)}</span>${thumbOf(S.rsrc, r.n) ? `<img class="thumb" src="${thumbOf(S.rsrc, r.n)}" alt="">` : ''}<span class="val"><b class="c-kcal kv">${nf(r.k)}</b> kcal</span>${I.chev}</button>`).join('')}</div></div>`;
   });
   if (!any) h += `<p class="sub-lt" style="text-align:center;margin-top:30px">${S.rsrc === 'mine' && !recs.length ? 'Non hai ancora ricette tue. Tocca il + in alto per crearne una con foto, ingredienti, calorie, macro e passaggi: la troverai tra le alternative dei pasti.' : 'Nessuna ricetta trovata.'}</p>`;
   return h + `</div>`;
@@ -1203,7 +1204,7 @@ function renderMyRecipe(r){
   h += `<p class="sub-lt" style="margin:0 0 14px">${esc(r.slot)}${r.time ? ' · ' + esc(r.time) : ''}</p></div>`;
   h += ph0 ? `<button class="photobox" data-photo="mine|${r.n}" aria-label="Foto della ricetta: cambia o rimuovi"><img src="${ph0}" alt=""><span class="edit">${I.camera}</span></button>`
            : `<button class="photobox empty" data-photo="mine|${r.n}" aria-label="Aggiungi una foto della ricetta">${I.camera}Aggiungi<br>foto</button>`;
-  h += `</div><div class="stats"><div><span>Calorie</span><b class="c-kcal">${nf(r.k)}</b></div><div><span>Proteine</span><b>${r.p} g</b></div><div><span>Carbo</span><b>${r.c} g</b></div><div><span>Grassi</span><b>${r.g} g</b></div></div>`;
+  h += `</div><div class="macros"><div><span class="c-kcal">Calorie</span><b>${nf(r.k)}</b><small>kcal</small></div><div><span class="c-p">Proteine</span><b>${r.p}</b><small>g</small></div><div><span class="c-c">Carbo</span><b>${r.c}</b><small>g</small></div><div><span class="c-g">Grassi</span><b>${r.g}</b><small>g</small></div></div>`;
   if (r.foods.length) h += `<div class="sec"><div class="sec-h">Ingredienti</div><div class="list">${r.foods.map(f => `<div class="food" style="padding-top:11px;padding-bottom:11px"><div><div class="fn">${esc(cap(f.n))}</div></div><div class="fq">${esc(f.q)}</div></div>`).join('')}</div>
     <div class="sec-f">${r.items.length ? r.items.length + ' ' + (r.items.length === 1 ? 'ingrediente va' : 'ingredienti vanno') + ' nella lista della spesa con la confezione Esselunga quando usi la ricetta nel menu.' : ''}</div></div>`;
   if (r.steps.length) h += `<div class="sec"><div class="sec-h">Preparazione</div><div class="list">${r.steps.map((t, i) => `<div class="step"><span class="num">${i+1}</span><span>${esc(t)}</span></div>`).join('')}</div></div>`;
@@ -1222,7 +1223,7 @@ function renderRecipe(){
   h += ph0 ? `<button class="photobox" data-photo="${src}|${r.n}" aria-label="Foto della ricetta: cambia o rimuovi"><img src="${ph0}" alt=""><span class="edit">${I.camera}</span></button>`
            : `<button class="photobox empty" data-photo="${src}|${r.n}" aria-label="Aggiungi una foto della ricetta">${I.camera}Aggiungi<br>foto</button>`;
   h += `</div>`;
-  h += `<div class="stats"><div><span>Calorie</span><b class="c-kcal">${nf(r.k)}</b></div><div><span>Proteine</span><b>${r.p} g</b></div><div><span>Carbo</span><b>${r.c} g</b></div><div><span>Grassi</span><b>${r.g} g</b></div></div>`;
+  h += `<div class="macros"><div><span class="c-kcal">Calorie</span><b>${nf(r.k)}</b><small>kcal</small></div><div><span class="c-p">Proteine</span><b>${r.p}</b><small>g</small></div><div><span class="c-c">Carbo</span><b>${r.c}</b><small>g</small></div><div><span class="c-g">Grassi</span><b>${r.g}</b><small>g</small></div></div>`;
   if (src === 'extra'){ const s = subsFor(r);
     h += `<div class="sec"><div class="sec-h">Può sostituire</div><div class="list"><div class="row"><span class="grow" style="font-size:16px;line-height:21px">${s.length ? esc(s.join(', ')) : 'In questa fase non compare tra le alternative: le calorie sono troppo diverse dai pasti previsti.'}</span></div></div><div class="sec-f">Pasti della fase ${esc(PH().label.toLowerCase())} in cui la trovi tra le alternative, con la porzione adattata.</div></div>`; }
   h += `<div class="sec"><div class="sec-h">Ingredienti per una porzione</div><div class="list">${r.foods.map(f => `<div class="food" style="padding-top:11px;padding-bottom:11px"><div><div class="fn">${esc(cap(f.n))}</div>${f.h ? `<div class="fh">${esc(f.h)}</div>` : ''}</div><div class="fq">${esc(f.q)}</div></div>`).join('').replace('<div class="food"', '<div class="food" data-first')}</div>
