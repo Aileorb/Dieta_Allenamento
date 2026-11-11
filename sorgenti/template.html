@@ -176,6 +176,17 @@ img.fig{object-fit:cover}
 .figph{display:grid!important;place-items:center;color:var(--label3)}
 .figph svg{width:42px;height:36px}
 .navbtn{border:none;background:none;color:var(--blue);font-size:17px;padding:0 4px}
+.olh{display:flex;justify-content:space-between;align-items:center;gap:8px;text-transform:none;font-size:15px;font-weight:600;color:var(--label);letter-spacing:0}
+.olh > span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.olx.off .olh > span:first-child{color:var(--label3);text-decoration:line-through}
+.olrow{gap:8px}
+.oln{flex:none;width:22px;height:22px;border-radius:50%;background:var(--fill);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--label2)}
+.olin{flex:1;min-width:0;border:none;background:var(--fill);border-radius:8px;padding:8px 10px;font:inherit;font-size:16px;color:var(--label);outline:none;text-align:right}
+.olin.sm{flex:none;width:64px}
+.olx2,.olu{color:var(--label2);font-size:15px}
+.olbtns{gap:18px;min-height:40px}
+.lnkbtn.destr{color:var(--red)}
+.fin.dt{max-width:none;color:var(--blue)}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:18px;font-weight:600;padding:3px 9px;border-radius:12px;background:var(--fill);color:var(--label2);white-space:nowrap}
 .badge i{width:7px;height:7px;border-radius:50%}
 .badge.b-orange{background:rgba(255,149,0,.15);color:var(--orange)}
@@ -802,6 +813,60 @@ async function freeSpace(){
   for (const k of orph) await Photos.del(k);
   closeSheetQuiet(); render();
   toast(n || orph.length ? `Liberati ${kb(Math.max(0, before - Store.bytes()))} di dati${orph.length ? ' e ' + orph.length + ' foto' : ''}` : 'Niente da liberare: è già tutto in ordine');
+}
+
+/* ---------- registrare una scheda diversa da quella del giorno ---------- */
+const allProgsFor = () => PROGS().map(withMine).concat(rientro() ? [] : []).filter(p => Object.keys(p.sessions).length);
+function openOther(pid){
+  const progs = allProgsFor(), cur = pid || (S.oth && S.oth.prog) || userProg().id, p = progs.find(x => x.id === cur) || progs[0];
+  S.oth = {prog: p.id};
+  const days = DAYK.filter(d => p.sessions[d]);
+  openSheet('Scheda diversa', `<p class="sec-f" style="margin:0 0 12px">Scegli la scheda e la seduta che hai fatto: puoi registrarla adesso con carichi e ripetizioni, oppure avviarla a schermo intero.</p>
+    <div class="chips" style="flex-wrap:wrap;overflow:visible">${progs.map(x => `<button data-othp="${x.id}" aria-pressed="${x.id === p.id}" style="margin-bottom:6px">${esc(x.id === 'U' ? 'La mia scheda' : x.name)}</button>`).join('')}</div>
+    <div class="list">${days.map(d => { const s = p.sessions[d]; return `<button class="row" data-othd="${d}"><span class="grow"><span class="tt" style="display:block">${esc(s.title)}</span><span class="st" style="display:block">${DAYN[DAYK.indexOf(d)]} · ${s.ex.length} esercizi${s.optional ? ' · facoltativa' : ''}</span></span>${I.chev}</button>`; }).join('')}</div>`, 'Chiudi');
+}
+function otherSession(){ const p = allProgsFor().find(x => x.id === S.ol.prog); return p && p.sessions[S.ol.day]; }
+function openOtherLog(day){
+  if (day){
+    const p = allProgsFor().find(x => x.id === S.oth.prog), s = p.sessions[day], now = new Date(), st = new Date(now.getTime() - 60 * 60000), L0 = loads();
+    const top = e => { const m = String(e.reps).match(/\d+/g); return m ? m[m.length - 1] : ''; };
+    S.ol = {prog: p.id, progName: p.id === 'R' ? 'Rientro' : p.name, day, title: s.title, date: isoToday(), t1: pad(st.getHours()) + ':' + pad(st.getMinutes()), t2: pad(now.getHours()) + ':' + pad(now.getMinutes()), ex: {}};
+    s.ex.forEach(e => { S.ol.ex[e.id] = {on: true, sets: Array.from({length: e.sets}, () => ({l: (L0[e.id] || {}).c || '', r: top(e)}))}; });
+  }
+  drawOtherLog();
+}
+function drawOtherLog(){
+  const o = S.ol, s = otherSession(); if (!s){ closeSheet(); return; }
+  const body = `<div class="list"><label class="row frow"><span class="grow tt">Giorno</span><input class="fin dt" type="date" data-ol="date" value="${o.date}" max="${isoToday()}"></label>
+      <label class="row frow"><span class="grow tt">Inizio</span><input class="fin dt" type="time" data-ol="t1" value="${o.t1}"></label>
+      <label class="row frow"><span class="grow tt">Fine</span><input class="fin dt" type="time" data-ol="t2" value="${o.t2}"></label></div>
+    <div class="sec-f" style="margin:6px 4px 16px">${esc(o.progName)} · ${esc(o.title)}. Lascia attivi solo gli esercizi che hai fatto e correggi carichi e ripetizioni di ogni serie.</div>
+    ${s.ex.map(e => { const x = o.ex[e.id] || (o.ex[e.id] = {on: true, sets: [{l: '', r: ''}]});
+      return `<div class="sec olx${x.on ? '' : ' off'}"><div class="sec-h olh"><span>${esc(e.num)} · ${esc(e.name)}</span><span class="miniseg"><button data-olon="${e.id}|1" aria-pressed="${x.on}">Fatto</button><button data-olon="${e.id}|0" aria-pressed="${!x.on}">Saltato</button></span></div>
+      ${x.on ? `<div class="list">${x.sets.map((st, i) => `<div class="row frow olrow"><span class="oln">${i + 1}</span><input class="olin" data-ols="${e.id}|${i}|l" value="${esc(st.l)}" placeholder="kg" inputmode="decimal" autocomplete="off"><span class="olx2">×</span><input class="olin sm" data-ols="${e.id}|${i}|r" value="${esc(st.r)}" placeholder="rip." inputmode="numeric" autocomplete="off"><span class="olu">rip.</span></div>`).join('')}
+        <div class="row olbtns"><button class="lnkbtn" data-olset="${e.id}|1">+ Serie</button>${x.sets.length > 1 ? `<button class="lnkbtn destr" data-olset="${e.id}|-1">− Serie</button>` : ''}</div></div>` : ''}</div>`; }).join('')}`;
+  const keep = $('#sheet').classList.contains('on') && $('#shT').textContent === 'Registra allenamento' ? $('#shB').scrollTop : 0;
+  openSheet('Registra allenamento', body, 'Annulla', 'Salva', saveOtherLog);
+  $('#shB').scrollTop = keep;
+}
+async function saveOtherLog(){
+  const o = S.ol, s = otherSession(); if (!s) return;
+  const [y, m, d] = o.date.split('-').map(Number), tt = t => { const [h, mi] = String(t || '0:0').split(':').map(Number); return new Date(y, m - 1, d, h || 0, mi || 0).getTime(); };
+  let start = tt(o.t1), end = tt(o.t2); if (end <= start) end = start + 60 * 60000;
+  if (start > Date.now() + 60000){ toast('La data è nel futuro'); return; }
+  const ex = s.ex.filter(e => o.ex[e.id] && o.ex[e.id].on).map(e => ({id: e.id, name: e.name,
+    sets: o.ex[e.id].sets.map((st, i) => ({n: i + 1, load: String(st.l || '').trim(), reps: parseInt(st.r, 10) || 0, at: start + Math.round((end - start) * (i + 1) / (o.ex[e.id].sets.length + 1))})).filter(st => st.reps || st.load)}))
+    .filter(e => e.sets.length);
+  if (!ex.length){ toast('Inserisci almeno una serie'); return; }
+  const rec = {id: uid('s'), prog: o.prog, progName: o.progName, day: o.day, title: o.title, week: null, start, end, ex};
+  const rows = rowsFromSession(rec);
+  HIST.sedute = [rows.seduta].concat(HIST.sedute).sort((a, b) => b.inizio - a.inizio); HIST.serie = HIST.serie.concat(rows.serie);
+  await histPut(rows.seduta, rows.serie);
+  // aggiorna l'ultimo carico usato per ogni esercizio, se la seduta registrata è la più recente
+  const L0 = Object.assign({}, loads());
+  ex.forEach(e => { const last = e.sets.filter(st => st.load).pop(); if (last && (!L0[e.id] || !L0[e.id].d || L0[e.id].d <= o.date)) L0[e.id] = Object.assign({}, L0[e.id], {c: last.load, d: o.date}); });
+  Store.set('loads', L0);
+  S.ol = null; closeSheet(); toast(`Salvato nello storico · ${ex.reduce((a, e) => a + e.sets.length, 0)} serie`);
 }
 
 /* ================== PERSONALIZZATI: RICETTE ================== */
@@ -1458,6 +1523,7 @@ function renderTrain(){
     if (custom) h += `<div class="list" style="margin-top:6px"><button class="row ind" data-sessname="${p.id}|${S.tday}">${iconTile(I.doc, 'gray')}<span class="grow tt">Nome della seduta</span><span class="val">${esc(s.title)}</span>${I.chev}</button></div>`;
     h += `<div class="sec-f">Con il + in alto aggiungi un esercizio a questa seduta. Gli esercizi tuoi hanno il tag «Personalizzato»: tocca «Modifica» per cambiarli o eliminarli.</div>`;
   }
+  h += `<div class="sec" style="margin-top:22px"><div class="list"><button class="row ind othrow" data-other="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 12h8M4 17h6"/><path d="M15 15l3 3 4-6"/></svg>', 'teal')}<span class="grow"><span class="tt" style="display:block">Hai fatto una scheda diversa oggi?</span><span class="st" style="display:block">Selezionala qui e registrala nello storico con esercizi e carichi</span></span>${I.chev}</button></div></div>`;
   h += renderHistory();
   h += `<div class="sec" style="margin-top:28px"><div class="sec-h">Carichi</div><div class="list">
     <button class="row ind" data-a="export">${iconTile(I.share, 'blue')}<span class="grow tt">Esporta i carichi (.txt)</span>${I.chev}</button>
@@ -1571,6 +1637,17 @@ document.addEventListener('click', ev => {
   else if (d.histall){ S.histAll = true; render(); }
   else if (d.histdel){ if (confirm('Eliminare questo allenamento dallo storico?')){ histDelete(d.histdel).then(() => { closeSheet(); toast('Eliminato'); }); } }
   else if (d.a === 'histcsv') exportHistCsv();
+  else if (d.other){ if (d.other === '1') S.oth = null; openOther(); }
+  else if (d.othp){ openOther(d.othp); }
+  else if (d.othd){ S.othDay = d.othd; const p = allProgsFor().find(x => x.id === S.oth.prog), sx = p.sessions[d.othd];
+    openSheet(sx.title, `<p class="sec-f" style="margin:0 0 14px">${esc(p.id === 'U' ? 'La mia scheda' : p.name)} · ${DAYN[DAYK.indexOf(d.othd)]} · ${sx.ex.length} esercizi</p>
+      <div class="list"><button class="row ind" data-othlog="1">${iconTile(I.doc, 'indigo')}<span class="grow"><span class="tt" style="display:block">Registra a posteriori</span><span class="st" style="display:block">L'hai già fatta: inserisci serie, carichi e orari</span></span>${I.chev}</button>
+      <button class="row ind" data-othgo="1">${iconTile(I.play, 'green')}<span class="grow"><span class="tt" style="display:block">Avviala adesso</span><span class="st" style="display:block">Apre l'allenamento a schermo intero con il timer</span></span>${I.chev}</button></div>
+      <button class="btn plain" data-other="2" style="margin-top:8px">‹ Scegli un'altra seduta</button>`, 'Chiudi'); }
+  else if (d.othlog){ openOtherLog(S.othDay); }
+  else if (d.othgo){ closeSheetQuiet(); startWorkout(0, S.oth.prog, S.othDay); }
+  else if (d.olon){ const [id, v] = d.olon.split('|'); if (S.ol && S.ol.ex[id]){ S.ol.ex[id].on = v === '1'; drawOtherLog(); } }
+  else if (d.olset){ const [id, v] = d.olset.split('|'), x = S.ol && S.ol.ex[id]; if (x){ if (+v > 0){ const last = x.sets[x.sets.length - 1] || {l: '', r: ''}; x.sets.push({l: last.l, r: last.r}); } else if (x.sets.length > 1) x.sets.pop(); drawOtherLog(); } }
   else if (d.a === 'space') openSpace();
   else if (d.a === 'freespace') freeSpace();
   else if (d.a === 'migrate') runMigration(d.bk === '1');
@@ -1600,6 +1677,8 @@ document.addEventListener('input', ev => { const t = ev.target, ds = t.dataset |
   if (ds.rfs !== undefined && S.rf){ S.rf.steps[+ds.rfs] = t.value; return; }
   if (ds.ef !== undefined && S.ef){ S.ef[ds.ef] = t.value; return; }
   if (ds.pf !== undefined && S.pf){ S.pf[ds.pf] = t.value; return; }
+  if (ds.ol !== undefined && S.ol){ S.ol[ds.ol] = t.value; return; }
+  if (ds.ols !== undefined && S.ol){ const [id, i, f] = ds.ols.split('|'); const x = S.ol.ex[id]; if (x && x.sets[+i]) x.sets[+i][f] = t.value; return; }
   if (ev.target.id === 'rq'){ S.rq = ev.target.value; const pos = ev.target.selectionStart; render(); const n = $('#rq'); if (n){ n.focus(); try { n.setSelectionRange(pos, pos); } catch(e) {} } } });
 
 /* ---------- sheet ---------- */
@@ -1709,17 +1788,17 @@ function woCtx(w){
   const sets = g.ex.map(e => adjSets(e, w.wi)), N = Math.max(...sets), rest = Math.max(...g.ex.map(e => e.restSec)) || 60;
   return {pr, s, groups, g, sets, N, rest, e: g.ex[Math.min(w.i, g.ex.length - 1)]};
 }
-function startWorkout(gi){
+function startWorkout(gi, pid, pday){
   let w = W();
-  const p = prog();
-  if (w && (w.prog !== p.id || w.day !== S.tday)){
+  const p = pid ? allProgsFor().find(x => x.id === pid) : prog(), day = pday || S.tday;
+  if (w && (w.prog !== p.id || w.day !== day)){
     if (!confirm('C\'è già un allenamento in corso (' + w.title + '). Chiuderlo e salvarlo per iniziare questo?')) { openWorkout(); return; }
     finishWorkout(true);
   }
   w = W();
   if (!w){
-    const s = p.sessions[S.tday];
-    w = {id: uid('s'), prog: p.id, progName: p.id === 'R' ? 'Rientro' : p.name, day: S.tday, title: s.title, start: Date.now(), wi: weekInfo(), week: week(),
+    const s = p.sessions[day], same = p.id === prog().id;
+    w = {id: uid('s'), prog: p.id, progName: p.id === 'R' ? 'Rientro' : p.name, day, title: s.title, start: Date.now(), wi: same ? weekInfo() : {d: 0, txt: ''}, week: same ? week() : null,
          gi: gi || 0, i: 0, set: 1, phase: 'ready', t0: 0, end: 0, dur: 0, paused: 0, log: {}};
   } else if (gi !== undefined && gi !== w.gi){ Object.assign(w, {gi, i: 0, set: nextSetFor(w, gi), phase: 'ready', paused: 0}); }
   wsetS(w); openWorkout();
