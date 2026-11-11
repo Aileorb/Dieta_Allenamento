@@ -124,6 +124,31 @@ button.row:active,label.row:active{background:var(--fill2)}
 .homeh span{color:var(--label2);font-size:15px}
 .pin{flex:1;border:none;background:none;text-align:right;font:inherit;font-size:17px;color:var(--label);outline:none;min-width:0;height:28px}
 .eu{color:var(--label2);margin-left:6px}
+.formtop{display:flex;gap:14px;align-items:center}
+.formtop .photobox{flex:none;cursor:pointer}
+.bigin,.smin{display:block;width:100%;border:none;background:var(--card);border-radius:10px;outline:none;color:var(--label);font:inherit}
+.bigin{font-size:19px;font-weight:600;padding:12px 12px;margin-bottom:8px}
+.smin{font-size:15px;padding:10px 12px;color:var(--label)}
+.frow{min-height:46px}
+.fin{flex:1;border:none;background:none;text-align:right;font:inherit;font-size:17px;color:var(--label);outline:none;min-width:0;max-width:40%}
+.fsel{border:none;background:none;font:inherit;font-size:17px;color:var(--blue);outline:none;text-align:right}
+.ing{gap:8px}
+.qin{width:88px;flex:none;border:none;background:var(--fill);border-radius:8px;padding:7px 8px;font:inherit;font-size:15px;color:var(--label);outline:none}
+.nin{flex:1;min-width:0;border:none;background:none;font:inherit;font-size:16px;color:var(--label);outline:none}
+.sheet textarea.stin{flex:1;width:auto;min-width:0;min-height:44px;border:none;border-radius:0;background:none;font:inherit;font-size:16px;line-height:21px;color:var(--label);outline:none;resize:none;padding:10px 0}
+.ing .num{flex:none;width:22px;height:22px;border-radius:50%;background:var(--fill);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--label2)}
+.xbtn{flex:none;width:28px;height:28px;border:none;border-radius:50%;background:none;color:var(--label3);font-size:22px;line-height:1}
+.okdot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--green)}
+.stepper{display:inline-flex;align-items:center;gap:14px}
+.stepper button{width:34px;height:30px;border:none;border-radius:8px;background:var(--fill);color:var(--label);font-size:20px;line-height:1}
+.stepper b{font:600 17px/22px var(--rounded);min-width:18px;text-align:center}
+.tt.link,.link{color:var(--blue)}
+.editbtn{flex:none;align-self:flex-start;border:none;background:var(--tint-bg);color:var(--blue);font-size:13px;font-weight:600;border-radius:8px;padding:5px 10px}
+.ex .top .grow{min-width:0}
+img.fig{object-fit:cover}
+.figph{display:grid!important;place-items:center;color:var(--label3)}
+.figph svg{width:42px;height:36px}
+.navbtn{border:none;background:none;color:var(--blue);font-size:17px;padding:0 4px}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:18px;font-weight:600;padding:3px 9px;border-radius:12px;background:var(--fill);color:var(--label2);white-space:nowrap}
 .badge i{width:7px;height:7px;border-radius:50%}
 .badge.b-orange{background:rgba(255,149,0,.15);color:var(--orange)}
@@ -214,7 +239,7 @@ button.row:active,label.row:active{background:var(--fill2)}
 
 /* allenamento */
 .ex{background:var(--card);border-radius:12px;margin:0 0 10px;overflow:hidden}
-.ex .top{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:12px 12px 10px 12px;align-items:center}
+.ex .top{display:grid;grid-template-columns:96px 1fr auto;gap:12px;padding:12px 12px 10px 12px;align-items:center}
 .ex .fig{width:96px;height:80px;border-radius:10px;background:var(--card2);display:block}
 .ex .nm{font-size:17px;line-height:22px;font-weight:600}
 .ex .nm small{color:var(--blue);font:600 15px/1 var(--rounded);margin-right:4px}
@@ -400,6 +425,7 @@ const I = {
   swap:'<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h12l-3.5-3.5M16 13H4l3.5 3.5"/></svg>',
   clock:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg>',
   cal:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2.5v3M13 2.5v3"/></svg>',
+  plusc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h2l1.5-2h6l1.5 2h2A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.8"/></svg>',
   play:'<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 3.8v12.4a1 1 0 0 0 1.5.9l10-6.2a1 1 0 0 0 0-1.8l-10-6.2A1 1 0 0 0 6 3.8z"/></svg>',
 };
@@ -465,7 +491,7 @@ const S = {
   prog: Store.get('prog', 'A'), tday: ['lun','mar','mer','gio','ven','sab','dom'][todayIdx], scroll: {}
 };
 if (!DIET[S.phase]) S.phase = 'f1';
-if (!TRAIN.programs.some(p => p.id === S.prog && p.id !== 'R')) S.prog = 'A';
+if (S.prog !== 'U' && !TRAIN.programs.some(p => p.id === S.prog && p.id !== 'R')) S.prog = 'A';
 const PH = () => DIET[S.phase];
 const DAYK = ['lun','mar','mer','gio','ven','sab','dom'];
 const DAYN = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
@@ -523,11 +549,165 @@ function resolve(m, choice, veg){
   const b = baseOf(m, veg);
   if (!choice || m.mod) return Object.assign({kind:'def', vtag: veg && m.alt ? m.alt.tipo : ''}, b);
   if (choice === 'alt'){ const o = veg ? m : m.alt; return o ? Object.assign({kind:'alt', vtag: veg ? '' : o.tipo}, o) : Object.assign({kind:'def'}, b); }
+  if (String(choice).startsWith('u')){ const x = myRecs().find(y => y.id === choice); if (!x) return Object.assign({kind:'def'}, b); const v = myRecView(x);
+    return {kind:'mine', title:v.title, items:v.items, foods:v.foods.length ? v.foods : [{q:'', n:'Ingredienti nella ricetta', h:''}], k:v.k, p:v.p, c:v.c, g:v.g, rec:v, f:1, vtag:'Mia'}; }
   const r = DIET.extra.find(x => x.n === choice); if (!r) return Object.assign({kind:'def'}, b);
   const f = b.k / r.k, items = r.items.map(([k, g]) => [k, roundG(k, g * f)]);
   return {kind:'rec', title:r.title, items, foods: items.map(([k, g]) => fmtFood(k, g)), k: Math.round(r.k * f), p: Math.round(r.p * f), c: Math.round(r.c * f), g: Math.round(r.g * f), rec:r, f, vtag:r.tag};
 }
 const choiceOf = (wk, d, m) => settle(wk).ch[chKey(d, m)] || null;
+
+/* ================== PERSONALIZZATI: RICETTE ================== */
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const myRecs = () => Store.get('myrec', []);
+const foodByName = n => { const t = String(n || '').trim().toLowerCase(); if (!t) return null; return Object.keys(DIET.food).find(k => DIET.food[k][0].toLowerCase() === t) || null; };
+function ingGrams(key, q){
+  const m = String(q || '').replace(',', '.').match(/(\d+(?:\.\d+)?)/); if (!m) return 0;
+  let v = parseFloat(m[1]); const u = String(q).toLowerCase();
+  if (key === 'uovo' && !/\d\s*g\b/.test(u)) return v < 20 ? v * 60 : 0;
+  if (/\d\s*(kg|l)\b/.test(u)) return v * 1000;
+  if (/\d\s*(g|gr|ml)\b/.test(u)) return v;
+  return 0;
+}
+function myRecView(x){
+  const items = [];
+  (x.ing || []).forEach(i => { const k = foodByName(i.n), g = k ? ingGrams(k, i.q) : 0; if (k && g) items.push([k, g]); });
+  return {n: x.id, mine: true, title: x.title, tag: 'Mia', slot: x.slot, time: x.time || '', when: x.slot, k: x.k, p: x.p, c: x.c, g: x.g,
+    foods: (x.ing || []).filter(i => i.n || i.q).map(i => ({q: i.q || '', n: i.n || '', h: ''})), items, steps: (x.steps || []).filter(s => s.trim()), raw: x};
+}
+const myRecList = () => myRecs().map(myRecView);
+function freeItems(wk, phase, veg){
+  const r = settle(wk), out = {};
+  DIET[phase].days.forEach((d, di) => d.meals.forEach((m, mi) => {
+    if (m.mod) return; const ch = r.ch[phase + '|' + di + '|' + mi]; if (!ch || !String(ch).startsWith('u')) return;
+    const x = myRecs().find(y => y.id === ch); if (!x) return;
+    (x.ing || []).forEach(i => { if (!i.n || (foodByName(i.n) && ingGrams(foodByName(i.n), i.q))) return; const key = i.n.trim().toLowerCase(); (out[key] = out[key] || {n: i.n.trim(), q: []}).q.push(i.q || ''); });
+  }));
+  return Object.values(out);
+}
+function openRecForm(id, slot){
+  if (id !== undefined || !S.rf){
+    const x = id ? myRecs().find(y => y.id === id) : null;
+    S.rf = x ? JSON.parse(JSON.stringify(x)) : {id: null, title: '', slot: slot || 'Pranzo o cena', time: '', k: '', p: '', c: '', g: '', ing: [{q: '', n: ''}, {q: '', n: ''}], steps: ['']};
+    S.rf.img = undefined;
+  }
+  drawRecForm();
+}
+function drawRecForm(){
+  const f = S.rf, pic = f.img !== undefined ? f.img : (f.id ? Photos.map[String(f.id)] : null);
+  const calc = Math.round(4 * (+f.p || 0) + 4 * (+f.c || 0) + 9 * (+f.g || 0));
+  const num = (k, lab, unit) => `<label class="row frow"><span class="grow tt">${lab}</span><input class="fin" data-rf="${k}" type="text" inputmode="decimal" value="${esc(f[k])}" placeholder="${k === 'k' && calc ? calc : '0'}"><span class="eu">${unit}</span></label>`;
+  const body = `<div class="formtop"><label class="photobox${pic ? '' : ' empty'}" for="rfPhoto">${pic ? `<img src="${pic}" alt=""><span class="edit">${I.camera}</span>` : `${I.camera}Aggiungi<br>foto`}</label>
+      <div class="grow"><input class="bigin" data-rf="title" placeholder="Nome della ricetta" value="${esc(f.title)}" autocomplete="off">
+      <input class="smin" data-rf="time" placeholder="Tempo (es. 20 min)" value="${esc(f.time)}" autocomplete="off"></div></div>
+    <input type="file" id="rfPhoto" accept="image/*" hidden>
+    ${pic ? `<button class="btn plain destr" data-rfa="nophoto" style="min-height:32px;margin:-6px 0 6px">Rimuovi foto</button>` : ''}
+    <div class="sec-h" style="margin-top:14px">Pasto</div>${seg(SLOTS.map(([k, l]) => [k, k === 'Pranzo o cena' ? 'Pranzo/cena' : k]), f.slot, 'rfslot', 'Pasto')}
+    <div class="sec-h">Calorie e macro per porzione</div><div class="list">${num('k', 'Calorie', 'kcal')}${num('p', 'Proteine', 'g')}${num('c', 'Carboidrati', 'g')}${num('g', 'Grassi', 'g')}</div>
+    <div class="sec-f" style="margin:6px 4px 14px">Se lasci vuote le calorie le calcolo dai macro${calc ? ` (${calc} kcal)` : ''}.</div>
+    <div class="sec-h">Ingredienti</div><div class="list">${f.ing.map((i, n) => `<div class="row frow ing"><input class="qin" data-rfi="${n}|q" placeholder="80 g" value="${esc(i.q)}" autocomplete="off"><input class="nin" data-rfi="${n}|n" list="foodlist" placeholder="Ingrediente" value="${esc(i.n)}" autocomplete="off">${foodByName(i.n) ? '<span class="okdot" title="Va nella lista della spesa"></span>' : ''}<button class="xbtn" data-rfa="ingdel|${n}" aria-label="Togli">×</button></div>`).join('')}
+      <button class="row" data-rfa="ingadd"><span class="grow tt link">+ Aggiungi ingrediente</span></button></div>
+    <datalist id="foodlist">${Object.values(DIET.food).map(v => `<option value="${esc(v[0])}">`).join('')}</datalist>
+    <div class="sec-f" style="margin:6px 4px 14px">Scegli il nome dai suggerimenti (pallino verde) e la quantità in g o ml: se usi la ricetta nel menu, finisce nella lista della spesa con la confezione Esselunga. Gli altri ingredienti compaiono a parte in «Dalle tue ricette».</div>
+    <div class="sec-h">Preparazione</div><div class="list">${f.steps.map((t, n) => `<div class="row frow ing"><span class="num">${n + 1}</span><textarea class="stin" data-rfs="${n}" rows="2" placeholder="Descrivi il passaggio">${esc(t)}</textarea><button class="xbtn" data-rfa="stdel|${n}" aria-label="Togli">×</button></div>`).join('')}
+      <button class="row" data-rfa="stadd"><span class="grow tt link">+ Aggiungi passaggio</span></button></div>
+    ${f.id ? `<div class="list" style="margin-top:22px"><button class="row" data-rfa="del"><span class="grow tt destr" style="text-align:center">Elimina ricetta</span></button></div>` : ''}`;
+  const keep = $('#sheet').classList.contains('on') && $('#shT').textContent.includes('ricetta') ? $('#shB').scrollTop : 0;
+  openSheet(f.id ? 'Modifica ricetta' : 'Nuova ricetta', body, 'Annulla', 'Salva', saveRec);
+  $('#shB').scrollTop = keep;
+}
+function rfAct(a){
+  const f = S.rf; if (!f) return; const [t, i] = a.split('|');
+  if (t === 'ingadd') f.ing.push({q: '', n: ''});
+  else if (t === 'ingdel'){ f.ing.splice(+i, 1); if (!f.ing.length) f.ing.push({q: '', n: ''}); }
+  else if (t === 'stadd') f.steps.push('');
+  else if (t === 'stdel'){ f.steps.splice(+i, 1); if (!f.steps.length) f.steps.push(''); }
+  else if (t === 'nophoto') f.img = null;
+  else if (t === 'del'){ if (!confirm('Eliminare la ricetta «' + (f.title || 'senza nome') + '»?')) return; Store.set('myrec', myRecs().filter(x => x.id !== f.id)); Photos.del(String(f.id)); S.rf = null; if (S.rec && S.rec[0] === 'mine') S.rec = null; closeSheet(); toast('Ricetta eliminata'); return; }
+  drawRecForm();
+}
+async function saveRec(){
+  const f = S.rf; if (!f) return;
+  if (!f.title.trim()){ toast('Dai un nome alla ricetta'); return; }
+  const n = v => Math.max(0, Math.round(parseFloat(String(v).replace(',', '.')) || 0));
+  const x = {id: f.id || uid('u'), title: f.title.trim(), slot: f.slot, time: (f.time || '').trim(), p: n(f.p), c: n(f.c), g: n(f.g), k: 0,
+    ing: f.ing.filter(i => (i.n || '').trim() || (i.q || '').trim()).map(i => ({q: (i.q || '').trim(), n: (i.n || '').trim()})), steps: f.steps.map(s => s.trim()).filter(Boolean)};
+  x.k = n(f.k) || Math.round(4 * x.p + 4 * x.c + 9 * x.g);
+  if (!x.k){ toast('Inserisci calorie o macro'); return; }
+  const all = myRecs().filter(y => y.id !== x.id); all.push(x); Store.set('myrec', all);
+  if (f.img !== undefined){ if (f.img) await Photos.put(String(x.id), f.img); else await Photos.del(String(x.id)); }
+  S.rf = null; closeSheet(); toast(f.id ? 'Ricetta aggiornata' : 'Ricetta salvata');
+}
+
+/* ================== PERSONALIZZATI: ESERCIZI E SCHEDA ================== */
+const myEx = () => Store.get('myex', {});
+const fmtRest = s => s >= 60 ? (Math.floor(s / 60) + '′' + (s % 60 ? (s % 60) + '″' : '')) : s + '″';
+const exPhoto = id => Photos.map['ex-' + id] || null;
+function withMine(p){
+  if (!p) return p;
+  const me = myEx(), titles = Store.get('mytitles', {}), out = Object.assign({}, p, {sessions: {}});
+  DAYK.forEach(day => {
+    const base = p.sessions[day], extra = me[p.id + '|' + day] || [];
+    if (!base && !extra.length) return;
+    const bex = base ? base.ex : [], start = bex.reduce((a, e) => Math.max(a, parseInt(e.num, 10) || 0), 0);
+    const ex = bex.concat(extra.map((x, i) => ({id: x.id, num: String(start + i + 1), name: x.name, sets: x.sets, reps: x.reps, rir: x.rir || '2', rest: fmtRest(x.restSec), restSec: x.restSec,
+      note: x.note || '', pattern: '', kind: 'Personalizzato', tool: '', muscles: x.mus || '', mine: true, key: p.id + '|' + day})));
+    const dur = base ? base.dur + Math.round(extra.reduce((a, x) => a + x.sets * (45 + x.restSec), 0) / 60) : Math.max(15, 8 + Math.round(ex.reduce((a, x) => a + x.sets * (45 + x.restSec), 0) / 60));
+    out.sessions[day] = base ? Object.assign({}, base, {ex, dur}) : {title: titles[p.id + '|' + day] || 'Allenamento personalizzato', sub: '', optional: false, dur, note: null, ex};
+  });
+  return out;
+}
+const MYPROG = () => ({id: 'U', letter: 'U', name: 'La mia scheda', block: 4, sessions: {},
+  desc: 'La tua scheda: scegli un giorno e aggiungi i tuoi esercizi con foto, serie, ripetizioni e recupero. Puoi anche aggiungere esercizi alle sedute delle altre schede.'});
+function figHtml(e, id){
+  if (!e.mine) return `<svg class="fig"${id ? ` id="${id}"` : ''} viewBox="0 0 120 100" data-p="${e.pattern}" data-t="${esc(e.tool)}" role="img" aria-label="Schema del movimento"></svg>`;
+  const ph = exPhoto(e.id);
+  return ph ? `<img class="fig"${id ? ` id="${id}"` : ''} src="${ph}" alt="">` : `<div class="fig figph"${id ? ` id="${id}"` : ''}>${I.dumb}</div>`;
+}
+function openExForm(key, id){
+  if (key !== undefined){
+    const x = id ? (myEx()[key] || []).find(y => y.id === id) : null;
+    S.ef = x ? Object.assign({key}, JSON.parse(JSON.stringify(x))) : {key, id: null, name: '', sets: 3, reps: '8-12', restSec: 90, note: '', mus: ''};
+    S.ef.img = undefined;
+  }
+  const f = S.ef, pic = f.img !== undefined ? f.img : (f.id ? exPhoto(f.id) : null), [pid, day] = f.key.split('|');
+  const pn = pid === 'U' ? 'La mia scheda' : (TRAIN.programs.find(p => p.id === pid) || {}).name;
+  const rests = [30, 45, 60, 75, 90, 120, 150, 180, 240];
+  const body = `<div class="formtop"><label class="photobox${pic ? '' : ' empty'}" for="efPhoto">${pic ? `<img src="${pic}" alt=""><span class="edit">${I.camera}</span>` : `${I.camera}Aggiungi<br>immagine`}</label>
+      <div class="grow"><input class="bigin" data-ef="name" placeholder="Nome dell'esercizio" value="${esc(f.name)}" autocomplete="off">
+      <input class="smin" data-ef="mus" placeholder="Muscoli (facoltativo)" value="${esc(f.mus)}" autocomplete="off"></div></div>
+    <input type="file" id="efPhoto" accept="image/*" hidden>
+    ${pic ? `<button class="btn plain destr" data-efa="nophoto" style="min-height:32px;margin:-6px 0 6px">Rimuovi immagine</button>` : ''}
+    <div class="list" style="margin-top:12px">
+      <div class="row frow"><span class="grow tt">Serie</span><span class="stepper"><button data-efa="sets|-1" aria-label="Meno">−</button><b>${f.sets}</b><button data-efa="sets|1" aria-label="Più">+</button></span></div>
+      <label class="row frow"><span class="grow tt">Ripetizioni</span><input class="fin" data-ef="reps" value="${esc(f.reps)}" placeholder="8-12" autocomplete="off"></label>
+      <div class="row frow"><span class="grow tt">Recupero</span><select class="fsel" data-ef="restSec">${rests.map(r => `<option value="${r}" ${+f.restSec === r ? 'selected' : ''}>${fmtRest(r)}</option>`).join('')}</select></div>
+      <label class="row frow"><span class="grow tt">Note</span><input class="fin" data-ef="note" value="${esc(f.note)}" placeholder="es. presa neutra" autocomplete="off" style="max-width:60%"></label></div>
+    <div class="sec-f" style="margin:8px 4px 0">Seduta: ${esc(pn)} · ${DAYN[DAYK.indexOf(day)].toLowerCase()}. Il timer usa serie e recupero che imposti qui.</div>
+    ${f.id ? `<div class="list" style="margin-top:22px"><button class="row" data-efa="del"><span class="grow tt destr" style="text-align:center">Elimina esercizio</span></button></div>` : ''}`;
+  openSheet(f.id ? 'Modifica esercizio' : 'Nuovo esercizio', body, 'Annulla', 'Salva', saveEx);
+}
+function efAct(a){
+  const f = S.ef; if (!f) return; const [t, v] = a.split('|');
+  if (t === 'sets') f.sets = Math.min(10, Math.max(1, f.sets + (+v)));
+  else if (t === 'nophoto') f.img = null;
+  else if (t === 'del'){ if (!confirm('Eliminare l\'esercizio «' + (f.name || 'senza nome') + '»?')) return; const me = Object.assign({}, myEx()); me[f.key] = (me[f.key] || []).filter(x => x.id !== f.id); if (!me[f.key].length) delete me[f.key]; Store.set('myex', me); Photos.del('ex-' + f.id); S.ef = null; closeSheet(); toast('Esercizio eliminato'); return; }
+  openExForm();
+}
+async function saveEx(){
+  const f = S.ef; if (!f) return;
+  if (!f.name.trim()){ toast('Dai un nome all\'esercizio'); return; }
+  const x = {id: f.id || uid('x'), name: f.name.trim(), mus: (f.mus || '').trim(), sets: f.sets, reps: (f.reps || '').trim() || '10', restSec: +f.restSec || 90, note: (f.note || '').trim()};
+  const me = Object.assign({}, myEx()), list = (me[f.key] || []).slice(), i = list.findIndex(y => y.id === x.id);
+  if (i >= 0) list[i] = x; else list.push(x); me[f.key] = list; Store.set('myex', me);
+  if (f.img !== undefined){ if (f.img) await Photos.put('ex-' + x.id, f.img); else await Photos.del('ex-' + x.id); }
+  S.ef = null; closeSheet(); toast(i >= 0 ? 'Esercizio aggiornato' : 'Esercizio aggiunto');
+}
+function renameSession(key){
+  const t = Store.get('mytitles', {})[key] || 'Allenamento personalizzato';
+  openSheet('Nome della seduta', `<div class="list"><label class="row frow"><input class="fin" id="sessName" value="${esc(t)}" style="text-align:left;max-width:none" autocomplete="off"></label></div>`, 'Annulla', 'Salva', () => {
+    const v = $('#sessName').value.trim(); const all = Object.assign({}, Store.get('mytitles', {})); if (v) all[key] = v; else delete all[key]; Store.set('mytitles', all); closeSheet(); });
+}
 
 /* ================== MENU ================== */
 const TYPEDOT = {pesi:'d-pesi', senza:'d-senza', riposo:'d-riposo'};
@@ -561,10 +741,11 @@ function renderMenu(){
   if (d.mod) h += swRow('mod', modOn, d.mod === 'corsa' ? 'Oggi corro' : 'Oggi mi alleno', d.mod === 'corsa' ? 'Aggiunge il modulo corsa' : 'Aggiunge il modulo palestra', iconTile(d.mod === 'corsa' ? I.run : I.dumbs, d.mod === 'corsa' ? 'orange' : 'indigo'));
   h += `</div>${locked ? `<div class="sec-f">${I.lock} Menu di questa settimana approvato${r0.status === 'auto' ? ' automaticamente' : ''}: per cambiare un pasto apri le alternative e sbloccalo.</div>` : `<div class="sec-f">Ogni pasto ha delle alternative: se ne scegli una, la lista della spesa si aggiorna.</div>`}</div>`;
   d.meals.forEach((m, mi) => {
-    const ch = choiceOf(wk, S.day, mi), res = resolve(m, ch, veg), nOpt = m.mod ? 0 : candidates(m, veg).length + (m.alt ? 1 : 0);
+    const ch = choiceOf(wk, S.day, mi), res = resolve(m, ch, veg), nOpt = m.mod ? 0 : candidates(m, veg).length + (m.alt ? 1 : 0) + myRecs().filter(x => x.slot === slotOf(m.name)).length;
     let badge;
     if (m.mod) badge = `<span class="badge ${m.mod === 'corsa' ? 'b-orange' : 'b-indigo'}">${m.mod === 'corsa' ? 'Solo se corri' : 'Solo se ti alleni'}</span>`;
     else if (res.kind === 'rec') badge = `<span class="badge b-blue">Alternativa scelta</span>`;
+    else if (res.kind === 'mine') badge = `<span class="badge b-indigo">Ricetta tua</span>`;
     else if (res.kind === 'alt') badge = `<span class="badge b-blue">Alternativa ${esc((res.vtag || 'onnivora').toLowerCase())}</span>`;
     else if (res.vtag) badge = `<span class="badge b-green">${esc(res.vtag)}</span>`;
     else badge = `<span class="tm">${esc(m.time)}</span>`;
@@ -572,18 +753,24 @@ function renderMenu(){
       <div class="mtitle"><div class="tt">${esc(res.title)}</div><div class="mm">${macStr(res)}</div></div>
       ${res.foods.map(f => `<div class="food"><div><div class="fn">${esc(cap(f.n))}</div>${f.h ? `<div class="fh">${esc(f.h)}</div>` : ''}</div><div class="fq">${esc(f.q)}</div></div>`).join('')}`;
     if (res.kind === 'rec') h += `<div class="mnote">${Math.abs(res.f - 1) > .04 ? `Porzione adattata al pasto (×${res.f.toFixed(2).replace('.', ',')}). ` : ''}<button class="rl" data-recopen="extra|${res.rec.n}">Vedi la ricetta</button></div>`;
+    else if (res.kind === 'mine') h += `<div class="mnote"><button class="rl" data-recopen="mine|${res.rec.n}">Vedi la tua ricetta</button></div>`;
     else if (res.note) h += `<div class="mnote">${noteHtml(res.note)}</div>`;
     if (nOpt) h += `<button class="altbtn" data-opts="${S.day}|${mi}" style="color:var(--blue)">${I.swap}<span class="grow">${res.kind === 'def' ? 'Alternative' : 'Cambia o torna alla proposta'}</span><span style="color:var(--label2);font-weight:400">${nOpt}</span>${I.chevr}</button>`;
     h += `</div></div>`;
   });
   // preparazioni per domani
   const ni = (S.day + 1) % 7, nwk = S.day === 6 ? keyOf(weekDate(wk, 7)) : wk, nx = ph.days[ni];
-  const extraPrep = nx.meals.map((m, mi) => [m, resolve(m, choiceOf(nwk, ni, mi), veg)]).filter(([m, r]) => r.kind === 'rec')
+  const extraPrep = nx.meals.map((m, mi) => [m, resolve(m, choiceOf(nwk, ni, mi), veg)]).filter(([m, r]) => r.kind === 'rec' || r.kind === 'mine')
     .map(([m, r]) => `${m.name}: hai scelto «${r.title}». Controlla la ricetta per cosa preparare o scongelare in anticipo.`);
   const pk = 'prep-' + keyOf(weekDate(nwk, ni)) + '-' + S.phase, done = Store.get(pk, {}), lines = extraPrep.concat(nx.prep);
   h += `<div class="sec"><div class="sec-h">Da preparare per ${nx.name.toLowerCase()} ${weekDate(nwk, ni).getDate()}</div><div class="list">
     ${lines.map((p, i) => `<div class="row ck${done[i] ? ' on' : ''}" role="checkbox" aria-checked="${!!done[i]}" tabindex="0" data-prep="${pk}|${i}"><span class="chk">${I.check}</span><span class="grow tt" style="font-size:16px;line-height:21px">${esc(p)}</span></div>`).join('')}
   </div><div class="sec-f">Cose da fare oggi per arrivare pronto ai pasti di domani.</div></div>`;
+  const nMy = myRecs().length;
+  h += `<div class="sec"><div class="sec-h">Le mie ricette<span class="r">${nMy || ''}</span></div><div class="list">
+    <button class="row ind" data-newrec="1">${iconTile(I.plusc, 'indigo')}<span class="grow tt link">Nuova ricetta</span></button>
+    ${nMy ? `<button class="row ind" data-gomine="1">${iconTile(I.book, 'orange')}<span class="grow tt">Vedi le mie ricette</span><span class="val">${nMy}</span>${I.chev}</button>` : ''}</div>
+    <div class="sec-f">Con foto, ingredienti, calorie, macro e passaggi. Le trovi tra le alternative dei pasti dello stesso tipo.</div></div>`;
   const open = !!S.phaseOpen;
   h += `<div class="sec phasebox${open ? ' open' : ''}"><div class="sec-h"><span style="display:inline-flex;align-items:center;gap:6px">Fase del piano
       <button class="lockbtn" data-phlock="1" aria-pressed="${open}" aria-label="${open ? 'Blocca la scelta della fase' : 'Sblocca per cambiare fase'}">${open ? I.unlockL : I.lockL}</button></span>
@@ -609,6 +796,11 @@ function openOptions(di, mi){
     <button class="row" data-pick="" ${locked ? 'disabled' : ''}>${pi(b.items)}<span class="grow"><span class="tt" style="display:block">${esc(b.title)}</span><span class="st" style="display:block">Proposta del piano</span>${macroLine(b)}</span><span class="val">${nf(b.k)} kcal</span>${chk(!ch)}</button>`;
   if (other) h += `<button class="row" data-pick="alt" ${locked ? 'disabled' : ''}>${pi(other.items)}<span class="grow"><span class="tt" style="display:block">${esc(other.title)}</span><span class="st" style="display:block">${veg ? 'Versione onnivora' : 'Alternativa ' + esc(other.tipo.toLowerCase())}</span>${macroLine(other, b)}</span><span class="val">${nf(other.k)} kcal</span>${chk(ch === 'alt')}</button>`;
   h += `</div></div>`;
+  const mine = myRecList().filter(r => r.slot === slotOf(m.name));
+  h += `<div class="sec"><div class="sec-h">Le mie ricette<span class="r">${mine.length || ''}</span></div><div class="list">${mine.map(r =>
+    `<button class="row" data-pick="${r.n}" ${locked ? 'disabled' : ''}>${pi(r.items)}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span><span class="st" style="display:block">Ricetta tua${r.time ? ' · ' + esc(r.time) : ''}</span>${macroLine(r, b)}</span>${photoOf('mine', r.n) ? `<img class="thumb sm" src="${photoOf('mine', r.n)}" alt="">` : ''}<span class="val">${nf(r.k)} kcal</span>${chk(ch === r.n)}</button>`).join('')}
+    <button class="row" data-newrec="${esc(slotOf(m.name))}"><span class="grow tt link">+ Nuova ricetta per ${esc(slotOf(m.name) === 'Pranzo o cena' ? 'pranzo o cena' : slotOf(m.name).toLowerCase())}</span></button></div>
+    ${mine.length ? '<div class="sec-f">Le tue ricette non vengono riproporzionate: vedi in piccolo la differenza di macro rispetto al pasto previsto.</div>' : ''}</div>`;
   if (cands.length) h += `<div class="sec"><div class="sec-h">Dal ricettario<span class="r">${cands.length}</span></div>${seg([['sim','Più simili'],['p','+ Proteine'],['c','− Carbo'],['g','− Grassi']], so, 'osort', 'Ordina').replace('margin:0 0 16px', '')}<div class="list">${cands.map(({r, f}) =>
     `<button class="row" data-pick="${r.n}" ${locked ? 'disabled' : ''}>${pi(r.items)}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span>
       <span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)}${Math.abs(f - 1) > .04 ? ' · porzione ×' + f.toFixed(2).replace('.', ',') : ''}</span>${macroLine({p: Math.round(r.p * f), c: Math.round(r.c * f), g: Math.round(r.g * f)}, b)}</span>${photoOf('extra', r.n) ? `<img class="thumb sm" src="${photoOf('extra', r.n)}" alt="">` : ''}<span class="val">${nf(Math.round(r.k * f))} kcal</span>${chk(ch === r.n)}</button>`).join('')}</div>
@@ -630,14 +822,15 @@ function pickOption(val){
 /* ================== RICETTE ================== */
 const SLOTS = [['Colazione','Colazioni'],['Spuntino','Spuntini e pre-allenamento'],['Pranzo o cena','Pranzi e cene']];
 function recSlot(r){ if (r.slot) return r.slot; const w = (r.when || '').toLowerCase(); return w.startsWith('colazione') ? 'Colazione' : (w.startsWith('pranzo') || w.startsWith('cena')) ? 'Pranzo o cena' : 'Spuntino'; }
-function recList(src){ return src === 'menu' ? (PH().recipes || []) : (DIET.extra || []); }
+function recList(src){ return src === 'menu' ? (PH().recipes || []) : src === 'mine' ? myRecList() : (DIET.extra || []); }
 function subsFor(r){ const out = []; PH().days.forEach(d => d.meals.forEach(m => { if (!m.mod && candidates(m, false).some(c => c.r.n === r.n)) out.push(d.short + ' ' + m.name.toLowerCase()); })); return out; }
 function renderRecipes(){
   if (S.rec) return renderRecipe();
   const recs = recList(S.rsrc), q = S.rq.trim().toLowerCase();
   let h = navbar('Ricette') + `<div class="wrap"><h1 class="lt">Ricette</h1>`;
   h += `<label class="search">${I.search}<input type="search" id="rq" placeholder="Cerca" value="${esc(S.rq)}" autocomplete="off" enterkeyhint="search"></label>`;
-  h += seg([['menu', 'Del menu (' + (PH().recipes || []).length + ')'], ['extra', 'Ricettario (' + (DIET.extra || []).length + ')']], S.rsrc, 'rs', 'Raccolta');
+  h += seg([['menu', 'Menu (' + (PH().recipes || []).length + ')'], ['extra', 'Ricettario (' + (DIET.extra || []).length + ')'], ['mine', 'Mie (' + myRecs().length + ')']], S.rsrc, 'rs', 'Raccolta');
+  if (S.rsrc === 'mine') h += `<button class="btn tinted sm" data-newrec="1" style="margin:-4px 0 16px">${I.plusc.replace('<svg', '<svg width="17" height="17"')}Nuova ricetta</button>`;
   if (S.rsrc === 'menu') h += `<p class="sub-lt" style="margin:-6px 0 14px">Ricette del menu ${esc(PH().label.toLowerCase())}. La fase si cambia in fondo alla pagina Menu.</p>`;
   const tags = ['Tutte', ...(recs.some(r => r.paese) ? ['Dal mondo'] : []), ...new Set(recs.map(r => r.tag))];
   h += `<div class="chips" role="group" aria-label="Tipo">${tags.map(t => `<button data-rtag="${esc(t)}" aria-pressed="${t === S.rtag}">${esc(t)}</button>`).join('')}</div>`;
@@ -648,12 +841,28 @@ function renderRecipes(){
     h += `<div class="sec"><div class="sec-h">${lab}<span class="r">${l.length}</span></div><div class="list">${l.map(r => `<button class="row" data-recopen="${S.rsrc}|${r.n}">
       ${k === 'Pranzo o cena' ? protIcon(r.items) : ''}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span><span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)} · ${esc(r.time || r.when)}</span></span>${photoOf(S.rsrc, r.n) ? `<img class="thumb" src="${photoOf(S.rsrc, r.n)}" alt="">` : ''}<span class="val">${nf(r.k)} kcal</span>${I.chev}</button>`).join('')}</div></div>`;
   });
-  if (!any) h += `<p class="sub-lt" style="text-align:center;margin-top:30px">Nessuna ricetta trovata.</p>`;
+  if (!any) h += `<p class="sub-lt" style="text-align:center;margin-top:30px">${S.rsrc === 'mine' && !recs.length ? 'Non hai ancora ricette tue. Creane una con foto, ingredienti, calorie, macro e passaggi: la troverai tra le alternative dei pasti.' : 'Nessuna ricetta trovata.'}</p>`;
+  return h + `</div>`;
+}
+function renderMyRecipe(r){
+  const ph0 = photoOf('mine', r.n);
+  let h = navbar(r.title, {back:'recback', backLabel:'Ricette', right:`<button class="navbtn" data-editrec="${r.n}">Modifica</button>`}) + `<div class="wrap rhead"><div class="rtop"><div>`;
+  h += `<span class="badge b-indigo">Ricetta tua</span><h2>${esc(r.title)}</h2>`;
+  if (r.slot === 'Pranzo o cena' && r.items.length){ const p = PROT[proteinOf(r.items)]; h = h.replace('<h2>', `<div class="badge" style="margin:0 0 0 6px;gap:4px">${p[1].replace('<svg', '<svg width="14" height="14"')}Proteina: ${p[0]}</div><h2>`); }
+  h += `<p class="sub-lt" style="margin:0 0 14px">${esc(r.slot)}${r.time ? ' · ' + esc(r.time) : ''}</p></div>`;
+  h += ph0 ? `<button class="photobox" data-photo="mine|${r.n}" aria-label="Foto della ricetta: cambia o rimuovi"><img src="${ph0}" alt=""><span class="edit">${I.camera}</span></button>`
+           : `<button class="photobox empty" data-photo="mine|${r.n}" aria-label="Aggiungi una foto della ricetta">${I.camera}Aggiungi<br>foto</button>`;
+  h += `</div><div class="stats"><div><span>Calorie</span><b class="c-kcal">${nf(r.k)}</b></div><div><span>Proteine</span><b>${r.p} g</b></div><div><span>Carbo</span><b>${r.c} g</b></div><div><span>Grassi</span><b>${r.g} g</b></div></div>`;
+  if (r.foods.length) h += `<div class="sec"><div class="sec-h">Ingredienti</div><div class="list">${r.foods.map(f => `<div class="food" style="padding-top:11px;padding-bottom:11px"><div><div class="fn">${esc(cap(f.n))}</div></div><div class="fq">${esc(f.q)}</div></div>`).join('')}</div>
+    <div class="sec-f">${r.items.length ? r.items.length + ' ' + (r.items.length === 1 ? 'ingrediente va' : 'ingredienti vanno') + ' nella lista della spesa con la confezione Esselunga quando usi la ricetta nel menu.' : ''}</div></div>`;
+  if (r.steps.length) h += `<div class="sec"><div class="sec-h">Preparazione</div><div class="list">${r.steps.map((t, i) => `<div class="step"><span class="num">${i+1}</span><span>${esc(t)}</span></div>`).join('')}</div></div>`;
+  h += `<div class="callout">${I.bulb}<span>La trovi tra le alternative di ${r.slot === 'Pranzo o cena' ? 'pranzi e cene' : r.slot === 'Colazione' ? 'colazione' : 'spuntini'} nella pagina Menu.</span></div>`;
   return h + `</div>`;
 }
 function renderRecipe(){
   const [src, n] = S.rec, r = recList(src).find(x => String(x.n) === String(n));
   if (!r){ S.rec = null; return renderRecipes(); }
+  if (src === 'mine') return renderMyRecipe(r);
   const ph0 = photoOf(src, r.n);
   let h = navbar(r.title, {back:'recback', backLabel:'Ricette'}) + `<div class="wrap rhead"><div class="rtop"><div>`;
   h += `<span class="badge${r.tag === 'Vegana' || r.tag === 'Vegetariana' ? ' b-green' : ' b-blue'}">${esc(r.tag)}</span><h2>${esc(r.title)}</h2>`;
@@ -833,6 +1042,10 @@ function renderShop(){
       return `<div class="row ck${chk[k] ? ' on' : ''}" role="checkbox" aria-checked="${!!chk[k]}" tabindex="0" data-chk="${k}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(DIET.food[k][0])}</span>${pk ? `<span class="st" style="display:block">${packSub(k)}</span>` : ''}</span>
       <span class="val">${packTxt(k, b)}${note ? `<span class="qn">${note}</span>` : ''}${diff ? `<span class="qx">${base[k] ? 'piano: ' + qtxt(k, base[k]) : 'nuovo'}</span>` : ''}</span></div>`; }).join('')}</div></div>`;
   });
+  const free = freeItems(wk, S.phase, veg);
+  if (free.length) h += `<div class="sec"><div class="sec-h">Dalle tue ricette<span class="r">${free.filter(x => chk['x:' + x.n.toLowerCase()]).length} di ${free.length}</span></div><div class="list">${free.map(x => { const kk = 'x:' + x.n.toLowerCase();
+      return `<div class="row ck${chk[kk] ? ' on' : ''}" role="checkbox" aria-checked="${!!chk[kk]}" tabindex="0" data-chk="${esc(kk)}"><span class="chk">${I.check}</span><span class="grow tt">${esc(cap(x.n))}</span><span class="val">${esc(x.q.filter(Boolean).join(' + ') || '—')}</span></div>`; }).join('')}</div>
+    <div class="sec-f">Ingredienti delle tue ricette che non sono nell'elenco del piano: quantità e prezzo non sono stimati.</div></div>`;
   const removed = Object.keys(base).filter(k => base[k] > 0 && !(tot[k] > 0));
   if (removed.length) h += `<div class="sec"><div class="sec-h">Non servono più</div><div class="list">${removed.map(k => `<div class="row"><span class="grow tt" style="color:var(--label2);text-decoration:line-through">${esc(DIET.food[k][0])}</span><span class="val">${qtxt(k, base[k])}</span></div>`).join('')}</div>
     <div class="sec-f">Prodotti del piano di default sostituiti dalle alternative che hai scelto.</div></div>`;
@@ -859,9 +1072,10 @@ const rientro = () => Store.get('rientro', false);
 const rLen = () => Store.get('rientroLen', 4) === 6 ? 6 : 4;
 const RT = () => rLen() === 6 ? R6 : R4;
 const rSkip = () => rLen() === 6 ? 3 : 2;
-const PROGS = () => TRAIN.programs.filter(p => p.id !== 'R');
-const userProg = () => PROGS().find(p => p.id === S.prog) || PROGS()[0];
-const prog = () => rientro() ? TRAIN.programs.find(p => p.id === 'R') : userProg();
+const PROGS = () => TRAIN.programs.filter(p => p.id !== 'R').concat([MYPROG()]);
+const ALLP = () => TRAIN.programs.concat([MYPROG()]).map(withMine);
+const userProg = () => withMine(PROGS().find(p => p.id === S.prog) || PROGS()[0]);
+const prog = () => rientro() ? withMine(TRAIN.programs.find(p => p.id === 'R')) : userProg();
 function week(){ const p = prog(), max = rientro() ? rLen() : p.block; let w = Store.get((rientro() ? 'rw_' : 'week_') + p.id, 1); return Math.min(Math.max(1, w), max); }
 function weekInfo(){
   const p = prog(), w = week();
@@ -906,7 +1120,7 @@ function groupsOf(ex){ const g = []; ex.forEach(e => { const n = parseInt(e.num,
 function renderTrain(){
   const p = prog(), wi = weekInfo(), w = week(), max = rientro() ? rLen() : p.block, R = rientro();
   let h = navbar('Allenamento') + `<div class="wrap"><h1 class="lt">Allenamento</h1>`;
-  h += seg(PROGS().map(x => [x.id, x.id === 'f1' ? 'Ricomp.' : x.name]), userProg().id, 'prog', 'Programma').replace('class="seg"', `class="seg${R ? ' locked' : ''}"${R ? ' aria-disabled="true"' : ''}`);
+  h += seg(PROGS().map(x => [x.id, x.id === 'f1' ? 'Ricomp.' : x.id === 'U' ? 'Mia' : x.id === 'B' ? 'Ipertr.' : x.id === 'C' ? 'Essenz.' : x.name]), userProg().id, 'prog', 'Programma').replace('class="seg"', `class="seg${R ? ' locked' : ''}"${R ? ' aria-disabled="true"' : ''}`);
   h += R ? `<p class="sub-lt locknote">${I.lockL}<span>Programma bloccato durante il rientro: il recupero è lo stesso qualunque sia la scheda. Alla fine riprendi con <b>${esc(userProg().name)}</b> dalla settimana 1.</span></p><p class="sub-lt">${esc(p.desc)}</p>` : `<p class="sub-lt">${esc(p.desc)}</p>`;
   h += `<div class="sec"><div class="list">${swRow('rientro', R, 'Rientro dopo una pausa', R ? `${rLen()} settimane con carichi e serie ridotti` : 'Da 4 a 6 settimane, secondo quanto sei stato fermo', iconTile(I.undo, 'teal'))}${R ? `<button class="row" data-a="rpause"><span class="grow tt">Pausa</span><span class="val">${rLen() === 6 ? 'Più di 2 mesi' : '1-2 mesi'}</span>${I.chev}</button>` : ''}</div></div>`;
   h += `<div class="sec"><div class="sec-h">${rientro() ? 'Settimana di rientro' : 'Settimana del blocco'}</div>`;
@@ -924,7 +1138,8 @@ function renderTrain(){
       h += `<div class="sec"><div class="sec-h">Progressione</div><div class="list">${[['Settimane 1-2','30-35 min','4′ corsa + 1′ camminata'],['Settimane 3-4','40-45 min','8′ corsa + 1′ camminata'],['Settimane 5-6','45-50 min','Corsa continua'],['Dalla 7ª','55-60 min','Corsa continua']]
         .map(r => `<div class="row"><span class="grow"><span class="tt" style="display:block">${r[0]}</span><span class="st" style="display:block">${r[2]}</span></span><span class="val">${r[1]}</span></div>`).join('')}</div>
         <div class="sec-f">Con fastidi a ginocchia o tendini: cyclette, ellittica o camminata in salita.</div></div>`;
-    } else h += `<div class="note-card">Il recupero fa parte dell'allenamento. Una passeggiata va benissimo.</div>`;
+    } else h += `<div class="note-card">${p.id === 'U' ? 'Nessun esercizio in questo giorno.' : 'Il recupero fa parte dell\'allenamento. Una passeggiata va benissimo.'}</div>`;
+    h += `<button class="btn tinted sm" data-exadd="${p.id}|${S.tday}" style="margin:4px 0 8px">${I.plusc.replace('<svg', '<svg width="17" height="17"')}${p.id === 'U' ? 'Aggiungi il primo esercizio' : 'Aggiungi un esercizio a questo giorno'}</button>`;
   } else {
     h += `<div class="sess"><h2>${esc(s.title)}</h2><div class="meta">${DAYN[di]}${s.sub ? ' · ' + esc(s.sub) : ''}${s.optional ? ' · facoltativa' : ''} · ${s.ex.length} esercizi · ~${s.dur} min<button class="danger" data-statin="1" aria-expanded="${!!S.statin}" aria-controls="statinBox" aria-label="Avviso statina"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.4a2 2 0 0 1 3.4 0l8.4 14.6a2 2 0 0 1-1.7 3H3.6a2 2 0 0 1-1.7-3z" fill="var(--yellow)"/><path d="M12 8.6v5.2" stroke="#1C1C1E" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="#1C1C1E"/></svg></button></div></div>`;
     h += `<div class="note-card yellow" id="statinBox" ${S.statin ? '' : 'hidden'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.4a2 2 0 0 1 3.4 0l8.4 14.6a2 2 0 0 1-1.7 3H3.6a2 2 0 0 1-1.7-3z" fill="var(--yellow)"/><path d="M12 8.6v5.2" stroke="#1C1C1E" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="#1C1C1E"/></svg><span><b>Statina.</b> Dolore muscolare intenso e diffuso che non è il solito indolenzimento, debolezza o urine scure: fermati e senti il medico.</span></div>`;
@@ -938,8 +1153,8 @@ function renderTrain(){
       h += `<div class="group">${ss ? `<div class="ssh">Superserie ${g.ex.map(e => e.num).join(' + ')}</div>` : ''}`;
       g.ex.forEach((e, ei) => {
         const {ld, sg, ph} = loadInfo(e, wi);
-        h += `<article class="ex"><div class="top"><svg class="fig" viewBox="0 0 120 100" data-p="${e.pattern}" data-t="${esc(e.tool)}" role="img" aria-label="Schema del movimento"></svg>
-          <div><div class="nm"><small>${esc(e.num)}</small>${esc(e.name)}</div><div class="mu">${esc(e.muscles)}</div><div class="tg"><span class="k">${esc(e.kind)}</span><span>${esc(e.tool)}</span></div></div></div>
+        h += `<article class="ex${e.mine ? ' mine' : ''}"><div class="top">${figHtml(e)}
+          <div class="grow"><div class="nm"><small>${esc(e.num)}</small>${esc(e.name)}</div>${e.muscles ? `<div class="mu">${esc(e.muscles)}</div>` : ''}<div class="tg"><span class="k">${esc(e.kind)}</span>${e.tool ? `<span>${esc(e.tool)}</span>` : ''}</div></div>${e.mine ? `<button class="editbtn" data-exedit="${e.key}|${e.id}">Modifica</button>` : ''}</div>
           <div class="st4"><div class="${wi.deload || wi.rientro ? 'mod' : ''}"><b>${adjSets(e, wi)}</b><span>serie</span></div><div><b>${esc(e.reps)}</b><span>ripetizioni</span></div><div class="${wi.d || wi.deload || wi.rientro ? 'mod' : ''}"><b>${esc(adjRir(e, wi))}</b><span>RIR</span></div><div><b>${esc(e.rest)}</b><span>pausa</span></div></div>
           ${e.note ? `<div class="nt">${esc(e.note)}</div>` : ''}
           ${sg ? `<div class="sug">${sg}</div>` : ''}
@@ -950,6 +1165,8 @@ function renderTrain(){
       });
       h += `</div>`;
     });
+    h += `<div class="list" style="margin-top:6px"><button class="row ind" data-exadd="${p.id}|${S.tday}">${iconTile(I.plusc, 'indigo')}<span class="grow tt link">Aggiungi un esercizio</span></button>${p.id === 'U' || !TRAIN.programs.find(x => x.id === p.id).sessions[S.tday] ? `<button class="row ind" data-sessname="${p.id}|${S.tday}">${iconTile(I.doc, 'gray')}<span class="grow tt">Nome della seduta</span><span class="val">${esc(s.title)}</span>${I.chev}</button>` : ''}</div>
+      <div class="sec-f">Gli esercizi che aggiungi hanno il tag «Personalizzato»: tocca «Modifica» sulla scheda dell'esercizio per cambiarli o eliminarli.</div>`;
   }
   h += `<div class="sec" style="margin-top:28px"><div class="sec-h">Carichi</div><div class="list">
     <button class="row ind" data-a="export">${iconTile(I.share, 'blue')}<span class="grow tt">Esporta i carichi (.txt)</span>${I.chev}</button>
@@ -994,6 +1211,7 @@ addEventListener('scroll', onScroll, {passive:true});
 function toggleCheck(el){
   if (el.dataset.chk){
     const k = el.dataset.chk, wk = shopWk(), key = 'chk_' + wk + '_' + S.phase, c = Object.assign({}, Store.get(key, {})), st = Object.assign({}, stock());
+    if (k.startsWith('x:')){ if (c[k]) delete c[k]; else c[k] = true; Store.set(key, c); render(); return; }
     if (c[k]){ const v = c[k]; if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; Store.set('stock', st); } delete c[k]; }
     else {
       const tot = weekItems(wk, S.phase, Store.get('veg', false), Store.get('extra', true)), day = dnum(wk), need = tot[k] || 0;
@@ -1033,6 +1251,15 @@ document.addEventListener('click', ev => {
   else if (d.a === 'recback'){ S.rec = null; render(false); window.scrollTo(0, S.scroll.reclist || 0); onScroll(); }
   else if (d.a === 'shopreset'){ if (confirm('Togliere tutte le spunte della spesa? Anche i prodotti aggiunti alla dispensa con queste spunte verranno tolti.')){ const key = 'chk_' + shopWk() + '_' + S.phase, c = Store.get(key, {}), st = Object.assign({}, stock()); Object.entries(c).forEach(([k, v]) => { if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; } }); Store.set('stock', st); Store.set(key, {}); render(); } }
   else if (d.price){ openPrice(d.price); }
+  else if (d.newrec){ S.rf = null; openRecForm(null, d.newrec !== '1' ? d.newrec : undefined); }
+  else if (d.editrec){ openRecForm(d.editrec); }
+  else if (d.gomine){ S.rsrc = 'mine'; S.rtag = 'Tutte'; S.rec = null; switchTab('ricette'); window.scrollTo(0, 0); }
+  else if (d.rfa){ rfAct(d.rfa); }
+  else if (d.rfslot){ if (S.rf){ S.rf.slot = d.rfslot; drawRecForm(); } }
+  else if (d.exadd){ openExForm(d.exadd, null); }
+  else if (d.exedit){ const [pid, day, id] = d.exedit.split('|'); openExForm(pid + '|' + day, id); }
+  else if (d.efa){ efAct(d.efa); }
+  else if (d.sessname){ renameSession(d.sessname); }
   else if (d.pricereset){ const pr = Object.assign({}, prices()); delete pr[d.pricereset]; Store.set('prices', pr); closeSheet(); toast('Prezzo indicativo ripristinato'); }
   else if (d.pan){ openPantry(d.pan); }
   else if (d.pact){ pantryAct(d.pact); }
@@ -1051,6 +1278,8 @@ document.addEventListener('click', ev => {
 document.addEventListener('keydown', ev => { const el = ev.target; if ((ev.key === ' ' || ev.key === 'Enter') && el.matches && el.matches('[data-chk],[data-prep]')){ ev.preventDefault(); toggleCheck(el); } });
 document.addEventListener('change', ev => {
   const i = ev.target;
+  if (i.id === 'rfPhoto' || i.id === 'efPhoto'){ const fl = i.files && i.files[0]; if (!fl) return; shrinkImage(fl).then(u => { if (i.id === 'rfPhoto' && S.rf){ S.rf.img = u; drawRecForm(); } else if (S.ef){ S.ef.img = u; openExForm(); } }).catch(() => toast('Immagine non valida')); return; }
+  if (i.dataset && i.dataset.ef !== undefined && S.ef){ S.ef[i.dataset.ef] = i.value; return; }
   if (i.dataset.sw){
     const k = i.dataset.sw;
     if (k === 'mod'){ S.mod[menuWk() + S.phase + S.day] = i.checked; }
@@ -1060,7 +1289,12 @@ document.addEventListener('change', ev => {
   }
   if (i.dataset.id && i.dataset.f){ const l = Object.assign({}, loads()); l[i.dataset.id] = Object.assign({}, l[i.dataset.id], {[i.dataset.f]: i.value.trim(), d: isoToday()}); Store.set('loads', l); if (rientro() && i.dataset.f === 'c') render(); }
 });
-document.addEventListener('input', ev => { if (ev.target.id === 'rq'){ S.rq = ev.target.value; const pos = ev.target.selectionStart; render(); const n = $('#rq'); if (n){ n.focus(); try { n.setSelectionRange(pos, pos); } catch(e) {} } } });
+document.addEventListener('input', ev => { const t = ev.target, ds = t.dataset || {};
+  if (ds.rf !== undefined && S.rf){ S.rf[ds.rf] = t.value; return; }
+  if (ds.rfi !== undefined && S.rf){ const [i, f] = ds.rfi.split('|'); if (S.rf.ing[+i]) S.rf.ing[+i][f] = t.value; return; }
+  if (ds.rfs !== undefined && S.rf){ S.rf.steps[+ds.rfs] = t.value; return; }
+  if (ds.ef !== undefined && S.ef){ S.ef[ds.ef] = t.value; return; }
+  if (ev.target.id === 'rq'){ S.rq = ev.target.value; const pos = ev.target.selectionStart; render(); const n = $('#rq'); if (n){ n.focus(); try { n.setSelectionRange(pos, pos); } catch(e) {} } } });
 
 /* ---------- sheet ---------- */
 function openSheet(title, bodyHtml, left = 'Chiudi', right = '', onRight = null){
@@ -1099,13 +1333,13 @@ function stopRientro(){
 /* ---------- import / export ---------- */
 function buildTxt(){
   const L0 = loads(), lines = ['# Carichi attuali - Il mio piano', '# Esportato il ' + new Date().toLocaleDateString('it-IT'), '# Modifica solo le colonne Carico e Note, poi reimporta il file nell\'app.', '# ID | Programma | Seduta | Esercizio | Carico | Note'];
-  TRAIN.programs.forEach(p => { lines.push('', '# ' + p.letter + '. ' + p.name);
-    ['lun','mar','mer','gio'].forEach(k => { const s = p.sessions[k]; if (!s) return; s.ex.forEach(e => { const l = L0[e.id] || {}; lines.push([e.id, p.name, s.title, e.name, l.c || '', l.n || ''].map(x => String(x).replace(/\|/g, '/')).join(' | ')); }); }); });
+  ALLP().forEach(p => { lines.push('', '# ' + p.letter + '. ' + p.name);
+    DAYK.forEach(k => { const s = p.sessions[k]; if (!s) return; s.ex.forEach(e => { const l = L0[e.id] || {}; lines.push([e.id, p.name, s.title, e.name, l.c || '', l.n || ''].map(x => String(x).replace(/\|/g, '/')).join(' | ')); }); }); });
   return lines.join('\n') + '\n';
 }
 function parseTxt(txt){
   const L0 = Object.assign({}, loads()), idx = {}; let n = 0;
-  TRAIN.programs.forEach(p => Object.values(p.sessions).forEach(s => s.ex.forEach(e => { idx[e.id] = e; idx[(p.name + '|' + s.title + '|' + e.name).toLowerCase()] = e; })));
+  ALLP().forEach(p => Object.values(p.sessions).forEach(s => s.ex.forEach(e => { idx[e.id] = e; idx[(p.name + '|' + s.title + '|' + e.name).toLowerCase()] = e; })));
   txt.split(/\r?\n/).forEach(line => { if (!line.trim() || line.trim().startsWith('#')) return; const c = line.split('|').map(x => x.trim()); if (c.length < 5) return;
     const e = idx[c[0]] || idx[(c[1] + '|' + c[2] + '|' + c[3]).toLowerCase()]; if (!e) return; const cur = L0[e.id] || {};
     if ((c[4] || '') !== (cur.c || '') || (c[5] || '') !== (cur.n || '')){ L0[e.id] = {c: c[4] || '', n: c[5] || '', d: isoToday()}; n++; } });
@@ -1350,7 +1584,7 @@ function drawTimer(){
   else if (T.phase === 'work'){ L = `<button class="cbtn gy" disabled>Recupero</button>`; R = `<button class="cbtn or" data-t="done">Fatto</button>`; }
   else if (T.phase === 'rest'){ L = `<button class="cbtn gy" data-t="skip">Salta</button>`; R = `<button class="cbtn gr" disabled>Inizia</button>`; }
   else { L = `<span style="width:84px"></span>`; R = `<button class="cbtn bl" data-t="next">${T.gi + 1 < T.groups.length ? 'Avanti' : 'Fine'}</button>`; }
-  document.getElementById('tm').innerHTML = `<div class="tm-ex"><svg class="fig" id="tmFig" viewBox="0 0 120 100" data-p="${e.pattern}" data-t="${esc(e.tool)}" aria-hidden="true"></svg>
+  document.getElementById('tm').innerHTML = `<div class="tm-ex">${figHtml(e, 'tmFig')}
     <div><div class="nm">${esc(e.name)}</div><div class="s">${T.sets[T.i]} serie da ${esc(e.reps)} · RIR ${esc(adjRir(e, T.wi))}${ld.c ? ' · ' + esc(ld.c) : ''}</div></div></div>
     ${sg ? `<div class="sec-f" style="text-align:center;color:var(--orange)">${sg}</div>` : ''}
     <div class="dial"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--fill)" stroke-width="7"/><circle id="ring" cx="60" cy="60" r="54" fill="none" stroke="var(--green)" stroke-width="7" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="339.29"/></svg>
@@ -1360,7 +1594,7 @@ function drawTimer(){
     <div class="clock">${L}${R}</div>
     ${T.phase === 'rest' ? `<div class="adj"><button data-t="minus">−15 s</button><button data-t="plus">+15 s</button></div>` : ''}
     <div class="list"><div class="row"><span class="grow tt">${rientro() ? 'Carico di prima' : 'Carico'}</span><input data-id="${e.id}" data-f="c" value="${esc(ld.c || '')}" placeholder="${esc(loadInfo(e, T.wi).ph)}" style="border:none;background:none;text-align:right;outline:none;font-size:17px;color:var(--label2);width:50%"></div></div>`;
-  mountFig(document.getElementById('tmFig')); drawClock();
+  const tf = document.getElementById('tmFig'); if (tf && tf.tagName.toLowerCase() === 'svg') mountFig(tf); drawClock();
 }
 $('#shB').addEventListener('click', ev => { const b = ev.target.closest('[data-t]'); if (b) act(b.dataset.t); });
 
