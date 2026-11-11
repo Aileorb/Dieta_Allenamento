@@ -1925,8 +1925,8 @@ function renderTrain(){
     h += `<div class="sec-f">Con il + in alto aggiungi un esercizio a questa seduta. Gli esercizi tuoi hanno il tag «Personalizzato»: tocca «Modifica» per cambiarli o eliminarli.</div>`;
   }
   h += `<div class="sec" style="margin-top:22px"><div class="list"><button class="row ind othrow" data-other="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 12h8M4 17h6"/><path d="M15 15l3 3 4-6"/></svg>', 'teal')}<span class="grow"><span class="tt" style="display:block">Hai fatto una scheda diversa oggi?</span><span class="st" style="display:block">Selezionala qui e registrala nello storico con esercizi e carichi</span></span>${I.chev}</button></div></div>`;
-  h += renderHistory();
   h += weekWidget();
+  h += renderHistory();
   h += `<div class="sec" style="margin-top:28px"><div class="sec-h">Carichi</div><div class="list">
     <button class="row ind" data-a="export">${iconTile(I.share, 'blue')}<span class="grow tt">Esporta i carichi (.txt)</span>${I.chev}</button>
     <button class="row ind" data-a="importfile">${iconTile(I.doc, 'indigo')}<span class="grow tt">Importa da file</span>${I.chev}</button>
