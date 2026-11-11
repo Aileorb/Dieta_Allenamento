@@ -716,10 +716,11 @@ const idbDone = tx => new Promise(res => { tx.oncomplete = res; tx.onerror = res
 const HIST = {db: null, sedute: [], serie: [], ready: false};
 function histOpen(){
   return new Promise(res => { try {
-    const r = indexedDB.open('ilmiopiano-dati', 1);
-    r.onupgradeneeded = () => { const db = r.result;
-      const s = db.createObjectStore('sedute', {keyPath: 'id'}); s.createIndex('inizio', 'inizio');
-      const t = db.createObjectStore('serie', {keyPath: 'id', autoIncrement: true}); t.createIndex('seduta', 'seduta'); t.createIndex('esercizio', 'esercizio'); t.createIndex('data', 'data'); };
+    const r = indexedDB.open('ilmiopiano-dati', 2);
+    r.onupgradeneeded = () => { const db = r.result, has = n => db.objectStoreNames.contains(n);
+      if (!has('sedute')){ const s = db.createObjectStore('sedute', {keyPath: 'id'}); s.createIndex('inizio', 'inizio'); }
+      if (!has('serie')){ const t = db.createObjectStore('serie', {keyPath: 'id', autoIncrement: true}); t.createIndex('seduta', 'seduta'); t.createIndex('esercizio', 'esercizio'); t.createIndex('data', 'data'); }
+      if (!has('acquisti')){ const a = db.createObjectStore('acquisti', {keyPath: 'id'}); a.createIndex('settimana', 'settimana'); a.createIndex('data', 'data'); a.createIndex('prodotto', 'prodotto'); } };
     r.onsuccess = () => { HIST.db = r.result; res(HIST.db); }; r.onerror = () => res(null);
   } catch(e) { res(null); } });
 }
@@ -779,6 +780,41 @@ async function exportHistCsv(){
     const url = URL.createObjectURL(file), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Storico scaricato');
   } catch(e){ if (e && e.name !== 'AbortError') toast('Esportazione non riuscita'); }
 }
+/* ---------- tabella «acquisti»: una riga per ogni prodotto spuntato nella lista ---------- */
+function buyRow(wk, phase, k, v){
+  const free = k.startsWith('x:'), p = PACKS[k], f = DIET.food[k], mine = !free && !!prices()[k];
+  const ob = v && typeof v === 'object' ? v : {};
+  return {id: wk + '|' + phase + '|' + k, settimana: wk, data: ob.at || keyOf(weekDate(wk, 0)), fase: phase, prodotto: k,
+    nome: free ? cap(k.slice(2)) : (f ? f[0] : k), confezione: p ? p.label : '', confezioni: ob.n ?? null, quantita: ob.g ?? null,
+    unita: f ? f[1] : '', prezzo: free || !p ? null : (ob.price ?? priceOf(k)), prezzoTuo: mine, costo: free ? null : (ob.cost ?? null)};
+}
+async function buysPut(rows){ if (!HIST.db) await histOpen(); if (!HIST.db || !rows.length) return; const tx = HIST.db.transaction('acquisti', 'readwrite'), st = tx.objectStore('acquisti'); rows.forEach(r => st.put(r)); await idbDone(tx); }
+async function buysDel(ids){ if (!HIST.db) await histOpen(); if (!HIST.db || !ids.length) return; const tx = HIST.db.transaction('acquisti', 'readwrite'), st = tx.objectStore('acquisti'); ids.forEach(i => st.delete(i)); await idbDone(tx); }
+async function buysAll(){ if (!HIST.db) await histOpen(); if (!HIST.db) return []; return await idbReq(HIST.db.transaction('acquisti').objectStore('acquisti').getAll()); }
+async function buysReplace(rows){ if (!HIST.db) await histOpen(); if (!HIST.db) return; const tx = HIST.db.transaction('acquisti', 'readwrite'), st = tx.objectStore('acquisti'); st.clear(); (rows || []).forEach(r => st.put(r)); await idbDone(tx); }
+// recupera nella tabella le spunte ancora presenti (ultime 8 settimane)
+async function buysBackfill(){
+  if (!HIST.db) await histOpen(); if (!HIST.db) return;
+  const have = new Set(await idbReq(HIST.db.transaction('acquisti').objectStore('acquisti').getAllKeys())), rows = [];
+  Object.keys(Store.data).forEach(key => { const m = key.match(/^chk_(\d{4}-\d{2}-\d{2})_(f\d)$/); if (!m) return;
+    Object.entries(Store.data[key]).forEach(([k, v]) => { const r = buyRow(m[1], m[2], k, v); if (!have.has(r.id)) rows.push(r); }); });
+  await buysPut(rows);
+}
+async function exportBuysCsv(){
+  const rows = (await buysAll()).sort((a, b) => (a.data + a.settimana).localeCompare(b.data + b.settimana) || a.nome.localeCompare(b.nome));
+  if (!rows.length){ toast('Nessun acquisto registrato: spunta i prodotti nella lista'); return; }
+  const n2 = v => v === null || v === undefined ? '' : String(Math.round(v * 100) / 100).replace('.', ',');
+  const q = v => { const s = String(v ?? ''); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const ph = {f1: 'Ricomposizione', f2: 'Mantenimento'};
+  const lines = [['Data', 'Settimana (lunedì)', 'Fase', 'Prodotto', 'Confezione', 'Confezioni', 'Quantità', 'Unità', 'Prezzo (€)', 'Prezzo per', 'Prezzo inserito da te', 'Costo (€)'].join(';')];
+  rows.forEach(r => lines.push([r.data, r.settimana, ph[r.fase] || r.fase, r.nome, r.confezione, r.confezioni ?? '', r.quantita !== null && r.quantita !== undefined ? Math.round(r.quantita) : '', r.unita, n2(r.prezzo), r.prezzo === null ? '' : (r.confezioni === null ? 'kg' : 'confezione'), r.prezzo === null ? '' : (r.prezzoTuo ? 'sì' : 'no'), n2(r.costo)].map(q).join(';')));
+  const name = 'acquisti-spesa-' + isoToday() + '.csv';
+  try { const file = new File(['﻿' + lines.join('\r\n') + '\r\n'], name, {type: 'text/csv'});
+    if (navigator.canShare && navigator.canShare({files: [file]})){ await navigator.share({files: [file], title: 'Acquisti della spesa'}); return; }
+    const url = URL.createObjectURL(file), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Acquisti scaricati');
+  } catch(e){ if (e && e.name !== 'AbortError') toast('Esportazione non riuscita'); }
+}
+
 /* ---------- pulizia delle spunte vecchie ---------- */
 function cleanOld(){
   const cut = keyOf(weekDate(WK_NOW(), -56)); let n = 0;
@@ -828,13 +864,14 @@ async function openSpace(){
   toast('Calcolo lo spazio…');
   const ls = Store.bytes(), app = await cacheBytes(), keys = Object.keys(Photos.map);
   const ph = keys.reduce((a, k) => a + (Photos.size[k] || 0) + (Photos.size['mini:' + k] || 0), 0);
-  const hs = new Blob([JSON.stringify(HIST.sedute), JSON.stringify(HIST.serie)]).size;
+  const hs = new Blob([JSON.stringify(HIST.sedute), JSON.stringify(HIST.serie)]).size, buys = await buysAll(), nb = buys.length, bb = new Blob([JSON.stringify(buys)]).size;
   let est = null; try { est = navigator.storage && navigator.storage.estimate ? await navigator.storage.estimate() : null; } catch(e) {}
   const old = Object.keys(Store.data).filter(k => /^(chk_|prep-)/.test(k)).length, orph = orphanPhotos().length;
   const row = (t, sub, v) => `<div class="row"><span class="grow"><span class="tt" style="display:block">${t}</span>${sub ? `<span class="st" style="display:block">${sub}</span>` : ''}</span><span class="val">${v}</span></div>`;
   openSheet('Spazio utilizzato', `<div class="list">
       ${row('App per l\'uso offline', 'Pagina, ricette, schede e icone', kb(app))}
       ${row('Dati dell\'app', 'Menu, spesa, carichi, scorte, profilo · limite circa 5 MB', kb(ls))}
+      ${row('Acquisti della spesa', `${nb} ${nb === 1 ? 'prodotto registrato' : 'prodotti registrati'}`, kb(bb))}
       ${row('Storico allenamenti', `${HIST.sedute.length} ${HIST.sedute.length === 1 ? 'seduta' : 'sedute'} · ${HIST.serie.length} ${HIST.serie.length === 1 ? 'serie' : 'serie'}`, kb(hs))}
       ${row('Foto', `${keys.length} foto con miniature${Photos.legacy.length ? ' · ' + Photos.legacy.length + ' da alleggerire' : ''}`, kb(ph))}</div>
     ${est && est.usage ? `<div class="list" style="margin-top:12px">${row('Totale indicato dal telefono', est.quota ? 'Disponibili per l\'app: ' + kb(est.quota) : '', kb(est.usage))}</div>` : ''}
@@ -1518,6 +1555,7 @@ function renderShop(){
   if (removed.length) h += `<div class="sec"><div class="sec-h">Non servono più</div><div class="list">${removed.map(k => `<div class="row"><span class="grow tt" style="color:var(--label2);text-decoration:line-through">${esc(DIET.food[k][0])}</span><span class="val">${qtxt(k, base[k])}</span></div>`).join('')}</div>
     <div class="sec-f">Prodotti del piano di default sostituiti dalle alternative che hai scelto.</div></div>`;
   h += `<div class="sec"><div class="list">
+    <button class="row ind" data-a="buyscsv">${iconTile(I.share, 'green')}<span class="grow"><span class="tt" style="display:block">Esporta gli acquisti (.csv)</span><span class="st" style="display:block">Una riga per prodotto: data, confezioni, prezzo e costo</span></span>${I.chev}</button>
     <a class="row ind" href="promemoria-spesa.ics" style="color:inherit;text-decoration:none">${iconTile(I.cal, 'red')}<span class="grow"><span class="tt" style="display:block">Promemoria in Calendario</span><span class="st" style="display:block">Ogni domenica alle 16:00, un'ora prima della scadenza</span></span>${I.chev}</a>
     <button class="row" data-a="shopreset"><span class="grow tt destr" style="text-align:center">Togli tutte le spunte</span></button></div></div>`;
   h += renderHome(inPantry, wk, tot);
@@ -1651,7 +1689,7 @@ function renderTrain(){
     <button class="row ind" data-a="backup">${iconTile(I.share, 'green')}<span class="grow tt">Backup completo (.json)</span>${I.chev}</button>
     <button class="row ind" data-a="importfile">${iconTile(I.doc, 'indigo')}<span class="grow tt">Ripristina un backup</span>${I.chev}</button>
     <button class="row ind" data-a="space">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>', 'gray')}<span class="grow tt">Spazio utilizzato</span>${I.chev}</button>
-  </div><div class="sec-f">Contiene tutto: carichi, storico allenamenti, scelte del menu, spesa, impostazioni, profilo e foto. Fallo prima di togliere l'app dalla schermata Home: su iPhone, rimuoverla cancella anche i suoi dati.${rientro() ? ' In modalità rientro il campo «Prima» indica il carico che facevi prima della pausa.' : ''}</div></div>`;
+  </div><div class="sec-f">Contiene tutto: carichi, storico allenamenti, acquisti della spesa, scelte del menu, impostazioni, profilo e foto. Fallo prima di togliere l'app dalla schermata Home: su iPhone, rimuoverla cancella anche i suoi dati.${rientro() ? ' In modalità rientro il campo «Prima» indica il carico che facevi prima della pausa.' : ''}</div></div>`;
   return h + `</div>`;
 }
 
@@ -1686,15 +1724,15 @@ addEventListener('scroll', onScroll, {passive:true});
 function toggleCheck(el){
   if (el.dataset.chk){
     const k = el.dataset.chk, wk = shopWk(), key = 'chk_' + wk + '_' + S.phase, c = Object.assign({}, Store.get(key, {})), st = Object.assign({}, stock());
-    if (k.startsWith('x:')){ if (c[k]) delete c[k]; else c[k] = true; Store.set(key, c); render(); return; }
+    if (k.startsWith('x:')){ const id = wk + '|' + S.phase + '|' + k; if (c[k]){ delete c[k]; buysDel([id]); } else { c[k] = {at: isoToday()}; buysPut([buyRow(wk, S.phase, k, c[k])]); } Store.set(key, c); render(); return; }
     if (c[k]){ const v = c[k]; if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; Store.set('stock', st); } delete c[k]; }
     else {
       const tot = weekItems(wk, S.phase, Store.get('veg', false), Store.get('extra', true)), day = dnum(wk), need = tot[k] || 0;
       const have = stockAt(k, day, need), b = buyPlan(k, need, have);
-      c[k] = {prev: st[k] || null, n: b.n, g: b.g, cost: b.cost};
+      c[k] = {prev: st[k] || null, n: b.n, g: b.g, cost: b.cost, price: PACKS[k] ? priceOf(k) : null, at: isoToday()};
       if (PACKS[k] && b.g) { st[k] = {q: have + b.g, d: wk}; Store.set('stock', st); }
     }
-    Store.set(key, c); ledgerWeek(wk); render();
+    Store.set(key, c); ledgerWeek(wk); if (c[k]) buysPut([buyRow(wk, S.phase, k, c[k])]); else buysDel([wk + '|' + S.phase + '|' + k]); render();
   }
   else if (el.dataset.prep){ const [k, i] = el.dataset.prep.split('|'), c = Object.assign({}, Store.get(k, {})); c[i] = !c[i]; Store.set(k, c); render(); }
 }
@@ -1724,7 +1762,7 @@ document.addEventListener('click', ev => {
   else if (d.recopen){ const [src, n] = d.recopen.split('|'); S.scroll.reclist = S.tab === 'ricette' ? window.scrollY : 0; S.rec = [src, n]; S.rsrc = src;
     if (S.tab !== 'ricette'){ S.scroll.ricette = 0; switchTab('ricette'); } else { render(false); } window.scrollTo(0, 0); onScroll(); }
   else if (d.a === 'recback'){ S.rec = null; render(false); window.scrollTo(0, S.scroll.reclist || 0); onScroll(); }
-  else if (d.a === 'shopreset'){ if (confirm('Togliere tutte le spunte della spesa? Anche i prodotti aggiunti alla dispensa con queste spunte verranno tolti.')){ const key = 'chk_' + shopWk() + '_' + S.phase, c = Store.get(key, {}), st = Object.assign({}, stock()); Object.entries(c).forEach(([k, v]) => { if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; } }); Store.set('stock', st); Store.set(key, {}); ledgerWeek(shopWk()); render(); } }
+  else if (d.a === 'shopreset'){ if (confirm('Togliere tutte le spunte della spesa? Anche i prodotti aggiunti alla dispensa con queste spunte verranno tolti.')){ const key = 'chk_' + shopWk() + '_' + S.phase, c = Store.get(key, {}), st = Object.assign({}, stock()); Object.entries(c).forEach(([k, v]) => { if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; } }); buysDel(Object.keys(c).map(k => shopWk() + '|' + S.phase + '|' + k)); Store.set('stock', st); Store.set(key, {}); ledgerWeek(shopWk()); render(); } }
   else if (d.price){ openPrice(d.price); }
   else if (d.profile){ openProfile(); }
   else if (d.pfsex){ if (S.pf){ S.pf.sex = S.pf.sex === d.pfsex ? '' : d.pfsex; openProfile(false); } }
@@ -1754,6 +1792,7 @@ document.addEventListener('click', ev => {
   else if (d.histall){ S.histAll = true; render(); }
   else if (d.histdel){ if (confirm('Eliminare questo allenamento dallo storico?')){ histDelete(d.histdel).then(() => { closeSheet(); toast('Eliminato'); }); } }
   else if (d.a === 'histcsv') exportHistCsv();
+  else if (d.a === 'buyscsv') exportBuysCsv();
   else if (d.recap !== undefined){ closeSheetQuiet(); openRecap(d.recap || undefined); }
   else if (d.other){ if (d.other === '1') S.oth = null; openOther(); }
   else if (d.othp){ openOther(d.othp); }
@@ -1861,7 +1900,7 @@ function openPaste(){
 }
 async function exportBackup(){
   toast('Preparo il backup…');
-  const data = {app:'ilmiopiano-backup', v:2, at:new Date().toISOString(), store:Store.data, photos: await Photos.allData(), history: {sedute: HIST.sedute, serie: HIST.serie}};
+  const data = {app:'ilmiopiano-backup', v:2, at:new Date().toISOString(), store:Store.data, photos: await Photos.allData(), history: {sedute: HIST.sedute, serie: HIST.serie}, acquisti: await buysAll()};
   const txt = JSON.stringify(data), name = 'backup-il-mio-piano-' + isoToday() + '.json';
   try {
     const file = new File([txt], name, {type:'application/json'});
@@ -1876,6 +1915,7 @@ async function restoreBackup(txt){
   toast('Ripristino in corso…');
   Store.data = d.store; Store.data._restored = d.at; Store.saveAll();
   if (d.history) await histReplace(d.history.sedute || [], d.history.serie || []);
+  if (d.acquisti) await buysReplace(d.acquisti);
   for (const [k, v] of Object.entries(d.photos || {})) await Photos.put(k, v);
   closeSheet(); location.reload();
 }
@@ -2084,7 +2124,7 @@ setTimeout(() => { if (W()){ renderMini(); ensureTick(); } }, 0);
 document.querySelectorAll('.screen').forEach(s => s.classList.toggle('hidden', s.dataset.scr !== S.tab));
 render(false);
 cleanOld(); ledgerBackfill();
-Promise.all([Photos.load(), histLoad()]).then(() => { render(); if (Photos.legacy.length || Store.get('sessions', []).length) setTimeout(askMigration, 600); });
+Promise.all([Photos.load(), histLoad()]).then(() => { buysBackfill(); render(); if (Photos.legacy.length || Store.get('sessions', []).length) setTimeout(askMigration, 600); });
 setInterval(() => { if ((S.tab === 'spesa' || S.tab === 'menu') && !$('#sheet').classList.contains('on')) render(); }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('#sheet').classList.contains('on')) render(); });
 if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
