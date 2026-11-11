@@ -56,6 +56,33 @@ button{cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:man
 .navbar .rt{justify-self:end}
 .wrap{max-width:720px;margin:0 auto;padding:0 16px}
 h1.lt{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.37px;margin:2px 0 10px}
+.lthead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 10px}
+.lthead h1.lt{margin:0}
+.lta{display:flex;align-items:center;gap:12px;flex:none}
+.addbtn{width:34px;height:34px;border-radius:50%;border:none;padding:0;background:var(--blue);color:#fff;display:grid;place-items:center;flex:none;-webkit-tap-highlight-color:transparent}
+.addbtn svg{width:18px;height:18px;stroke-width:2.6}
+.addbtn:active,.avatar:active{opacity:.6}
+.avatar{width:36px;height:36px;border-radius:50%;border:none;padding:0;overflow:hidden;background:linear-gradient(180deg,#A6A6AD,#86868C);color:#fff;display:grid;place-items:center;flex:none;font:600 15px/1 var(--rounded);letter-spacing:.3px}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar svg{width:26px;height:26px;margin-top:8px}
+.addbtn.sm{width:28px;height:28px}.addbtn.sm svg{width:15px;height:15px}
+.avatar.sm{width:30px;height:30px;font-size:12px}.avatar.sm svg{width:21px;height:21px;margin-top:6px}
+.navbar .rtc{display:inline-flex;gap:10px;align-items:center;opacity:0;pointer-events:none;transition:opacity .15s;padding-right:8px}
+.navbar.compact .rtc{opacity:1;pointer-events:auto}
+.pfhead{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 18px}
+.pfpic{position:relative;width:96px;height:96px;border-radius:50%;overflow:visible;background:linear-gradient(180deg,#A6A6AD,#86868C);color:#fff;display:grid;place-items:center;font:600 36px/1 var(--rounded);cursor:pointer}
+.pfpic img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.pfin{width:100%;height:100%;border-radius:50%;overflow:hidden;display:grid;place-items:center}
+.pfin > svg{width:68px;height:68px;margin-top:24px}
+.pfpic .edit{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 3px var(--bg2,var(--bg))}
+.pfpic .edit svg{width:16px;height:16px}
+.pfname{width:100%;max-width:320px;text-align:center;border:none;background:none;outline:none;font:700 22px/28px inherit;font-size:22px;font-weight:700;color:var(--label)}
+.pflink{color:var(--blue);font-size:15px;cursor:pointer}
+.miniseg{display:inline-flex;background:var(--fill);border-radius:8px;padding:2px;gap:2px}
+.miniseg button{border:none;background:none;border-radius:6px;padding:5px 10px;font-size:14px;font-weight:500;color:var(--label)}
+.miniseg button[aria-pressed="true"]{background:var(--seg);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+.goals{flex-wrap:wrap;overflow:visible}
+.goals button{margin-bottom:6px}
 .sub-lt{color:var(--label2);font-size:15px;line-height:20px;margin:-6px 0 14px;letter-spacing:-.24px}
 
 /* ---------- tab bar ---------- */
@@ -425,6 +452,7 @@ const I = {
   swap:'<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h12l-3.5-3.5M16 13H4l3.5 3.5"/></svg>',
   clock:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg>',
   cal:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2.5v3M13 2.5v3"/></svg>',
+  person:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8.6" r="4.3"/><path d="M3.6 21.2c.9-4.3 4.2-6.9 8.4-6.9s7.5 2.6 8.4 6.9z"/></svg>',
   plusc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h2l1.5-2h6l1.5 2h2A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.8"/></svg>',
   play:'<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 3.8v12.4a1 1 0 0 0 1.5.9l10-6.2a1 1 0 0 0 0-1.8l-10-6.2A1 1 0 0 0 6 3.8z"/></svg>',
@@ -499,6 +527,7 @@ const DAYL = ['L','M','M','G','V','S','D'];
 
 /* ---------- componenti ---------- */
 function navbar(title, opts = {}){
+  if (opts.acts) opts.right = `<span class="rtc">${opts.acts}</span>`;
   return `<header class="navbar${opts.always ? ' always compact' : ''}"><div class="in">
     <div>${opts.back ? `<button class="back" data-a="${opts.back}">${I.back}<span>${esc(opts.backLabel || 'Indietro')}</span></button>` : ''}</div>
     <div class="t">${esc(title)}</div><div class="rt">${opts.right || ''}</div></div></header>`;
@@ -709,6 +738,46 @@ function renameSession(key){
     const v = $('#sessName').value.trim(); const all = Object.assign({}, Store.get('mytitles', {})); if (v) all[key] = v; else delete all[key]; Store.set('mytitles', all); closeSheet(); });
 }
 
+/* ================== TITOLO GRANDE CON AZIONI E PROFILO ================== */
+const profile = () => Store.get('profile', {});
+const GOALS = ['Perdere grasso', 'Ricomposizione corporea', 'Aumentare la massa muscolare', 'Mantenere il peso', 'Aumentare la forza', 'Migliorare il colesterolo', 'Più energia e salute'];
+function initials(n){ const p = String(n || '').trim().split(/\s+/).filter(Boolean); return p.length ? (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() : ''; }
+function avatarHtml(cls){
+  const ph = Photos.map['profile'], pr = profile(), ini = initials(pr.name);
+  return `<button class="avatar ${cls || ''}" data-profile="1" aria-label="Profilo">${ph ? `<img src="${ph}" alt="">` : ini ? `<span>${esc(ini)}</span>` : I.person}</button>`;
+}
+const addBtn = (attr, label, cls) => `<button class="addbtn ${cls || ''}" ${attr} aria-label="${label}">${I.plusc}</button>`;
+function ltitle(title, actions){ return `<div class="lthead"><h1 class="lt">${esc(title)}</h1>${actions ? `<div class="lta">${actions}</div>` : ''}</div>`; }
+function openProfile(fresh){
+  if (fresh !== false){ S.pf = Object.assign({name: '', age: '', sex: '', weight: '', height: '', goals: [], other: ''}, JSON.parse(JSON.stringify(profile()))); S.pf.img = undefined; }
+  const f = S.pf, pic = f.img !== undefined ? f.img : (Photos.map['profile'] || null), ini = initials(f.name);
+  const num = (k, lab, unit, ph) => `<label class="row frow"><span class="grow tt">${lab}</span><input class="fin" data-pf="${k}" type="text" inputmode="decimal" value="${esc(f[k])}" placeholder="${ph}" autocomplete="off"><span class="eu">${unit}</span></label>`;
+  const body = `<div class="pfhead"><label class="pfpic" for="pfPhoto"><span class="pfin">${pic ? `<img src="${pic}" alt="">` : ini ? `<span>${esc(ini)}</span>` : I.person}</span><span class="edit">${I.camera}</span></label>
+      <input type="file" id="pfPhoto" accept="image/*" hidden>
+      <input class="pfname" data-pf="name" placeholder="Il tuo nome" value="${esc(f.name)}" autocomplete="off">
+      ${pic ? `<button class="btn plain destr" data-pfa="nophoto" style="min-height:30px;font-size:15px">Rimuovi foto</button>` : `<label class="pflink" for="pfPhoto">Aggiungi foto</label>`}</div>
+    <div class="sec-h">Dati</div><div class="list">${num('age', 'Età', 'anni', '26')}
+      <div class="row frow"><span class="grow tt">Sesso</span><span class="miniseg">${['Uomo', 'Donna', 'Altro'].map(x => `<button data-pfsex="${x}" aria-pressed="${f.sex === x}">${x}</button>`).join('')}</span></div>
+      ${num('weight', 'Peso', 'kg', '80')}${num('height', 'Altezza', 'cm', '175')}</div>
+    <div class="sec-h" style="margin-top:20px">Obiettivi</div><div class="chips goals">${GOALS.map(g => `<button data-pfgoal="${esc(g)}" aria-pressed="${f.goals.includes(g)}">${f.goals.includes(g) ? '✓ ' : ''}${esc(g)}</button>`).join('')}</div>
+    <div class="list" style="margin-top:10px"><label class="row frow"><input class="fin" data-pf="other" value="${esc(f.other)}" placeholder="Altro obiettivo (es. correre 10 km)" style="text-align:left;max-width:none" autocomplete="off"></label></div>
+    <div class="sec-f" style="margin:10px 4px 0">I dati restano solo su questo iPhone e finiscono nel backup completo dell'app.</div>`;
+  const keep = $('#sheet').classList.contains('on') && $('#shT').textContent === 'Profilo' ? $('#shB').scrollTop : 0;
+  openSheet('Profilo', body, 'Annulla', 'Salva', saveProfile);
+  $('#shB').scrollTop = keep;
+}
+async function saveProfile(){
+  const f = S.pf; if (!f) return;
+  const n = (v, lo, hi) => { const x = parseFloat(String(v).replace(',', '.')); return x >= lo && x <= hi ? Math.round(x * 10) / 10 : ''; };
+  const pr = {name: (f.name || '').trim(), age: n(f.age, 10, 110), sex: f.sex || '', weight: n(f.weight, 25, 300), height: n(f.height, 100, 250), goals: f.goals.slice(), other: (f.other || '').trim()};
+  if (String(f.age).trim() && pr.age === ''){ toast('Controlla l\'età'); return; }
+  if (String(f.weight).trim() && pr.weight === ''){ toast('Controlla il peso, in kg'); return; }
+  if (String(f.height).trim() && pr.height === ''){ toast('Controlla l\'altezza, in cm'); return; }
+  Store.set('profile', pr);
+  if (f.img !== undefined){ if (f.img) await Photos.put('profile', f.img); else await Photos.del('profile'); }
+  S.pf = null; closeSheet(); toast('Profilo salvato');
+}
+
 /* ================== MENU ================== */
 const TYPEDOT = {pesi:'d-pesi', senza:'d-senza', riposo:'d-riposo'};
 const menuWk = () => S.wkm === 'next' ? WK_NEXT() : WK_NOW();
@@ -728,7 +797,8 @@ function renderMenu(){
   const ph = PH(), wk = menuWk(), d = ph.days[S.day], veg = Store.get('veg', false), mk = wk + S.phase + S.day, modOn = !!S.mod[mk];
   const locked = isLocked(wk), r0 = settle(wk), isNow = wk === WK_NOW();
   const tot = dayTotals(wk, S.day, veg, modOn);
-  let h = navbar('Menu') + `<div class="wrap"><h1 class="lt">Menu</h1>`;
+  const acts = addBtn('data-newrec="1"', 'Nuova ricetta') + avatarHtml();
+  let h = navbar('Menu', {acts: addBtn('data-newrec="1"', 'Nuova ricetta', 'sm') + avatarHtml('sm')}) + `<div class="wrap">` + ltitle('Menu', acts);
   h += nextApprovalBanner();
   h += seg([['now', 'Questa settimana'], ['next', 'Prossima · ' + fmtRange(WK_NEXT())]], S.wkm || 'now', 'wkm', 'Settimana');
   h += `<div class="strip" role="group" aria-label="Giorno">${ph.days.map((x, i) => { const dt = weekDate(wk, i), today = isNow && i === todayIdx;
@@ -768,8 +838,7 @@ function renderMenu(){
   </div><div class="sec-f">Cose da fare oggi per arrivare pronto ai pasti di domani.</div></div>`;
   const nMy = myRecs().length;
   h += `<div class="sec"><div class="sec-h">Le mie ricette<span class="r">${nMy || ''}</span></div><div class="list">
-    <button class="row ind" data-newrec="1">${iconTile(I.plusc, 'indigo')}<span class="grow tt link">Nuova ricetta</span></button>
-    ${nMy ? `<button class="row ind" data-gomine="1">${iconTile(I.book, 'orange')}<span class="grow tt">Vedi le mie ricette</span><span class="val">${nMy}</span>${I.chev}</button>` : ''}</div>
+    ${nMy ? `<button class="row ind" data-gomine="1">${iconTile(I.book, 'orange')}<span class="grow tt">Vedi le mie ricette</span><span class="val">${nMy}</span>${I.chev}</button>` : `<div class="row"><span class="grow st" style="font-size:15px">Nessuna ricetta tua: creala con il + in alto.</span></div>`}</div>
     <div class="sec-f">Con foto, ingredienti, calorie, macro e passaggi. Le trovi tra le alternative dei pasti dello stesso tipo.</div></div>`;
   const open = !!S.phaseOpen;
   h += `<div class="sec phasebox${open ? ' open' : ''}"><div class="sec-h"><span style="display:inline-flex;align-items:center;gap:6px">Fase del piano
@@ -827,10 +896,9 @@ function subsFor(r){ const out = []; PH().days.forEach(d => d.meals.forEach(m =>
 function renderRecipes(){
   if (S.rec) return renderRecipe();
   const recs = recList(S.rsrc), q = S.rq.trim().toLowerCase();
-  let h = navbar('Ricette') + `<div class="wrap"><h1 class="lt">Ricette</h1>`;
+  let h = navbar('Ricette', {acts: addBtn('data-newrec="1"', 'Nuova ricetta', 'sm')}) + `<div class="wrap">` + ltitle('Ricette', addBtn('data-newrec="1"', 'Nuova ricetta'));
   h += `<label class="search">${I.search}<input type="search" id="rq" placeholder="Cerca" value="${esc(S.rq)}" autocomplete="off" enterkeyhint="search"></label>`;
   h += seg([['menu', 'Menu (' + (PH().recipes || []).length + ')'], ['extra', 'Ricettario (' + (DIET.extra || []).length + ')'], ['mine', 'Mie (' + myRecs().length + ')']], S.rsrc, 'rs', 'Raccolta');
-  if (S.rsrc === 'mine') h += `<button class="btn tinted sm" data-newrec="1" style="margin:-4px 0 16px">${I.plusc.replace('<svg', '<svg width="17" height="17"')}Nuova ricetta</button>`;
   if (S.rsrc === 'menu') h += `<p class="sub-lt" style="margin:-6px 0 14px">Ricette del menu ${esc(PH().label.toLowerCase())}. La fase si cambia in fondo alla pagina Menu.</p>`;
   const tags = ['Tutte', ...(recs.some(r => r.paese) ? ['Dal mondo'] : []), ...new Set(recs.map(r => r.tag))];
   h += `<div class="chips" role="group" aria-label="Tipo">${tags.map(t => `<button data-rtag="${esc(t)}" aria-pressed="${t === S.rtag}">${esc(t)}</button>`).join('')}</div>`;
@@ -841,7 +909,7 @@ function renderRecipes(){
     h += `<div class="sec"><div class="sec-h">${lab}<span class="r">${l.length}</span></div><div class="list">${l.map(r => `<button class="row" data-recopen="${S.rsrc}|${r.n}">
       ${k === 'Pranzo o cena' ? protIcon(r.items) : ''}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span><span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)} · ${esc(r.time || r.when)}</span></span>${photoOf(S.rsrc, r.n) ? `<img class="thumb" src="${photoOf(S.rsrc, r.n)}" alt="">` : ''}<span class="val">${nf(r.k)} kcal</span>${I.chev}</button>`).join('')}</div></div>`;
   });
-  if (!any) h += `<p class="sub-lt" style="text-align:center;margin-top:30px">${S.rsrc === 'mine' && !recs.length ? 'Non hai ancora ricette tue. Creane una con foto, ingredienti, calorie, macro e passaggi: la troverai tra le alternative dei pasti.' : 'Nessuna ricetta trovata.'}</p>`;
+  if (!any) h += `<p class="sub-lt" style="text-align:center;margin-top:30px">${S.rsrc === 'mine' && !recs.length ? 'Non hai ancora ricette tue. Tocca il + in alto per crearne una con foto, ingredienti, calorie, macro e passaggi: la troverai tra le alternative dei pasti.' : 'Nessuna ricetta trovata.'}</p>`;
   return h + `</div>`;
 }
 function renderMyRecipe(r){
@@ -1012,7 +1080,7 @@ function renderShop(){
   });
   const keys = Object.keys(plan), done = keys.filter(k => chk[k]).length, nCh = changedCount(r, S.phase);
   const spend = keys.reduce((a, k) => a + costOf(k, plan[k]), 0), nMine = keys.filter(k => prices()[k]).length;
-  let h = navbar('Spesa') + `<div class="wrap"><h1 class="lt">Spesa</h1>`;
+  let h = navbar('Spesa') + `<div class="wrap">` + ltitle('Spesa');
   h += seg([['now', 'Questa sett. · ' + fmtRange(WK_NOW())], ['next', 'Prossima · ' + fmtRange(WK_NEXT())]], isNext ? 'next' : 'now', 'swk', 'Settimana');
   // stato approvazione
   const dl = deadline(wk);
@@ -1119,7 +1187,8 @@ function loadInfo(e, wi){
 function groupsOf(ex){ const g = []; ex.forEach(e => { const n = parseInt(e.num, 10), last = g[g.length-1]; if (last && last.n === n && /[ab]$/.test(e.num)) last.ex.push(e); else g.push({n, ex:[e]}); }); return g; }
 function renderTrain(){
   const p = prog(), wi = weekInfo(), w = week(), max = rientro() ? rLen() : p.block, R = rientro();
-  let h = navbar('Allenamento') + `<div class="wrap"><h1 class="lt">Allenamento</h1>`;
+  const xa = `data-exadd="${p.id}|${S.tday}"`;
+  let h = navbar('Allenamento', {acts: addBtn(xa, 'Aggiungi esercizio', 'sm')}) + `<div class="wrap">` + ltitle('Allenamento', addBtn(xa, 'Aggiungi esercizio'));
   h += seg(PROGS().map(x => [x.id, x.id === 'f1' ? 'Ricomp.' : x.id === 'U' ? 'Mia' : x.id === 'B' ? 'Ipertr.' : x.id === 'C' ? 'Essenz.' : x.name]), userProg().id, 'prog', 'Programma').replace('class="seg"', `class="seg${R ? ' locked' : ''}"${R ? ' aria-disabled="true"' : ''}`);
   h += R ? `<p class="sub-lt locknote">${I.lockL}<span>Programma bloccato durante il rientro: il recupero è lo stesso qualunque sia la scheda. Alla fine riprendi con <b>${esc(userProg().name)}</b> dalla settimana 1.</span></p><p class="sub-lt">${esc(p.desc)}</p>` : `<p class="sub-lt">${esc(p.desc)}</p>`;
   h += `<div class="sec"><div class="list">${swRow('rientro', R, 'Rientro dopo una pausa', R ? `${rLen()} settimane con carichi e serie ridotti` : 'Da 4 a 6 settimane, secondo quanto sei stato fermo', iconTile(I.undo, 'teal'))}${R ? `<button class="row" data-a="rpause"><span class="grow tt">Pausa</span><span class="val">${rLen() === 6 ? 'Più di 2 mesi' : '1-2 mesi'}</span>${I.chev}</button>` : ''}</div></div>`;
@@ -1139,7 +1208,7 @@ function renderTrain(){
         .map(r => `<div class="row"><span class="grow"><span class="tt" style="display:block">${r[0]}</span><span class="st" style="display:block">${r[2]}</span></span><span class="val">${r[1]}</span></div>`).join('')}</div>
         <div class="sec-f">Con fastidi a ginocchia o tendini: cyclette, ellittica o camminata in salita.</div></div>`;
     } else h += `<div class="note-card">${p.id === 'U' ? 'Nessun esercizio in questo giorno.' : 'Il recupero fa parte dell\'allenamento. Una passeggiata va benissimo.'}</div>`;
-    h += `<button class="btn tinted sm" data-exadd="${p.id}|${S.tday}" style="margin:4px 0 8px">${I.plusc.replace('<svg', '<svg width="17" height="17"')}${p.id === 'U' ? 'Aggiungi il primo esercizio' : 'Aggiungi un esercizio a questo giorno'}</button>`;
+    h += `<div class="sec-f" style="margin:-4px 4px 12px">${p.id === 'U' ? 'Tocca il + in alto per aggiungere il primo esercizio.' : 'Vuoi allenarti lo stesso? Tocca il + in alto per aggiungere un esercizio a questo giorno.'}</div>`;
   } else {
     h += `<div class="sess"><h2>${esc(s.title)}</h2><div class="meta">${DAYN[di]}${s.sub ? ' · ' + esc(s.sub) : ''}${s.optional ? ' · facoltativa' : ''} · ${s.ex.length} esercizi · ~${s.dur} min<button class="danger" data-statin="1" aria-expanded="${!!S.statin}" aria-controls="statinBox" aria-label="Avviso statina"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.4a2 2 0 0 1 3.4 0l8.4 14.6a2 2 0 0 1-1.7 3H3.6a2 2 0 0 1-1.7-3z" fill="var(--yellow)"/><path d="M12 8.6v5.2" stroke="#1C1C1E" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="#1C1C1E"/></svg></button></div></div>`;
     h += `<div class="note-card yellow" id="statinBox" ${S.statin ? '' : 'hidden'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.4a2 2 0 0 1 3.4 0l8.4 14.6a2 2 0 0 1-1.7 3H3.6a2 2 0 0 1-1.7-3z" fill="var(--yellow)"/><path d="M12 8.6v5.2" stroke="#1C1C1E" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="#1C1C1E"/></svg><span><b>Statina.</b> Dolore muscolare intenso e diffuso che non è il solito indolenzimento, debolezza o urine scure: fermati e senti il medico.</span></div>`;
@@ -1165,8 +1234,9 @@ function renderTrain(){
       });
       h += `</div>`;
     });
-    h += `<div class="list" style="margin-top:6px"><button class="row ind" data-exadd="${p.id}|${S.tday}">${iconTile(I.plusc, 'indigo')}<span class="grow tt link">Aggiungi un esercizio</span></button>${p.id === 'U' || !TRAIN.programs.find(x => x.id === p.id).sessions[S.tday] ? `<button class="row ind" data-sessname="${p.id}|${S.tday}">${iconTile(I.doc, 'gray')}<span class="grow tt">Nome della seduta</span><span class="val">${esc(s.title)}</span>${I.chev}</button>` : ''}</div>
-      <div class="sec-f">Gli esercizi che aggiungi hanno il tag «Personalizzato»: tocca «Modifica» sulla scheda dell'esercizio per cambiarli o eliminarli.</div>`;
+    const custom = p.id === 'U' || !TRAIN.programs.find(x => x.id === p.id).sessions[S.tday];
+    if (custom) h += `<div class="list" style="margin-top:6px"><button class="row ind" data-sessname="${p.id}|${S.tday}">${iconTile(I.doc, 'gray')}<span class="grow tt">Nome della seduta</span><span class="val">${esc(s.title)}</span>${I.chev}</button></div>`;
+    h += `<div class="sec-f">Con il + in alto aggiungi un esercizio a questa seduta. Gli esercizi tuoi hanno il tag «Personalizzato»: tocca «Modifica» per cambiarli o eliminarli.</div>`;
   }
   h += `<div class="sec" style="margin-top:28px"><div class="sec-h">Carichi</div><div class="list">
     <button class="row ind" data-a="export">${iconTile(I.share, 'blue')}<span class="grow tt">Esporta i carichi (.txt)</span>${I.chev}</button>
@@ -1251,6 +1321,10 @@ document.addEventListener('click', ev => {
   else if (d.a === 'recback'){ S.rec = null; render(false); window.scrollTo(0, S.scroll.reclist || 0); onScroll(); }
   else if (d.a === 'shopreset'){ if (confirm('Togliere tutte le spunte della spesa? Anche i prodotti aggiunti alla dispensa con queste spunte verranno tolti.')){ const key = 'chk_' + shopWk() + '_' + S.phase, c = Store.get(key, {}), st = Object.assign({}, stock()); Object.entries(c).forEach(([k, v]) => { if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; } }); Store.set('stock', st); Store.set(key, {}); render(); } }
   else if (d.price){ openPrice(d.price); }
+  else if (d.profile){ openProfile(); }
+  else if (d.pfsex){ if (S.pf){ S.pf.sex = S.pf.sex === d.pfsex ? '' : d.pfsex; openProfile(false); } }
+  else if (d.pfgoal){ if (S.pf){ const g = S.pf.goals, i = g.indexOf(d.pfgoal); if (i >= 0) g.splice(i, 1); else g.push(d.pfgoal); openProfile(false); } }
+  else if (d.pfa === 'nophoto'){ if (S.pf){ S.pf.img = null; openProfile(false); } }
   else if (d.newrec){ S.rf = null; openRecForm(null, d.newrec !== '1' ? d.newrec : undefined); }
   else if (d.editrec){ openRecForm(d.editrec); }
   else if (d.gomine){ S.rsrc = 'mine'; S.rtag = 'Tutte'; S.rec = null; switchTab('ricette'); window.scrollTo(0, 0); }
@@ -1278,6 +1352,7 @@ document.addEventListener('click', ev => {
 document.addEventListener('keydown', ev => { const el = ev.target; if ((ev.key === ' ' || ev.key === 'Enter') && el.matches && el.matches('[data-chk],[data-prep]')){ ev.preventDefault(); toggleCheck(el); } });
 document.addEventListener('change', ev => {
   const i = ev.target;
+  if (i.id === 'pfPhoto'){ const fl = i.files && i.files[0]; if (!fl) return; shrinkImage(fl).then(u => { if (S.pf){ S.pf.img = u; openProfile(false); } }).catch(() => toast('Immagine non valida')); return; }
   if (i.id === 'rfPhoto' || i.id === 'efPhoto'){ const fl = i.files && i.files[0]; if (!fl) return; shrinkImage(fl).then(u => { if (i.id === 'rfPhoto' && S.rf){ S.rf.img = u; drawRecForm(); } else if (S.ef){ S.ef.img = u; openExForm(); } }).catch(() => toast('Immagine non valida')); return; }
   if (i.dataset && i.dataset.ef !== undefined && S.ef){ S.ef[i.dataset.ef] = i.value; return; }
   if (i.dataset.sw){
@@ -1294,6 +1369,7 @@ document.addEventListener('input', ev => { const t = ev.target, ds = t.dataset |
   if (ds.rfi !== undefined && S.rf){ const [i, f] = ds.rfi.split('|'); if (S.rf.ing[+i]) S.rf.ing[+i][f] = t.value; return; }
   if (ds.rfs !== undefined && S.rf){ S.rf.steps[+ds.rfs] = t.value; return; }
   if (ds.ef !== undefined && S.ef){ S.ef[ds.ef] = t.value; return; }
+  if (ds.pf !== undefined && S.pf){ S.pf[ds.pf] = t.value; return; }
   if (ev.target.id === 'rq'){ S.rq = ev.target.value; const pos = ev.target.selectionStart; render(); const n = $('#rq'); if (n){ n.focus(); try { n.setSelectionRange(pos, pos); } catch(e) {} } } });
 
 /* ---------- sheet ---------- */
