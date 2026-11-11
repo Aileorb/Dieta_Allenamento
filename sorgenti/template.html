@@ -111,6 +111,7 @@ h1.lt{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.37px;margi
 .row .tt{font-size:17px;line-height:22px}
 .row .st{font-size:13px;line-height:18px;color:var(--label2);letter-spacing:-.08px;margin-top:1px}
 .row .val{color:var(--label2);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.row .val .kv{color:var(--label)}
 .row .chev{width:8px;height:14px;color:var(--label3);flex:none}
 button.row:active,label.row:active{background:var(--fill2)}
 .icon{width:29px;height:29px;border-radius:7px;display:grid;place-items:center;flex:none;color:#fff}
@@ -263,7 +264,8 @@ img.fig{object-fit:cover}
 .mlink .grow{flex:1;min-width:0}
 .mlink .chev{width:8px;height:14px;color:var(--label3);flex:none}
 .mlink:active{background:var(--fill)}
-.mtitle .mm{font-size:13px;line-height:18px;color:var(--label2);margin-top:2px;font-variant-numeric:tabular-nums}
+.mtitle .mm{font-size:13px;line-height:18px;color:var(--label);margin-top:2px;font-variant-numeric:tabular-nums}
+.mtitle .mm b{font-weight:600}
 .food{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 16px;position:relative}
 .food::before{content:"";position:absolute;top:0;right:0;left:16px;height:.5px;background:var(--sep)}
 .food .fn{font-size:16px;line-height:21px;letter-spacing:-.32px}
@@ -687,7 +689,7 @@ const sw = (id, on) => `<span class="sw"><input type="checkbox" role="switch" da
 function swRow(id, on, title, sub, icon){
   return `<label class="row${icon ? ' ind' : ''}">${icon || ''}<span class="grow"><span class="tt">${title}</span>${sub ? `<span class="st" style="display:block">${sub}</span>` : ''}</span>${sw(id, on)}</label>`;
 }
-const macStr = m => `${nf(m.k)} kcal · P ${m.p} · C ${m.c} · G ${m.g}`;
+const macStr = m => `${nf(m.k)} <b class="c-kcal">kcal</b> · <b class="c-p">P</b> ${m.p} · <b class="c-c">C</b> ${m.c} · <b class="c-g">G</b> ${m.g}`;
 
 /* ================== SETTIMANE E SCELTE ================== */
 const pad = n => String(n).padStart(2, '0');
@@ -1581,7 +1583,7 @@ function renderRecipes(){
   SLOTS.forEach(([k, lab]) => {
     const l = list.filter(r => recSlot(r) === k); if (!l.length) return; any = true;
     h += `<div class="sec"><div class="sec-h">${lab}<span class="r">${l.length}</span></div><div class="list">${l.map(r => `<button class="row" data-recopen="${S.rsrc}|${r.n}">
-      ${protIcon(r.items)}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span><span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)} · ${esc(r.time || r.when)}</span>${macroLine(r)}</span>${thumbOf(S.rsrc, r.n) ? `<img class="thumb" src="${thumbOf(S.rsrc, r.n)}" alt="">` : ''}<span class="val"><b class="c-kcal kv">${nf(r.k)}</b> kcal</span>${I.chev}</button>`).join('')}</div></div>`;
+      ${protIcon(r.items)}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span><span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)} · ${esc(r.time || r.when)}</span>${macroLine(r)}</span>${thumbOf(S.rsrc, r.n) ? `<img class="thumb" src="${thumbOf(S.rsrc, r.n)}" alt="">` : ''}<span class="val"><b class="kv">${nf(r.k)}</b> <span class="c-kcal">kcal</span></span>${I.chev}</button>`).join('')}</div></div>`;
   });
   if (!any) h += `<p class="sub-lt" style="text-align:center;margin-top:30px">${S.rsrc === 'mine' && !recs.length ? 'Non hai ancora ricette tue. Tocca il + in alto per crearne una con foto, ingredienti, calorie, macro e passaggi: la troverai tra le alternative dei pasti.' : 'Nessuna ricetta trovata.'}</p>`;
   return h + `</div>`;
