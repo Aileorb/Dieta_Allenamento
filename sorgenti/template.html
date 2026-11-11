@@ -194,7 +194,8 @@ img.fig{object-fit:cover}
 .fin.dt{max-width:none;color:var(--blue)}
 .rnav{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
 .rnav b{font-size:20px;font-weight:700}
-.rnav button{width:36px;height:36px;border-radius:50%;border:none;background:var(--fill);color:var(--blue);font-size:22px;line-height:1}
+.rnav button{width:36px;height:36px;border-radius:50%;border:none;background:var(--fill);color:var(--blue);padding:0;display:flex;align-items:center;justify-content:center;flex:none}
+.rnav button svg{width:9px;height:16px;display:block}
 .rnav button:disabled{opacity:.3}
 .rkpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
 .rk{background:var(--card);border-radius:14px;padding:12px 14px}
@@ -1008,7 +1009,7 @@ function openRecap(mk){
   const i = months.indexOf(mk), name = MESI_L[m - 1] + ' ' + y;
   const eu0 = v => Math.round(v).toLocaleString('it-IT') + ' €', live = mk === monthKey(new Date()), dc = (a, b, w) => live ? '<small class="dlt">mese in corso</small>' : deltaChip(a, b, w);
   const kpi = (lab, val, sub) => `<div class="rk"><span>${lab}</span><b>${val}</b>${sub || ''}</div>`;
-  const body = `<div class="rnav"><button data-recap="${months[i + 1] || ''}" ${months[i + 1] ? '' : 'disabled'} aria-label="Mese precedente">‹</button><b>${cap(name)}</b><button data-recap="${months[i - 1] || ''}" ${i > 0 ? '' : 'disabled'} aria-label="Mese successivo">›</button></div>
+  const body = `<div class="rnav"><button data-recap="${months[i + 1] || ''}" ${months[i + 1] ? '' : 'disabled'} aria-label="Mese precedente"><svg viewBox="0 0 9 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 1.5L1.5 8l6 6.5"/></svg></button><b>${cap(name)}</b><button data-recap="${months[i - 1] || ''}" ${i > 0 ? '' : 'disabled'} aria-label="Mese successivo"><svg viewBox="0 0 9 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5L7.5 8l-6 6.5"/></svg></button></div>
     <div class="rkpi">${kpi('Spesa del mese', eur(D.spent), dc(D.spent, P.spent, 'down'))}${kpi('Media a settimana', D.weeksBought ? eur(D.avg) : '—', D.weeksBought ? `<small class="dlt">${D.weeksBought} ${D.weeksBought === 1 ? 'spesa' : 'spese'}</small>` : '')}
       ${kpi('Allenamenti', String(D.ses.length), dc(D.ses.length, P.ses.length, 'up'))}${kpi('Tempo in palestra', D.min >= 60 ? Math.floor(D.min / 60) + ' h ' + Math.round(D.min % 60) + ' min' : Math.round(D.min) + ' min', D.ses.length ? `<small class="dlt">${Math.round(D.min / D.ses.length)} min a seduta</small>` : '')}</div>
     <div class="sec"><div class="sec-h">Spesa per settimana</div><div class="chcard">${D.spent ? barChart(D.spend, 'mk-spend', r => r.v ? eu0(r.v) : '—', t => Math.round(t) + '€', 'Spesa per settimana in euro') : '<p class="chempty">Nessuna spesa spuntata in questo mese. Il recap usa i prodotti che spunti nella lista della spesa, con i prezzi che hai salvato.</p>'}</div></div>
