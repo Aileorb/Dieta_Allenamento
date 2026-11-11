@@ -57,8 +57,9 @@ button{cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:man
 .wrap{max-width:720px;margin:0 auto;padding:0 16px}
 .brand{height:56px;margin:4px 0 4px;transform-origin:left bottom;will-change:transform,opacity}
 .brand svg{height:100%;width:auto;display:block;overflow:visible}
-.navbar .t.brandt{max-width:72vw}
-.navbar .t.brandt svg{height:22px;width:auto;display:block}
+.navbar .t.brandt{max-width:none;justify-self:center}
+/* nome fissato: sempre al centro; se lo spazio tra i pulsanti non basta si rimpicciolisce (proporzioni 7,24:1) */
+.navbar .t.brandt svg{width:min(174px, calc(100vw - 196px));height:auto;display:block}
 h1.lt{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.37px;margin:2px 0 10px}
 .lthead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 10px}
 .lthead h1.lt{margin:0}
