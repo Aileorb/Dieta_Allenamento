@@ -939,13 +939,14 @@ async function freeSpace(){
 }
 
 /* ---------- registrare una scheda diversa da quella del giorno ---------- */
-const allProgsFor = () => PROGS().map(withMine).concat(rientro() ? [] : []).filter(p => Object.keys(p.sessions).length);
+// tutte le schede, compresa quella di recupero (rientro dopo una pausa), prima della scheda personale
+const allProgsFor = () => TRAIN.programs.filter(p => p.id !== 'R').concat(TRAIN.programs.filter(p => p.id === 'R'), [MYPROG()]).map(withMine).filter(p => Object.keys(p.sessions).length);
 function openOther(pid){
   const progs = allProgsFor(), cur = pid || (S.oth && S.oth.prog) || userProg().id, p = progs.find(x => x.id === cur) || progs[0];
   S.oth = {prog: p.id};
   const days = DAYK.filter(d => p.sessions[d]);
   openSheet('Scheda diversa', `<p class="sec-f" style="margin:0 0 12px">Scegli la scheda e la seduta che hai fatto: puoi registrarla adesso con carichi e ripetizioni, oppure avviarla a schermo intero.</p>
-    <div class="chips" style="flex-wrap:wrap;overflow:visible">${progs.map(x => `<button data-othp="${x.id}" aria-pressed="${x.id === p.id}" style="margin-bottom:6px">${esc(x.id === 'U' ? 'La mia scheda' : x.name)}</button>`).join('')}</div>
+    <div class="chips" style="flex-wrap:wrap;overflow:visible">${progs.map(x => `<button data-othp="${x.id}" aria-pressed="${x.id === p.id}" style="margin-bottom:6px">${esc(x.id === 'U' ? 'La mia scheda' : x.id === 'R' ? 'Recupero (rientro)' : x.name)}</button>`).join('')}</div>
     <div class="list">${days.map(d => { const s = p.sessions[d]; return `<button class="row" data-othd="${d}"><span class="grow"><span class="tt" style="display:block">${esc(s.title)}</span><span class="st" style="display:block">${DAYN[DAYK.indexOf(d)]} · ${s.ex.length} esercizi${s.optional ? ' · facoltativa' : ''}</span></span>${I.chev}</button>`; }).join('')}</div>`, 'Chiudi');
 }
 function otherSession(){ const p = allProgsFor().find(x => x.id === S.ol.prog); return p && p.sessions[S.ol.day]; }

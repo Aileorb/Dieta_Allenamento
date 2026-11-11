@@ -1,4 +1,4 @@
-const CACHE = 'ilmiopiano-v46';
+const CACHE = 'ilmiopiano-v47';
 const FILES = ["index.html", "manifest.webmanifest", "icons/muscolo5-180.png", "icons/muscolo5-192.png", "icons/muscolo5-512.png", "promemoria-spesa.ics"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, {cache: 'reload'})))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
