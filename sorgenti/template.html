@@ -64,16 +64,16 @@ h1.lt{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.37px;margi
 .addbtn:active,.avatar:active{opacity:.6}
 .avatar{width:36px;height:36px;border-radius:50%;border:none;padding:0;overflow:hidden;background:linear-gradient(180deg,#A6A6AD,#86868C);color:#fff;display:grid;place-items:center;flex:none;font:600 15px/1 var(--rounded);letter-spacing:.3px}
 .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-.avatar svg{width:26px;height:26px;margin-top:8px}
+.avatar svg{width:22px;height:22px;display:block}
 .addbtn.sm{width:28px;height:28px}.addbtn.sm svg{width:15px;height:15px}
-.avatar.sm{width:30px;height:30px;font-size:12px}.avatar.sm svg{width:21px;height:21px;margin-top:6px}
+.avatar.sm{width:30px;height:30px;font-size:12px}.avatar.sm svg{width:18px;height:18px}
 .navbar .rtc{display:inline-flex;gap:10px;align-items:center;opacity:0;pointer-events:none;transition:opacity .15s;padding-right:8px}
 .navbar.compact .rtc{opacity:1;pointer-events:auto}
 .pfhead{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 18px}
 .pfpic{position:relative;width:96px;height:96px;border-radius:50%;overflow:visible;background:linear-gradient(180deg,#A6A6AD,#86868C);color:#fff;display:grid;place-items:center;font:600 36px/1 var(--rounded);cursor:pointer}
 .pfpic img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 .pfin{width:100%;height:100%;border-radius:50%;overflow:hidden;display:grid;place-items:center}
-.pfin > svg{width:68px;height:68px;margin-top:24px}
+.pfin > svg{width:56px;height:56px;display:block}
 .pfpic .edit{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 3px var(--bg2,var(--bg))}
 .pfpic .edit svg{width:16px;height:16px}
 .pfname{width:100%;max-width:320px;text-align:center;border:none;background:none;outline:none;font:700 22px/28px inherit;font-size:22px;font-weight:700;color:var(--label)}
@@ -521,20 +521,22 @@ const PROT = {
   pesce:['pesce','<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12c2.6-4.3 6.3-6.2 10.4-6.2 3.5 0 6 1.9 7.4 4.1l2.2-2.4v9l-2.2-2.4c-1.4 2.2-3.9 4.1-7.4 4.1C8.8 18.2 5.1 16.3 2.5 12z" fill="#0A84FF"/><path d="M11.5 8.5c1.2 2.2 1.2 4.8 0 7" fill="none" stroke="#7CC0FF" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10.8" r="1.1" fill="#fff"/></svg>'],
   latte:['latticini','<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.6 2.8h12.8l-1.6 18.1a1.6 1.6 0 0 1-1.6 1.5H8.8a1.6 1.6 0 0 1-1.6-1.5z" fill="#D6EBFF"/><path d="M6.5 8.6c1.4-.9 2.7-.9 4 0s2.6.9 4 0 2.4-.8 3.1-.4l-1.1 12.7c-.1.6-.5 1-1.1 1H8.6c-.6 0-1-.4-1.1-1z" fill="#FFFFFF"/><path d="M6.5 8.6c1.4-.9 2.7-.9 4 0s2.6.9 4 0 2.4-.8 3.1-.4" fill="none" stroke="#B9D9F7" stroke-width=".9" stroke-linecap="round"/><path d="M5.6 2.8h12.8l-1.6 18.1a1.6 1.6 0 0 1-1.6 1.5H8.8a1.6 1.6 0 0 1-1.6-1.5z" fill="none" stroke="#5AA9F0" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 11.5l.6 7.6" stroke="#E4F0FB" stroke-width="1.3" stroke-linecap="round"/></svg>'],
   yogurt:['yogurt','<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.3 7.6h15.4l-1.9 12.6a1.8 1.8 0 0 1-1.8 1.5H8a1.8 1.8 0 0 1-1.8-1.5z" fill="#FFFFFF" stroke="#8E6FE0" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.1 12.4h13.8l-.75 4.9H5.85z" fill="#C7B5FF"/><circle cx="12" cy="14.85" r="1.35" fill="#FFFFFF"/><rect x="3.2" y="5.4" width="17.6" height="2.6" rx="1.3" fill="#E9E1FF" stroke="#8E6FE0" stroke-width="1.5"/><path d="M15.6 5.4c.6-1.6 1.9-2.6 3.6-2.8.5 1 .3 2-.4 2.8" fill="#D9CCFF" stroke="#8E6FE0" stroke-width="1.2" stroke-linejoin="round"/></svg>'],
+  formaggio:['formaggio','<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.6 10.6L17.4 4.2c2.2.6 3.6 2.4 4 4.7v1.7z" fill="#FFE27A"/><path d="M2.6 10.6h18.8v8.6a1.3 1.3 0 0 1-1.3 1.3H3.9a1.3 1.3 0 0 1-1.3-1.3z" fill="#FFC531"/><path d="M2.6 10.6L17.4 4.2c2.2.6 3.6 2.4 4 4.7l0 1.7H2.6z" fill="none" stroke="#E2A100" stroke-width="1" stroke-linejoin="round"/><circle cx="7" cy="14.4" r="1.7" fill="#E9A200"/><circle cx="12.6" cy="17" r="1.25" fill="#E9A200"/><circle cx="16.8" cy="13.6" r="1.5" fill="#E9A200"/><circle cx="9.9" cy="19.2" r=".8" fill="#E9A200"/><ellipse cx="13.2" cy="7.6" rx="1.3" ry=".6" fill="#F3C640" transform="rotate(-20 13.2 7.6)"/></svg>'],
   legumi:['legumi','<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.6 3.2c.9-.9 2.1-.9 2.6-.2" fill="none" stroke="#5E9E2A" stroke-width="1.6" stroke-linecap="round"/><path d="M3.2 19.6C4.4 12.4 10.6 5.4 18.4 3.6c1.4 7.6-4.4 15.1-12.4 17-1.2.3-2.3-.1-2.8-1z" fill="#8CC63F"/><circle cx="8.6" cy="15.6" r="2.15" fill="#4E9A1E"/><circle cx="11.9" cy="11.9" r="2.15" fill="#4E9A1E"/><circle cx="15" cy="8.2" r="2" fill="#4E9A1E"/><circle cx="8" cy="15" r=".6" fill="#B9E57E"/><circle cx="11.3" cy="11.3" r=".6" fill="#B9E57E"/><circle cx="14.4" cy="7.6" r=".55" fill="#B9E57E"/><path d="M4.6 18.6C7 12.6 11.6 7.4 17.6 4.6" fill="none" stroke="#6FAE2E" stroke-width="1" stroke-linecap="round" opacity=".8"/></svg>'],
   veg:['vegetale','<svg viewBox="0 0 20 20" aria-hidden="true"><path fill="#34C759" d="M17 2C9 2 3.5 6 3.5 12.5c0 1.6.5 3 1.2 4L3 18.3l1 1 1.8-1.8c1 .7 2.4 1.2 4 1.2C16.3 18.7 18 12 17 2zM6.5 15.5C8 11.5 10.5 8.5 14 6.5c-3 2.6-5 5.5-6.2 9.4z"/></svg>']};
 // fonti proteiche senza gruppo nel database: latticini, legumi, proteine vegetali e uova (contano come «vegetale»)
-const PGRP = {yogurt: ['yogurt', 'skyr'], latte: ['fiocchi', 'latte', 'mozz_light', 'parmigiano'],
+const PGRP = {yogurt: ['yogurt', 'skyr'], formaggio: ['parmigiano', 'mozz_light', 'fiocchi'], latte: ['latte'],
   legumi: ['lenticchie', 'ceci', 'fagioli', 'piselli', 'edamame', 'lupini', 'pasta_lent', 'farina_ceci'],
   veg: ['tofu', 'tempeh', 'seitan', 'soia_text', 'yogurt_soia', 'latte_soia', 'uovo', 'albume']};
 Object.entries(PGRP).forEach(([g, ks]) => ks.forEach(k => { const f = DIET.food[k]; if (f && !f[3]) f[3] = g; }));
 function proteinOf(items){
   const g = {};
   (items || []).forEach(([k, q]) => { const f = DIET.food[k]; if (f && f[3]) g[f[3]] = (g[f[3]] || 0) + q * f[2] / 100; });
-  // latte e yogurt competono insieme come latticini; poi vince il più presente dei due
-  const t = Object.assign({}, g); if (g.latte || g.yogurt){ t.dairy = (g.latte || 0) + (g.yogurt || 0); delete t.latte; delete t.yogurt; }
+  // latte, yogurt e formaggi competono insieme come latticini; poi vince il più presente dei tre
+  const D = ['yogurt', 'latte', 'formaggio'], t = Object.assign({}, g);
+  if (D.some(k => g[k])){ t.dairy = D.reduce((a, k) => a + (g[k] || 0), 0); D.forEach(k => delete t[k]); }
   const best = Object.keys(t).sort((a, b) => t[b] - t[a])[0];
-  if (best === 'dairy') return (g.yogurt || 0) >= (g.latte || 0) ? 'yogurt' : 'latte';
+  if (best === 'dairy') return D.slice().sort((a, b) => (g[b] || 0) - (g[a] || 0))[0];
   return best || 'veg';
 }
 const protIcon = items => { const p = PROT[proteinOf(items)]; return `<span class="pi" role="img" aria-label="Proteina principale: ${p[0]}" title="${p[0]}">${p[1]}</span>`; };
