@@ -20,7 +20,7 @@
   --bg:#F2F2F7; --card:#FFFFFF; --card2:#F2F2F7; --fill:rgba(118,118,128,.12); --fill2:rgba(118,118,128,.08);
   --label:#000000; --label2:rgba(60,60,67,.6); --label3:rgba(60,60,67,.3); --sep:rgba(60,60,67,.29);
   --blue:#007AFF; --green:#34C759; --orange:#FF9500; --red:#FF3B30; --indigo:#5856D6; --teal:#30B0C7; --yellow:#FFCC00; --pink:#FF2D55; --gray:#8E8E93;
-  --bar:rgba(249,249,249,.86); --seg:#FFFFFF; --tint-bg:rgba(0,122,255,.12);
+  --bar:rgba(249,249,249,.86); --seg:#FFFFFF; --tint-bg:rgba(0,122,255,.12); --ch-spend:#D97706; --ch-work:#007AFF;
   --fig:#1C1C1E; --equip:#AEAEB2; --plate:var(--blue); --surface:var(--card);
   --font:-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
   --rounded:ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -31,7 +31,7 @@
     --bg:#000000; --card:#1C1C1E; --card2:#2C2C2E; --fill:rgba(118,118,128,.24); --fill2:rgba(118,118,128,.16);
     --label:#FFFFFF; --label2:rgba(235,235,245,.6); --label3:rgba(235,235,245,.3); --sep:rgba(84,84,88,.65);
     --blue:#0A84FF; --green:#30D158; --orange:#FF9F0A; --red:#FF453A; --indigo:#5E5CE6; --teal:#40C8E0; --yellow:#FFD60A; --pink:#FF375F; --gray:#8E8E93;
-    --bar:rgba(22,22,22,.84); --seg:#636366; --tint-bg:rgba(10,132,255,.2);
+    --bar:rgba(22,22,22,.84); --seg:#636366; --tint-bg:rgba(10,132,255,.2); --ch-spend:#D97706; --ch-work:#0A84FF;
     --fig:#F2F2F7; --equip:#636366;
   }
 }
@@ -187,6 +187,27 @@ img.fig{object-fit:cover}
 .olbtns{gap:18px;min-height:40px}
 .lnkbtn.destr{color:var(--red)}
 .fin.dt{max-width:none;color:var(--blue)}
+.rnav{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
+.rnav b{font-size:20px;font-weight:700}
+.rnav button{width:36px;height:36px;border-radius:50%;border:none;background:var(--fill);color:var(--blue);font-size:22px;line-height:1}
+.rnav button:disabled{opacity:.3}
+.rkpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.rk{background:var(--card);border-radius:14px;padding:12px 14px}
+.rk span{display:block;font-size:13px;color:var(--label2);font-weight:500}
+.rk b{display:block;font:700 24px/30px var(--rounded);font-variant-numeric:tabular-nums;margin-top:2px}
+.dlt{display:block;font-size:12px;line-height:16px;color:var(--label2);font-weight:600}
+.dlt.good{color:var(--green)} .dlt.bad{color:var(--red)}
+.chcard{background:var(--card);border-radius:14px;padding:12px 10px 10px}
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart .gl{stroke:var(--sep);stroke-width:.6}
+.chart .bl{stroke:var(--label3);stroke-width:1}
+.chart .ax{font-size:9.5px;fill:var(--label2);font-family:inherit}
+.chart .mk-spend{fill:var(--ch-spend)} .chart .mk-work{fill:var(--ch-work)}
+.chart .bar.part path{opacity:.45}
+.chart .bar:focus{outline:none} .chart .bar:focus path,.chart .bar:hover path{filter:brightness(1.12)}
+.chv{display:grid;margin-top:4px;font-size:12px;line-height:16px;color:var(--label);text-align:center;font-variant-numeric:tabular-nums;font-weight:600}
+.chempty{margin:6px 4px;font-size:15px;line-height:20px;color:var(--label2)}
+.recapb{margin-bottom:12px}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:18px;font-weight:600;padding:3px 9px;border-radius:12px;background:var(--fill);color:var(--label2);white-space:nowrap}
 .badge i{width:7px;height:7px;border-radius:50%}
 .badge.b-orange{background:rgba(255,149,0,.15);color:var(--orange)}
@@ -883,6 +904,87 @@ async function saveOtherLog(){
   S.ol = null; closeSheet(); toast(`Salvato nello storico · ${ex.reduce((a, e) => a + e.sets.length, 0)} serie`);
 }
 
+/* ================== MONTH RECAP ================== */
+// registro delle spese reali: per ogni settimana della lista, somma dei prodotti spuntati (costo al momento dell'acquisto)
+function ledgerWeek(wk){
+  let c = 0, n = 0;
+  Object.keys(Store.data).forEach(k => { if (!k.startsWith('chk_' + wk + '_')) return; Object.entries(Store.data[k]).forEach(([it, v]) => { if (it.startsWith('x:')) return; n++; if (v && typeof v === 'object') c += v.cost || 0; }); });
+  const L = Object.assign({}, Store.get('ledger', {}));
+  if (n) L[wk] = {c: Math.round(c * 100) / 100, n}; else delete L[wk];
+  const keys = Object.keys(L).sort(); while (keys.length > 110) delete L[keys.shift()];
+  Store.set('ledger', L);
+}
+function ledgerBackfill(){ const L = Store.get('ledger', {}); Object.keys(Store.data).forEach(k => { const m = k.match(/^chk_(\d{4}-\d{2}-\d{2})_/); if (m && !L[m[1]]) ledgerWeek(m[1]); }); }
+const MESI_L = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const monthKey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1);
+function monthWeeks(mk){ const [y, m] = mk.split('-').map(Number), out = []; let d = mondayOf(new Date(y, m - 1, 1)); if (d.getMonth() !== m - 1) d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7);
+  while (d.getMonth() === m - 1){ out.push(keyOf(d)); d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7); } return out; }
+function monthData(mk){
+  const wks = monthWeeks(mk), L = Store.get('ledger', {});
+  const spend = wks.map(w => ({wk: w, v: (L[w] || {}).c || 0, n: (L[w] || {}).n || 0}));
+  const ses = HIST.sedute.filter(s => monthKey(new Date(s.inizio)) === mk);
+  const work = wks.map(w => { const l = ses.filter(s => keyOf(mondayOf(new Date(s.inizio))) === w); return {wk: w, v: l.length, min: Math.round(l.reduce((a, s) => a + (s.fine - s.inizio), 0) / 60000)}; });
+  const sets = HIST.serie.filter(r => ses.some(s => s.id === r.seduta));
+  const top = {}; sets.forEach(r => { const t = top[r.esercizio] || (top[r.esercizio] = {nome: r.nome, n: 0, kg: 0}); t.n++; if (r.kg && r.kg > t.kg) t.kg = r.kg; });
+  const spent = spend.reduce((a, x) => a + x.v, 0), weeksBought = spend.filter(x => x.n).length;
+  return {mk, wks, spend, work, ses, spent, avg: weeksBought ? spent / weeksBought : 0, weeksBought, sets: sets.length,
+    min: ses.reduce((a, s) => a + (s.fine - s.inizio), 0) / 60000, vol: Math.round(sets.reduce((a, r) => a + (r.kg || 0) * r.rip, 0)),
+    top: Object.values(top).sort((a, b) => b.n - a.n).slice(0, 3)};
+}
+function niceMax(v){ if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p; return [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find(x => f <= x) * p; }
+// grafico a barre a una serie: barre sottili con estremo arrotondato, griglia leggera, valori in tabella sotto
+function barChart(rows, cls, fmtV, fmtAxis, ariaTitle){
+  const W = 320, H = 150, L = 34, R = 6, T = 10, B = 22, n = rows.length, max = niceMax(Math.max(...rows.map(r => r.v)) * 1.08);
+  const ph = H - T - B, slot = (W - L - R) / n, bw = Math.min(24, slot * .5), now = WK_NOW();
+  const y = v => T + ph - v / max * ph, ticks = [0, max / 2, max];
+  let g = ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" class="gl"/><text x="${L - 6}" y="${(y(t) + 3.5).toFixed(1)}" class="ax" text-anchor="end">${fmtAxis(t)}</text>`).join('');
+  rows.forEach((r, i) => {
+    const x = L + slot * i + (slot - bw) / 2, h = r.v / max * ph, top = T + ph - h, rad = Math.min(4, h), part = r.wk === now ? ' part' : '';
+    const d = h > 0 ? `M${x.toFixed(1)} ${T + ph}V${(top + rad).toFixed(1)}Q${x.toFixed(1)} ${top.toFixed(1)} ${(x + rad).toFixed(1)} ${top.toFixed(1)}H${(x + bw - rad).toFixed(1)}Q${(x + bw).toFixed(1)} ${top.toFixed(1)} ${(x + bw).toFixed(1)} ${(top + rad).toFixed(1)}V${T + ph}Z` : '';
+    const lab = weekDate(r.wk, 0).getDate() + '–' + weekDate(r.wk, 6).getDate();
+    g += `<g class="bar${part}" tabindex="0" role="img" aria-label="Settimana ${lab}: ${fmtV(r)}"><title>Settimana ${lab}: ${fmtV(r)}</title><rect x="${(L + slot * i).toFixed(1)}" y="${T}" width="${slot.toFixed(1)}" height="${ph + B}" fill="transparent"/>${d ? `<path d="${d}" class="${cls}"/>` : ''}<text x="${(L + slot * (i + .5)).toFixed(1)}" y="${H - 6}" class="ax" text-anchor="middle">${lab}</text></g>`;
+  });
+  g += `<line x1="${L}" x2="${W - R}" y1="${T + ph}" y2="${T + ph}" class="bl"/>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(ariaTitle)}">${g}</svg>
+    <div class="chv" style="grid-template-columns:${L / W * 100}% repeat(${n}, 1fr) ${R / W * 100}%"><span></span>${rows.map(r => `<span>${fmtV(r)}</span>`).join('')}<span></span></div>`;
+}
+const pctDelta = (a, b) => b > 0 ? Math.round((a - b) / b * 100) : null;
+const deltaChip = (a, b, better) => { const p = pctDelta(a, b); if (p === null || !isFinite(p)) return ''; const up = p > 0; return `<small class="dlt ${p === 0 ? '' : (up === (better === 'up') ? 'good' : 'bad')}">${p > 0 ? '▲' : p < 0 ? '▼' : '='} ${Math.abs(p)}%</small>`; };
+function openRecap(mk){
+  const months = recapMonths(); mk = mk || S.recapM || months[0]; S.recapM = mk;
+  const D = monthData(mk), [y, m] = mk.split('-').map(Number), prevK = monthKey(new Date(y, m - 2, 1)), P = monthData(prevK);
+  const i = months.indexOf(mk), name = MESI_L[m - 1] + ' ' + y;
+  const eu0 = v => Math.round(v).toLocaleString('it-IT') + ' €', live = mk === monthKey(new Date()), dc = (a, b, w) => live ? '<small class="dlt">mese in corso</small>' : deltaChip(a, b, w);
+  const kpi = (lab, val, sub) => `<div class="rk"><span>${lab}</span><b>${val}</b>${sub || ''}</div>`;
+  const body = `<div class="rnav"><button data-recap="${months[i + 1] || ''}" ${months[i + 1] ? '' : 'disabled'} aria-label="Mese precedente">‹</button><b>${cap(name)}</b><button data-recap="${months[i - 1] || ''}" ${i > 0 ? '' : 'disabled'} aria-label="Mese successivo">›</button></div>
+    <div class="rkpi">${kpi('Spesa del mese', eur(D.spent), dc(D.spent, P.spent, 'down'))}${kpi('Media a settimana', D.weeksBought ? eur(D.avg) : '—', D.weeksBought ? `<small class="dlt">${D.weeksBought} ${D.weeksBought === 1 ? 'spesa' : 'spese'}</small>` : '')}
+      ${kpi('Allenamenti', String(D.ses.length), dc(D.ses.length, P.ses.length, 'up'))}${kpi('Tempo in palestra', D.min >= 60 ? Math.floor(D.min / 60) + ' h ' + Math.round(D.min % 60) + ' min' : Math.round(D.min) + ' min', D.ses.length ? `<small class="dlt">${Math.round(D.min / D.ses.length)} min a seduta</small>` : '')}</div>
+    <div class="sec"><div class="sec-h">Spesa per settimana</div><div class="chcard">${D.spent ? barChart(D.spend, 'mk-spend', r => r.v ? eu0(r.v) : '—', t => Math.round(t) + '€', 'Spesa per settimana in euro') : '<p class="chempty">Nessuna spesa spuntata in questo mese. Il recap usa i prodotti che spunti nella lista della spesa, con i prezzi che hai salvato.</p>'}</div></div>
+    <div class="sec"><div class="sec-h">Allenamenti per settimana</div><div class="chcard">${D.ses.length ? barChart(D.work, 'mk-work', r => r.v ? r.v + (r.v === 1 ? ' seduta' : ' sedute') : '—', t => Number.isInteger(t) ? String(t) : '', 'Allenamenti per settimana') : '<p class="chempty">Nessun allenamento registrato in questo mese.</p>'}</div></div>
+    ${D.ses.length ? `<div class="sec"><div class="sec-h">In palestra</div><div class="list">
+      <div class="row"><span class="grow tt">Serie completate</span><span class="val">${D.sets}</span></div>
+      <div class="row"><span class="grow tt">Volume totale</span><span class="val">${nf(D.vol)} kg</span></div>
+      ${D.top.map((t, k) => `<div class="row"><span class="grow"><span class="tt" style="display:block">${k === 0 ? 'Più allenato: ' : ''}${esc(t.nome)}</span><span class="st" style="display:block">${t.n} serie${t.kg ? ' · massimo ' + nf(t.kg) + ' kg' : ''}</span></span></div>`).join('')}</div></div>` : ''}
+    <div class="sec-f" style="margin:4px 4px 0">Le settimane vanno da lunedì a domenica e appartengono al mese del loro lunedì; la settimana in corso è più chiara.${live ? ' A mese finito vedrai anche il confronto con quello precedente.' : ' Le percentuali confrontano con ' + MESI_L[(m + 10) % 12] + '.'}</div>`;
+  openSheet('Month Recap', body, 'Chiudi'); $('#shB').scrollTop = 0;
+  Store.set('recapSeen', Object.assign({}, Store.get('recapSeen', {}), {[mk]: true}));
+}
+function recapMonths(){
+  const set = new Set([monthKey(new Date())]);
+  Object.keys(Store.get('ledger', {})).forEach(w => set.add(w.slice(0, 7)));
+  HIST.sedute.forEach(s => set.add(monthKey(new Date(s.inizio))));
+  return [...set].sort().reverse();
+}
+// banner a fine mese (ultimi 3 giorni) e nella prima settimana del mese dopo, finché non lo apri
+function recapBanner(){
+  const now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), day = now.getDate();
+  let mk = null; if (day > last - 3) mk = monthKey(now); else if (day <= 7) mk = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+  if (!mk || Store.get('recapSeen', {})[mk]) return '';
+  const D = monthData(mk); if (!D.spent && !D.ses.length) return '';
+  const [y, m] = mk.split('-').map(Number);
+  return `<button class="banner recapb" data-recap="${mk}">${iconTile('<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="12" width="4" height="9" rx="1.2"/><rect x="10" y="6" width="4" height="15" rx="1.2"/><rect x="17" y="9" width="4" height="12" rx="1.2"/></svg>', 'indigo')}<span class="grow"><span class="tt" style="display:block;font-weight:600">Il recap di ${MESI_L[m - 1]} è pronto</span><span class="st" style="display:block">${eur(D.spent)} di spesa · ${D.ses.length} ${D.ses.length === 1 ? 'allenamento' : 'allenamenti'}</span></span>${I.chev}</button>`;
+}
+
 /* ================== PERSONALIZZATI: RICETTE ================== */
 const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 const myRecs = () => Store.get('myrec', []);
@@ -1058,7 +1160,8 @@ function openProfile(fresh){
       ${num('weight', 'Peso', 'kg', '80')}${num('height', 'Altezza', 'cm', '175')}</div>
     <div class="sec-h" style="margin-top:20px">Obiettivi</div><div class="chips goals">${GOALS.map(g => `<button data-pfgoal="${esc(g)}" aria-pressed="${f.goals.includes(g)}">${f.goals.includes(g) ? '✓ ' : ''}${esc(g)}</button>`).join('')}</div>
     <div class="list" style="margin-top:10px"><label class="row frow"><input class="fin" data-pf="other" value="${esc(f.other)}" placeholder="Altro obiettivo (es. correre 10 km)" style="text-align:left;max-width:none" autocomplete="off"></label></div>
-    <div class="sec-f" style="margin:10px 4px 0">I dati restano solo su questo iPhone e finiscono nel backup completo dell'app.</div>`;
+    <div class="sec-f" style="margin:10px 4px 0">I dati restano solo su questo iPhone e finiscono nel backup completo dell'app.</div>
+    <div class="list" style="margin-top:18px"><button class="row ind" data-recap="">${iconTile('<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="12" width="4" height="9" rx="1.2"/><rect x="10" y="6" width="4" height="15" rx="1.2"/><rect x="17" y="9" width="4" height="12" rx="1.2"/></svg>', 'indigo')}<span class="grow tt">Month Recap</span><span class="val">spesa e allenamenti</span>${I.chev}</button></div>`;
   const keep = $('#sheet').classList.contains('on') && $('#shT').textContent === 'Profilo' ? $('#shB').scrollTop : 0;
   openSheet('Profilo', body, 'Annulla', 'Salva', saveProfile);
   $('#shB').scrollTop = keep;
@@ -1096,7 +1199,7 @@ function renderMenu(){
   const tot = dayTotals(wk, S.day, veg, modOn);
   const acts = addBtn('data-newrec="1"', 'Nuova ricetta') + avatarHtml();
   let h = navbar('Menu', {acts: addBtn('data-newrec="1"', 'Nuova ricetta', 'sm') + avatarHtml('sm')}) + `<div class="wrap">` + ltitle('Menu', acts);
-  h += nextApprovalBanner();
+  h += recapBanner() + nextApprovalBanner();
   h += seg([['now', 'Questa settimana'], ['next', 'Prossima · ' + fmtRange(WK_NEXT())]], S.wkm || 'now', 'wkm', 'Settimana');
   h += `<div class="strip" role="group" aria-label="Giorno">${ph.days.map((x, i) => { const dt = weekDate(wk, i), today = isNow && i === todayIdx;
       return `<button class="${today ? 'today' : ''}" aria-pressed="${i === S.day}" data-day="${i}" aria-label="${x.name} ${fmtD(dt)}${today ? ', oggi' : ''}">
@@ -1591,7 +1694,7 @@ function toggleCheck(el){
       c[k] = {prev: st[k] || null, n: b.n, g: b.g, cost: b.cost};
       if (PACKS[k] && b.g) { st[k] = {q: have + b.g, d: wk}; Store.set('stock', st); }
     }
-    Store.set(key, c); render();
+    Store.set(key, c); ledgerWeek(wk); render();
   }
   else if (el.dataset.prep){ const [k, i] = el.dataset.prep.split('|'), c = Object.assign({}, Store.get(k, {})); c[i] = !c[i]; Store.set(k, c); render(); }
 }
@@ -1621,7 +1724,7 @@ document.addEventListener('click', ev => {
   else if (d.recopen){ const [src, n] = d.recopen.split('|'); S.scroll.reclist = S.tab === 'ricette' ? window.scrollY : 0; S.rec = [src, n]; S.rsrc = src;
     if (S.tab !== 'ricette'){ S.scroll.ricette = 0; switchTab('ricette'); } else { render(false); } window.scrollTo(0, 0); onScroll(); }
   else if (d.a === 'recback'){ S.rec = null; render(false); window.scrollTo(0, S.scroll.reclist || 0); onScroll(); }
-  else if (d.a === 'shopreset'){ if (confirm('Togliere tutte le spunte della spesa? Anche i prodotti aggiunti alla dispensa con queste spunte verranno tolti.')){ const key = 'chk_' + shopWk() + '_' + S.phase, c = Store.get(key, {}), st = Object.assign({}, stock()); Object.entries(c).forEach(([k, v]) => { if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; } }); Store.set('stock', st); Store.set(key, {}); render(); } }
+  else if (d.a === 'shopreset'){ if (confirm('Togliere tutte le spunte della spesa? Anche i prodotti aggiunti alla dispensa con queste spunte verranno tolti.')){ const key = 'chk_' + shopWk() + '_' + S.phase, c = Store.get(key, {}), st = Object.assign({}, stock()); Object.entries(c).forEach(([k, v]) => { if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; } }); Store.set('stock', st); Store.set(key, {}); ledgerWeek(shopWk()); render(); } }
   else if (d.price){ openPrice(d.price); }
   else if (d.profile){ openProfile(); }
   else if (d.pfsex){ if (S.pf){ S.pf.sex = S.pf.sex === d.pfsex ? '' : d.pfsex; openProfile(false); } }
@@ -1651,6 +1754,7 @@ document.addEventListener('click', ev => {
   else if (d.histall){ S.histAll = true; render(); }
   else if (d.histdel){ if (confirm('Eliminare questo allenamento dallo storico?')){ histDelete(d.histdel).then(() => { closeSheet(); toast('Eliminato'); }); } }
   else if (d.a === 'histcsv') exportHistCsv();
+  else if (d.recap !== undefined){ closeSheetQuiet(); openRecap(d.recap || undefined); }
   else if (d.other){ if (d.other === '1') S.oth = null; openOther(); }
   else if (d.othp){ openOther(d.othp); }
   else if (d.othd){ S.othDay = d.othd; const p = allProgsFor().find(x => x.id === S.oth.prog), sx = p.sessions[d.othd];
@@ -1979,7 +2083,7 @@ renderTabbar();
 setTimeout(() => { if (W()){ renderMini(); ensureTick(); } }, 0);
 document.querySelectorAll('.screen').forEach(s => s.classList.toggle('hidden', s.dataset.scr !== S.tab));
 render(false);
-cleanOld();
+cleanOld(); ledgerBackfill();
 Promise.all([Photos.load(), histLoad()]).then(() => { render(); if (Photos.legacy.length || Store.get('sessions', []).length) setTimeout(askMigration, 600); });
 setInterval(() => { if ((S.tab === 'spesa' || S.tab === 'menu') && !$('#sheet').classList.contains('on')) render(); }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('#sheet').classList.contains('on')) render(); });
