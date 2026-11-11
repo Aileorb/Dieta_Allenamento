@@ -1793,7 +1793,7 @@ function switchTab(t){
 }
 function onScroll(){
   const sc = document.getElementById('s-' + S.tab); if (!sc) return;
-  const nb = sc.querySelector('.navbar'), lt = sc.querySelector('.brand') || sc.querySelector('h1.lt, .rhead h2'); if (!nb) return;
+  const nb = sc.querySelector('.navbar'), lt = sc.querySelector('.lthead') || sc.querySelector('h1.lt, .rhead h2'); if (!nb) return;
   const nbB = nb.getBoundingClientRect().bottom;
   nb.classList.toggle('compact', !lt || lt.getBoundingClientRect().bottom < nbB + 2 || window.scrollY > 8 && !lt);
   // marchio del Menu: grande in apertura, si rimpicciolisce scorrendo; nella barra in alto resta il nome completo
