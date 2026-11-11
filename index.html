@@ -116,6 +116,14 @@ button.row:active,label.row:active{background:var(--fill2)}
 /* titoli di giornata */
 .dayh{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:0 0 10px}
 .dayh h2{font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;margin:0}
+.pchip{display:inline-block;border:0;background:rgba(0,122,255,.1);color:var(--blue);font-size:12px;line-height:18px;font-weight:600;padding:0 7px;border-radius:9px;margin-left:2px;vertical-align:1px;font-variant-numeric:tabular-nums;cursor:pointer}
+.pchip.mine{background:rgba(52,199,89,.15);color:var(--green)}
+.spend small{display:block;font-size:12px;line-height:15px;color:var(--green)}
+.homeh{display:flex;justify-content:space-between;align-items:baseline;margin:34px 4px 10px}
+.homeh h2{font-size:22px;line-height:28px;font-weight:700;letter-spacing:.35px;margin:0}
+.homeh span{color:var(--label2);font-size:15px}
+.pin{flex:1;border:none;background:none;text-align:right;font:inherit;font-size:17px;color:var(--label);outline:none;min-width:0;height:28px}
+.eu{color:var(--label2);margin-left:6px}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:18px;font-weight:600;padding:3px 9px;border-radius:12px;background:var(--fill);color:var(--label2);white-space:nowrap}
 .badge i{width:7px;height:7px;border-radius:50%}
 .badge.b-orange{background:rgba(255,149,0,.15);color:var(--orange)}
@@ -686,6 +694,20 @@ const isoOf = n => { const d = new Date(n * 864e5); return d.getUTCFullYear() + 
 const fmtN = n => { const d = new Date(n * 864e5); return ['dom','lun','mar','mer','gio','ven','sab'][d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MESI[d.getUTCMonth()]; };
 const eur = x => x.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
 const stock = () => Store.get('stock', {});
+const prices = () => Store.get('prices', {});
+const priceOf = k => { const c = prices()[k]; return c ? c.p : (PACKS[k] ? PACKS[k].price : 0); };
+function costOf(k, b){
+  const p = PACKS[k]; if (!p || !b) return 0;
+  if (!p.size) return (b.g || 0) / 1000 * priceOf(k);
+  const n = b.n !== null && b.n !== undefined ? b.n : Math.ceil((b.g || 0) / p.size - 1e-9);
+  return n * priceOf(k);
+}
+function priceChip(k){
+  const p = PACKS[k]; if (!p) return '';
+  const c = prices()[k];
+  return `<button class="pchip${c ? ' mine' : ''}" data-price="${k}" aria-label="Cambia prezzo">${eur(priceOf(k))}${p.size ? '' : '/kg'}${c ? ' · tuo' : ''}</button>`;
+}
+const occasional = (k, w) => { const p = PACKS[k]; return !!(p && p.size && p.life >= 14 && w > 0 && p.size / w >= 1.5); };
 const tracked = k => { const p = PACKS[k]; return !!(p && p.size && p.life >= 14); };
 function stockAt(k, day, weekly){
   const s = stock()[k], p = PACKS[k]; if (!s || !p) return 0;
@@ -697,15 +719,15 @@ function buyPlan(k, need, have){
   const p = PACKS[k], miss = Math.max(0, need - have);
   if (!p) return {n: null, g: miss, cost: 0};
   if (miss < 1) return {n: 0, g: 0, cost: 0};
-  if (!p.size){ const g = Math.ceil(miss / 50) * 50; return {n: null, g, cost: g / 1000 * p.price}; }
-  const n = Math.ceil(miss / p.size - 1e-9); return {n, g: n * p.size, cost: n * p.price};
+  if (!p.size){ const g = Math.ceil(miss / 50) * 50; return {n: null, g, cost: g / 1000 * priceOf(k)}; }
+  const n = Math.ceil(miss / p.size - 1e-9); return {n, g: n * p.size, cost: n * priceOf(k)};
 }
 function packTxt(k, b){
   if (b.n === null) return qtxt(k, b.g);
   if (k === 'uovo') return (b.n * 6) + ' uova';
   return b.n + ' conf.';
 }
-const packSub = k => { const p = PACKS[k]; return p ? p.label + (p.size ? ' · ' + eur(p.price) : ' · ' + eur(p.price) + '/kg') : ''; };
+const packSub = k => { const p = PACKS[k]; return p ? esc(p.label) + ' ' + priceChip(k) : ''; };
 function runOut(k, weekly, from){
   const p = PACKS[k], s = stock()[k]; if (!p || !s) return null;
   const end = dnum(s.d) + p.life, have = stockAt(k, from, weekly);
@@ -713,27 +735,51 @@ function runOut(k, weekly, from){
   return Math.min(end, weekly > 0 ? from + Math.floor(have / (weekly / 7)) : end);
 }
 const shopWk = () => S.swk === 'now' ? WK_NOW() : S.swk === 'next' ? WK_NEXT() : ((new Date().getDay() + 6) % 7 >= 4 ? WK_NEXT() : WK_NOW());
-function renderPantry(){
-  const st = stock(), keys = Object.keys(st).filter(tracked); if (!keys.length) return '';
-  const today = dnum(isoToday()), nowTot = weekItems(WK_NOW(), S.phase, Store.get('veg', false), Store.get('extra', true));
-  const limit = dnum(WK_NEXT()) + 7;
-  const rows = keys.map(k => { const w = nowTot[k] || 0, have = stockAt(k, today, w), ro = runOut(k, w, today); return {k, w, have, ro}; })
-    .sort((a, b) => (a.ro ?? 1e9) - (b.ro ?? 1e9));
-  const soon = rows.filter(r => r.w > 0 && (r.have <= 0 || (r.ro !== null && r.ro < limit))).length;
-  return `<div class="sec"><div class="sec-h">Scorte in casa<span class="r">${soon ? soon + ' da ricomprare' : 'tutto a posto'}</span></div><div class="list">${rows.map(({k, w, have, ro}) => {
-    const p = PACKS[k], out = have <= 0, warn = out || (ro !== null && ro < limit);
-    const sub = out ? (dnum(isoToday()) - dnum(st[k].d) >= p.life ? 'Scaduto o finito: ricompralo quando serve' : 'Finito') : (w ? 'Finisce verso ' + fmtN(ro) : 'Non serve nel menu di questa settimana');
-    return `<button class="row" data-pan="${k}"><span class="grow"><span class="tt" style="display:block">${esc(DIET.food[k][0])}${warn && w ? ' <span class="badge">Da ricomprare</span>' : ''}</span><span class="st" style="display:block">${sub}</span></span><span class="val">${out ? '—' : qtxt(k, have)}</span>${I.chev}</button>`; }).join('')}</div>
-    <div class="sec-f">Le scorte si aggiornano da sole: quando spunti un prodotto, la confezione entra in dispensa e ogni giorno viene scalato il consumo del menu. «Da ricomprare» = finisce prima della fine della prossima settimana. Tocca un prodotto per correggere quanto ne hai.</div></div>`;
+function renderHome(inPantry, wk, listTot){
+  const st = stock(), today = dnum(isoToday()), nowTot = weekItems(WK_NOW(), S.phase, Store.get('veg', false), Store.get('extra', true));
+  const limit = dnum(WK_NEXT()) + 7, cover = new Set(inPantry || []);
+  const rows = Object.keys(st).filter(k => PACKS[k]).map(k => { const w = nowTot[k] || 0, have = stockAt(k, today, w); return {k, w, have, ro: have > 0 ? runOut(k, w, today) : today}; })
+    .filter(r => r.have > 0 || (tracked(r.k) && r.w > 0));
+  let h = `<div class="homeh"><h2>Già a casa</h2><span>${rows.length ? rows.filter(r => r.have > 0).length + ' prodotti' : ''}</span></div>`;
+  if (!rows.length) return h + `<div class="sec"><div class="note-card" style="margin:0">Qui compare quello che hai in casa e quanto ne rimane. Si riempie da solo quando spunti i prodotti della spesa: se qualcosa ce l'hai già, spuntalo lo stesso e poi correggi qui quanto ne hai.</div></div>`;
+  const soon = rows.filter(r => occasional(r.k, r.w) && r.ro < limit).length;
+  if (soon) h += `<p class="sub-lt" style="margin:-4px 0 12px">${soon} ${soon === 1 ? 'prodotto finisce' : 'prodotti finiscono'} prima della fine della prossima settimana: li trovi nella lista della prossima spesa.</p>`;
+  DIET.cats.forEach(([cn, ks]) => {
+    const list = rows.filter(r => ks.includes(r.k)).sort((a, b) => a.ro - b.ro); if (!list.length) return;
+    h += `<div class="sec"><div class="sec-h">${esc(cn)}<span class="r">${list.length}</span></div><div class="list">${list.map(({k, w, have, ro}) => {
+      const p = PACKS[k], out = have <= 0, warn = occasional(k, w) && ro < limit;
+      const part = p.size ? (have <= p.size ? Math.max(1, Math.round(have / p.size * 100)) + '% di 1 conf.' : (have / p.size).toFixed(1).replace('.', ',') + ' conf.') : '';
+      let sub = out ? 'Finito' : (w ? 'Finisce verso ' + fmtN(ro) : 'Non serve nel menu di questa settimana');
+      if (!out && cover.has(k)) sub += ' · copre la settimana ' + fmtRange(wk);
+      return `<button class="row" data-pan="${k}"><span class="grow"><span class="tt" style="display:block">${esc(DIET.food[k][0])}${warn ? ' <span class="badge">Da ricomprare</span>' : ''}</span><span class="st" style="display:block">${sub}</span></span><span class="val">${out ? '—' : qtxt(k, have)}${part && !out ? `<span class="qn">${part}</span>` : ''}</span>${I.chev}</button>`; }).join('')}</div></div>`;
+  });
+  return h + `<div class="sec-f" style="margin-top:-14px;padding-bottom:8px">Quando spunti un prodotto entra qui, e ogni giorno viene scalato il consumo del menu. «Da ricomprare» compare sui prodotti che compri ogni tanto (una confezione dura più di una settimana e mezza) quando finiscono prima della fine della prossima settimana. Tocca un prodotto per correggere quanto ne hai o il prezzo pagato.</div>`;
 }
 function openPantry(k){
   const p = PACKS[k], w = weekItems(WK_NOW(), S.phase, Store.get('veg', false), Store.get('extra', true))[k] || 0, have = stockAt(k, dnum(isoToday()), w);
   const unit = p.size ? (k === 'uovo' ? '6 uova' : '1 confezione') : '';
   S.pan = k;
   openSheet(DIET.food[k][0], `<p class="sec-f" style="margin:0 0 12px">${esc(p.label)}. In casa: <b>${have > 0 ? qtxt(k, have) : 'niente'}</b>${w ? ' · consumo del menu: ' + qtxt(k, w) + ' a settimana' : ''}.${p.frz ? ' Porziona e congela il giorno della spesa.' : ''}</p>
-    <div class="list">${p.size ? `<button class="row" data-pact="add"><span class="grow tt">Ho comprato ${unit}</span></button><button class="row" data-pact="full"><span class="grow tt">Ne ho una confezione intera</span></button><button class="row" data-pact="half"><span class="grow tt">Ne resta circa metà confezione</span></button>` : ''}
-    <button class="row" data-pact="zero"><span class="grow tt">È finito</span></button><button class="row" data-pact="del"><span class="grow tt destr">Togli dalle scorte</span></button></div>`, 'Chiudi');
+    <div class="list"><button class="row" data-price="${k}"><span class="grow tt">Prezzo pagato</span><span class="val">${eur(priceOf(k))}${p.size ? '' : '/kg'}${prices()[k] ? ' · tuo' : ' · indicativo'}</span>${I.chev}</button></div>
+    <div class="list" style="margin-top:12px">${p.size ? `<button class="row" data-pact="add"><span class="grow tt">Ho comprato ${unit}</span></button><button class="row" data-pact="full"><span class="grow tt">Ne ho una confezione intera</span></button><button class="row" data-pact="half"><span class="grow tt">Ne resta circa metà confezione</span></button>` : ''}
+    <button class="row" data-pact="zero"><span class="grow tt">È finito</span></button><button class="row" data-pact="del"><span class="grow tt destr">Togli da «Già a casa»</span></button></div>`, 'Chiudi');
 }
+function openPrice(k){
+  const p = PACKS[k], c = prices()[k], unit = p.size ? 'a confezione' : 'al kg';
+  closeSheetQuiet();
+  openSheet('Prezzo pagato', `<p class="sec-f" style="margin:0 0 12px"><b>${esc(DIET.food[k][0])}</b> · ${esc(p.label)}</p>
+    <div class="list"><label class="row"><span class="grow tt">Prezzo ${unit}</span><input id="priceIn" class="pin" type="text" inputmode="decimal" autocomplete="off" placeholder="${nf(p.price)}" value="${c ? String(c.p).replace('.', ',') : ''}"><span class="eu">€</span></label></div>
+    <p class="sec-f" style="margin:8px 4px 16px">Prezzo indicativo: ${eur(p.price)}${p.size ? '' : '/kg'}.${c ? ' Il tuo è del ' + fmtN(dnum(c.d)) + '.' : ''} Il tuo prezzo vale per le stime finché non lo cambi.</p>
+    ${c ? `<div class="list"><button class="row" data-pricereset="${k}"><span class="grow tt destr" style="text-align:center">Torna al prezzo indicativo</span></button></div>` : ''}`, 'Annulla', 'Salva', () => savePrice(k));
+  setTimeout(() => { const i = $('#priceIn'); if (i) i.focus(); }, 250);
+}
+function savePrice(k){
+  const v = parseFloat(String($('#priceIn').value).replace(',', '.').replace(/[^\d.]/g, ''));
+  const pr = Object.assign({}, prices());
+  if (!v || v <= 0 || v > 999){ toast('Scrivi un prezzo valido, es. 1,49'); return; }
+  pr[k] = {p: Math.round(v * 100) / 100, d: isoToday()}; Store.set('prices', pr); closeSheet(); toast('Prezzo salvato');
+}
+function closeSheetQuiet(){ $('#ov').classList.remove('on'); $('#sheet').classList.remove('on'); document.body.style.overflow = ''; }
 function pantryAct(a){
   const k = S.pan, p = PACKS[k]; if (!k || !p) return;
   const st = Object.assign({}, stock()), today = isoToday(), w = weekItems(WK_NOW(), S.phase, Store.get('veg', false), Store.get('extra', true))[k] || 0, have = stockAt(k, dnum(today), w);
@@ -742,7 +788,7 @@ function pantryAct(a){
   else if (a === 'half') st[k] = {q: p.size / 2, d: today};
   else if (a === 'zero') st[k] = {q: 0, d: today};
   else if (a === 'del') delete st[k];
-  Store.set('stock', st); closeSheet(); toast(a === 'del' ? 'Tolto dalle scorte' : 'Scorte aggiornate');
+  Store.set('stock', st); closeSheet(); toast(a === 'del' ? 'Tolto da «Già a casa»' : 'Aggiornato');
 }
 function renderShop(){
   const wk = shopWk(), isNext = wk === WK_NEXT(), r = settle(wk), veg = Store.get('veg', false), extra = Store.get('extra', true);
@@ -756,7 +802,7 @@ function renderShop(){
     plan[k] = Object.assign(b, {have});
   });
   const keys = Object.keys(plan), done = keys.filter(k => chk[k]).length, nCh = changedCount(r, S.phase);
-  const spend = keys.reduce((a, k) => a + (plan[k].cost || 0), 0);
+  const spend = keys.reduce((a, k) => a + costOf(k, plan[k]), 0), nMine = keys.filter(k => prices()[k]).length;
   let h = navbar('Spesa') + `<div class="wrap"><h1 class="lt">Spesa</h1>`;
   h += seg([['now', 'Questa sett. · ' + fmtRange(WK_NOW())], ['next', 'Prossima · ' + fmtRange(WK_NEXT())]], isNext ? 'next' : 'now', 'swk', 'Settimana');
   // stato approvazione
@@ -775,28 +821,25 @@ function renderShop(){
       <button class="btn plain" data-unlock="1">Modifica il menu della settimana</button></div>`;
   }
   h += `<div class="progress"><div class="t"><b>${done}<span style="font:inherit;font-size:17px;color:var(--label2)"> / ${keys.length}</span></b><span>${done === keys.length && keys.length ? 'Spesa completata' : 'prodotti presi'}</span></div><div class="track"><i style="width:${keys.length ? (done / keys.length * 100).toFixed(1) : 0}%"></i></div>
-    <div class="spend"><span>Spesa stimata all'Esselunga</span><b>≈ ${eur(spend)}</b></div></div>`;
+    <div class="spend"><span>Spesa stimata all'Esselunga${nMine ? `<small>${nMine} ${nMine === 1 ? 'prezzo tuo' : 'prezzi tuoi'}</small>` : ''}</span><b>≈ ${eur(spend)}</b></div></div>`;
   h += `<div class="sec"><div class="list">${swRow('extra', extra, 'Extra di corse e palestra', 'Moduli dei giorni di corsa e del mercoledì', iconTile(I.run, 'orange'))}${swRow('veg', veg, 'Versione vegana', 'Come nel menu', iconTile(I.leaf, 'green'))}</div>
-    <div class="sec-f">${esc(PH().label)} · confezioni Esselunga per la settimana ${fmtRange(wk)}. Quello che avanza da una confezione resta in dispensa e copre le settimane dopo. Prezzi pieni indicativi di novembre 2026.</div></div>`;
+    <div class="sec-f">${esc(PH().label)} · confezioni Esselunga per la settimana ${fmtRange(wk)}. Quello che avanza da una confezione resta in dispensa e copre le settimane dopo. Prezzi pieni indicativi di novembre 2026: tocca un prezzo per mettere quello che hai pagato.</div></div>`;
   DIET.cats.forEach(([cn, ks]) => {
     const list = ks.filter(k => plan[k]); if (!list.length) return;
     const n = list.filter(k => chk[k]).length;
     h += `<div class="sec"><div class="sec-h">${esc(cn)}<span class="r">${n} di ${list.length}</span></div><div class="list">${list.map(k => {
       const diff = Math.round(tot[k]) !== Math.round(base[k] || 0), b = plan[k], pk = PACKS[k];
       const note = b.n !== null && pk ? 'serve ' + qtxt(k, tot[k]) + (b.have > 0 ? ' · in casa ' + qtxt(k, b.have) : '') : (b.have > 0 ? 'in casa ' + qtxt(k, b.have) : '');
-      return `<div class="row ck${chk[k] ? ' on' : ''}" role="checkbox" aria-checked="${!!chk[k]}" tabindex="0" data-chk="${k}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(DIET.food[k][0])}</span>${pk ? `<span class="st" style="display:block">${esc(packSub(k))}</span>` : ''}</span>
+      return `<div class="row ck${chk[k] ? ' on' : ''}" role="checkbox" aria-checked="${!!chk[k]}" tabindex="0" data-chk="${k}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(DIET.food[k][0])}</span>${pk ? `<span class="st" style="display:block">${packSub(k)}</span>` : ''}</span>
       <span class="val">${packTxt(k, b)}${note ? `<span class="qn">${note}</span>` : ''}${diff ? `<span class="qx">${base[k] ? 'piano: ' + qtxt(k, base[k]) : 'nuovo'}</span>` : ''}</span></div>`; }).join('')}</div></div>`;
   });
-  if (inPantry.length) h += `<div class="sec"><div class="sec-h">Già in dispensa<span class="r">${inPantry.length}</span></div><div class="list">${inPantry.map(k => { const ro = runOut(k, tot[k], day);
-      return `<button class="row" data-pan="${k}"><span class="grow"><span class="tt" style="display:block">${esc(DIET.food[k][0])}</span><span class="st" style="display:block">Ne hai ${qtxt(k, stockAt(k, day, tot[k]))}${ro ? ' · basta fino a ' + fmtN(ro) : ''}</span></span><span class="val">serve ${qtxt(k, tot[k])}</span>${I.chev}</button>`; }).join('')}</div>
-    <div class="sec-f">Questa settimana non serve comprarli: bastano le confezioni che hai già.</div></div>`;
-  h += renderPantry();
   const removed = Object.keys(base).filter(k => base[k] > 0 && !(tot[k] > 0));
   if (removed.length) h += `<div class="sec"><div class="sec-h">Non servono più</div><div class="list">${removed.map(k => `<div class="row"><span class="grow tt" style="color:var(--label2);text-decoration:line-through">${esc(DIET.food[k][0])}</span><span class="val">${qtxt(k, base[k])}</span></div>`).join('')}</div>
     <div class="sec-f">Prodotti del piano di default sostituiti dalle alternative che hai scelto.</div></div>`;
   h += `<div class="sec"><div class="list">
     <a class="row ind" href="promemoria-spesa.ics" style="color:inherit;text-decoration:none">${iconTile(I.cal, 'red')}<span class="grow"><span class="tt" style="display:block">Promemoria in Calendario</span><span class="st" style="display:block">Ogni domenica alle 16:00, un'ora prima della scadenza</span></span>${I.chev}</a>
     <button class="row" data-a="shopreset"><span class="grow tt destr" style="text-align:center">Togli tutte le spunte</span></button></div></div>`;
+  h += renderHome(inPantry, wk, tot);
   return h + `</div>`;
 }
 /* ================== ALLENAMENTO ================== */
@@ -989,6 +1032,8 @@ document.addEventListener('click', ev => {
     if (S.tab !== 'ricette'){ S.scroll.ricette = 0; switchTab('ricette'); } else { render(false); } window.scrollTo(0, 0); onScroll(); }
   else if (d.a === 'recback'){ S.rec = null; render(false); window.scrollTo(0, S.scroll.reclist || 0); onScroll(); }
   else if (d.a === 'shopreset'){ if (confirm('Togliere tutte le spunte della spesa? Anche i prodotti aggiunti alla dispensa con queste spunte verranno tolti.')){ const key = 'chk_' + shopWk() + '_' + S.phase, c = Store.get(key, {}), st = Object.assign({}, stock()); Object.entries(c).forEach(([k, v]) => { if (v && typeof v === 'object'){ if (v.prev) st[k] = v.prev; else delete st[k]; } }); Store.set('stock', st); Store.set(key, {}); render(); } }
+  else if (d.price){ openPrice(d.price); }
+  else if (d.pricereset){ const pr = Object.assign({}, prices()); delete pr[d.pricereset]; Store.set('prices', pr); closeSheet(); toast('Prezzo indicativo ripristinato'); }
   else if (d.pan){ openPantry(d.pan); }
   else if (d.pact){ pantryAct(d.pact); }
   else if (d.prog){ if (rientro()) return; S.prog = d.prog; Store.set('prog', d.prog); render(); }
