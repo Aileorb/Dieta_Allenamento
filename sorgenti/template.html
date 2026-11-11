@@ -800,19 +800,28 @@ async function buysBackfill(){
     Object.entries(Store.data[key]).forEach(([k, v]) => { const r = buyRow(m[1], m[2], k, v); if (!have.has(r.id)) rows.push(r); }); });
   await buysPut(rows);
 }
-async function exportBuysCsv(){
-  const rows = (await buysAll()).sort((a, b) => (a.data + a.settimana).localeCompare(b.data + b.settimana) || a.nome.localeCompare(b.nome));
-  if (!rows.length){ toast('Nessun acquisto registrato: spunta i prodotti nella lista'); return; }
+const buysCut = () => { const d = new Date(); d.setFullYear(d.getFullYear() - 2); return keyOf(d); };
+async function archiveOldBuys(){
+  const cut = buysCut(), old = (await buysAll()).filter(r => r.data < cut);
+  if (!old.length){ toast('Nessun acquisto più vecchio di 2 anni'); return; }
+  if (!confirm(`Archiviare ${old.length} acquisti precedenti al ${cut.split('-').reverse().join('/')}? Prima salvi il file CSV, poi vengono tolti dall'app.`)) return;
+  const ok = await exportBuysCsv(old, 'acquisti-archivio-fino-al-' + cut + '.csv');
+  if (!ok){ toast('Archiviazione annullata: non è stato tolto niente'); return; }
+  await buysDel(old.map(r => r.id)); closeSheetQuiet(); toast(`Archiviati ${old.length} acquisti`);
+}
+async function exportBuysCsv(only, fname){
+  const rows = (only || await buysAll()).slice().sort((a, b) => (a.data + a.settimana).localeCompare(b.data + b.settimana) || a.nome.localeCompare(b.nome));
+  if (!rows.length){ toast('Nessun acquisto registrato: spunta i prodotti nella lista'); return false; }
   const n2 = v => v === null || v === undefined ? '' : String(Math.round(v * 100) / 100).replace('.', ',');
   const q = v => { const s = String(v ?? ''); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const ph = {f1: 'Ricomposizione', f2: 'Mantenimento'};
   const lines = [['Data', 'Settimana (lunedì)', 'Fase', 'Prodotto', 'Confezione', 'Confezioni', 'Quantità', 'Unità', 'Prezzo (€)', 'Prezzo per', 'Prezzo inserito da te', 'Costo (€)'].join(';')];
   rows.forEach(r => lines.push([r.data, r.settimana, ph[r.fase] || r.fase, r.nome, r.confezione, r.confezioni ?? '', r.quantita !== null && r.quantita !== undefined ? Math.round(r.quantita) : '', r.unita, n2(r.prezzo), r.prezzo === null ? '' : (r.confezioni === null ? 'kg' : 'confezione'), r.prezzo === null ? '' : (r.prezzoTuo ? 'sì' : 'no'), n2(r.costo)].map(q).join(';')));
-  const name = 'acquisti-spesa-' + isoToday() + '.csv';
+  const name = fname || 'acquisti-spesa-' + isoToday() + '.csv';
   try { const file = new File(['﻿' + lines.join('\r\n') + '\r\n'], name, {type: 'text/csv'});
-    if (navigator.canShare && navigator.canShare({files: [file]})){ await navigator.share({files: [file], title: 'Acquisti della spesa'}); return; }
-    const url = URL.createObjectURL(file), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Acquisti scaricati');
-  } catch(e){ if (e && e.name !== 'AbortError') toast('Esportazione non riuscita'); }
+    if (navigator.canShare && navigator.canShare({files: [file]})){ await navigator.share({files: [file], title: 'Acquisti della spesa'}); return true; }
+    const url = URL.createObjectURL(file), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Acquisti scaricati'); return true;
+  } catch(e){ if (e && e.name !== 'AbortError') toast('Esportazione non riuscita'); return false; }
 }
 
 /* ---------- pulizia delle spunte vecchie ---------- */
@@ -864,7 +873,7 @@ async function openSpace(){
   toast('Calcolo lo spazio…');
   const ls = Store.bytes(), app = await cacheBytes(), keys = Object.keys(Photos.map);
   const ph = keys.reduce((a, k) => a + (Photos.size[k] || 0) + (Photos.size['mini:' + k] || 0), 0);
-  const hs = new Blob([JSON.stringify(HIST.sedute), JSON.stringify(HIST.serie)]).size, buys = await buysAll(), nb = buys.length, bb = new Blob([JSON.stringify(buys)]).size;
+  const hs = new Blob([JSON.stringify(HIST.sedute), JSON.stringify(HIST.serie)]).size, buys = await buysAll(), nb = buys.length, bb = new Blob([JSON.stringify(buys)]).size, cut = buysCut(), nOld = buys.filter(r => r.data < cut).length;
   let est = null; try { est = navigator.storage && navigator.storage.estimate ? await navigator.storage.estimate() : null; } catch(e) {}
   const old = Object.keys(Store.data).filter(k => /^(chk_|prep-)/.test(k)).length, orph = orphanPhotos().length;
   const row = (t, sub, v) => `<div class="row"><span class="grow"><span class="tt" style="display:block">${t}</span>${sub ? `<span class="st" style="display:block">${sub}</span>` : ''}</span><span class="val">${v}</span></div>`;
@@ -877,6 +886,7 @@ async function openSpace(){
     ${est && est.usage ? `<div class="list" style="margin-top:12px">${row('Totale indicato dal telefono', est.quota ? 'Disponibili per l\'app: ' + kb(est.quota) : '', kb(est.usage))}</div>` : ''}
     <div class="sec-f" style="margin:8px 4px 16px">Le spunte della spesa e dei «Da preparare» più vecchie di 8 settimane si cancellano da sole. «Libera spazio» le pulisce subito e toglie le foto rimaste senza ricetta o esercizio${orph ? ` (ora ${orph})` : ''}.</div>
     <div class="list"><button class="row" data-a="freespace"><span class="grow tt link" style="text-align:center">Libera spazio</span></button>
+    ${nOld ? `<button class="row" data-a="buysarch"><span class="grow"><span class="tt link" style="display:block;text-align:center">Archivia gli acquisti più vecchi di 2 anni</span><span class="st" style="display:block;text-align:center">${nOld} righe · prima salvi il CSV, poi vengono tolte dall'app</span></span></button>` : `<div class="row"><span class="grow st" style="text-align:center;font-size:15px">Archivio acquisti: niente di più vecchio di 2 anni</span></div>`}
     ${Photos.legacy.length || Store.get('sessions', []).length ? `<button class="row" data-a="migrate" data-bk="1"><span class="grow tt link" style="text-align:center">Salva il backup e alleggerisci le foto</span></button>` : ''}</div>`, 'Chiudi');
   void old;
 }
@@ -1793,6 +1803,7 @@ document.addEventListener('click', ev => {
   else if (d.histdel){ if (confirm('Eliminare questo allenamento dallo storico?')){ histDelete(d.histdel).then(() => { closeSheet(); toast('Eliminato'); }); } }
   else if (d.a === 'histcsv') exportHistCsv();
   else if (d.a === 'buyscsv') exportBuysCsv();
+  else if (d.a === 'buysarch') archiveOldBuys();
   else if (d.recap !== undefined){ closeSheetQuiet(); openRecap(d.recap || undefined); }
   else if (d.other){ if (d.other === '1') S.oth = null; openOther(); }
   else if (d.othp){ openOther(d.othp); }
