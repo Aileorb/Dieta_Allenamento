@@ -1,6 +1,6 @@
 import json, math
 DEXTRA=0
-TGAP=0
+TGAP=120
 G=json.load(open('glyphs.json')); g=G['g']; T=json.load(open('tag.json'))
 def meatball(cx, cy, r, uid, k, sauce=False, sx=1.0, sy=1.0):
     # contorno irregolare (bozzoli) come una polpetta vera
