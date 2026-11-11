@@ -1017,10 +1017,70 @@ function openRecap(mk){
       <div class="row"><span class="grow tt">Serie completate</span><span class="val">${D.sets}</span></div>
       <div class="row"><span class="grow tt">Volume totale</span><span class="val">${nf(D.vol)} kg</span></div>
       ${D.top.map((t, k) => `<div class="row"><span class="grow"><span class="tt" style="display:block">${k === 0 ? 'Più allenato: ' : ''}${esc(t.nome)}</span><span class="st" style="display:block">${t.n} serie${t.kg ? ' · massimo ' + nf(t.kg) + ' kg' : ''}</span></span></div>`).join('')}</div></div>` : ''}
-    <div class="sec-f" style="margin:4px 4px 0">Le settimane vanno da lunedì a domenica e appartengono al mese del loro lunedì; la settimana in corso è più chiara.${live ? ' A mese finito vedrai anche il confronto con quello precedente.' : ' Le percentuali confrontano con ' + MESI_L[(m + 10) % 12] + '.'}</div>`;
+    <button class="btn wo-start" data-recapimg="${mk}" style="margin:6px 0 10px">${I.share.replace('<svg', '<svg width="18" height="18"')}Salva come immagine</button>
+    <div class="sec-f" style="margin:4px 4px 0">«Salva come immagine» crea un JPG del recap: dalla finestra di condivisione scegli «Salva immagine» per metterlo nelle Foto. Le settimane vanno da lunedì a domenica e appartengono al mese del loro lunedì; la settimana in corso è più chiara.${live ? ' A mese finito vedrai anche il confronto con quello precedente.' : ' Le percentuali confrontano con ' + MESI_L[(m + 10) % 12] + '.'}</div>`;
   openSheet('Month Recap', body, 'Chiudi'); $('#shB').scrollTop = 0;
   Store.set('recapSeen', Object.assign({}, Store.get('recapSeen', {}), {[mk]: true}));
 }
+/* ---------- Month Recap come immagine (JPG da salvare nelle Foto) ---------- */
+function rrect(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function svgImg(svg){ return loadImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)); }
+function drawBars(c, x, y, w, h, rows, color, fmtV, now){
+  const n = rows.length, max = niceMax(Math.max(...rows.map(r => r.v)) * 1.08) || 1, base = y + h - 90, ph = h - 130, slot = w / n, bw = Math.min(64, slot * .45);
+  c.strokeStyle = '#E5E5EA'; c.lineWidth = 2; [0, .5, 1].forEach(t => { const yy = base - ph * t; c.beginPath(); c.moveTo(x, yy); c.lineTo(x + w, yy); c.stroke(); });
+  rows.forEach((r, i) => { const bx = x + slot * i + (slot - bw) / 2, bh = r.v / max * ph;
+    if (bh > 0){ c.globalAlpha = r.wk === now ? .45 : 1; c.fillStyle = color; const rad = Math.min(10, bh); c.beginPath(); c.moveTo(bx, base); c.lineTo(bx, base - bh + rad); c.quadraticCurveTo(bx, base - bh, bx + rad, base - bh); c.lineTo(bx + bw - rad, base - bh); c.quadraticCurveTo(bx + bw, base - bh, bx + bw, base - bh + rad); c.lineTo(bx + bw, base); c.closePath(); c.fill(); c.globalAlpha = 1; }
+    c.fillStyle = '#8E8E93'; c.font = '500 26px -apple-system, "SF Pro Text", Helvetica, sans-serif'; c.textAlign = 'center'; c.fillText(weekDate(r.wk, 0).getDate() + '–' + weekDate(r.wk, 6).getDate(), x + slot * (i + .5), base + 34);
+    c.fillStyle = '#1C1C1E'; c.font = '700 28px -apple-system, "SF Pro Text", Helvetica, sans-serif'; c.fillText(fmtV(r), x + slot * (i + .5), base + 70); });
+  c.textAlign = 'left';
+}
+async function recapImage(mk){
+  const D = monthData(mk), [y, m] = mk.split('-').map(Number), W = 1080, cv = document.createElement('canvas');
+  const cut = (t, n) => t.length > n ? t.slice(0, n - 1) + '…' : t;
+  const rows = D.sets ? [['Serie completate', nf(D.sets), ''], ['Volume totale', nf(D.vol) + ' kg', '']].concat(D.top.map((t, k) => [(k ? '' : 'Più allenato: ') + t.nome, '', t.n + ' serie' + (t.kg ? ' · massimo ' + nf(t.kg) + ' kg' : '')])) : [];
+  const gy = 1424, gh = rows.length ? 70 + rows.reduce((a, r) => a + (r[2] ? 92 : 70), 0) : 150, H = Math.max(1920, gy + gh + 110); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d'), F = (w, s) => `${w} ${s}px -apple-system, "SF Pro Display", "SF Pro Text", Helvetica, sans-serif`;
+  c.fillStyle = '#F2F2F7'; c.fillRect(0, 0, W, H);
+  // fascia con il gradiente dell'icona e il marchio
+  const gr = c.createLinearGradient(0, 0, W, 260); gr.addColorStop(0, '#FFE14D'); gr.addColorStop(.5, '#FF9A1F'); gr.addColorStop(1, '#F0302B');
+  c.fillStyle = gr; c.fillRect(0, 0, W, 250);
+  try { const svg = BRAND_FULL.replace(/var\(--label,#000\)/g, '#1C1C1E').replace(/var\(--label2,#8E8E93\)/g, 'rgba(28,28,30,.62)');
+    const im = await svgImg(svg.replace('<svg ', '<svg width="720" height="99" ')); c.fillStyle = 'rgba(255,255,255,.92)'; rrect(c, 54, 46, 640, 96, 48); c.fill(); c.drawImage(im, 82, 60, 584, 68); } catch(e) {}
+  c.fillStyle = '#1C1C1E'; c.font = F(800, 64); c.fillText('Month Recap', 60, 218);
+  c.fillStyle = '#1C1C1E'; c.font = F(700, 46); c.fillText(cap(MESI_L[m - 1]) + ' ' + y, 60, 320);
+  // riquadri
+  const tile = (x, ty, lab, val, sub) => { c.fillStyle = '#FFFFFF'; rrect(c, x, ty, 468, 150, 28); c.fill(); c.fillStyle = '#8E8E93'; c.font = F(600, 26); c.fillText(lab, x + 30, ty + 46); c.fillStyle = '#1C1C1E'; c.font = F(800, 52); c.fillText(val, x + 30, ty + 106); if (sub){ c.fillStyle = '#8E8E93'; c.font = F(600, 24); c.fillText(sub, x + 30, ty + 138); } };
+  const mins = Math.round(D.min);
+  tile(60, 352, 'Spesa del mese', eur(D.spent), D.weeksBought ? D.weeksBought + (D.weeksBought === 1 ? ' spesa' : ' spese') : '');
+  tile(552, 352, 'Media a settimana', D.weeksBought ? eur(D.avg) : '—', '');
+  tile(60, 522, 'Allenamenti', String(D.ses.length), D.sets ? D.sets + ' serie' : '');
+  tile(552, 522, 'Tempo in palestra', mins >= 60 ? Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min' : mins + ' min', D.ses.length ? Math.round(mins / D.ses.length) + ' min a seduta' : '');
+  // grafici
+  const card = (cy, title, rows, color, fmtV, empty) => { c.fillStyle = '#FFFFFF'; rrect(c, 60, cy, 960, 340, 28); c.fill(); c.fillStyle = '#8E8E93'; c.font = F(700, 24); c.fillText(title.toUpperCase(), 90, cy + 46);
+    if (rows.some(r => r.v)) drawBars(c, 100, cy + 50, 880, 280, rows, color, fmtV, WK_NOW()); else { c.fillStyle = '#8E8E93'; c.font = F(500, 28); c.fillText(empty, 90, cy + 180); } };
+  card(696, 'Spesa per settimana', D.spend, '#D97706', r => r.v ? Math.round(r.v) + ' €' : '—', 'Nessuna spesa spuntata');
+  card(1060, 'Allenamenti per settimana', D.work, '#007AFF', r => r.v ? String(r.v) : '—', 'Nessun allenamento registrato');
+  // in palestra
+  c.fillStyle = '#FFFFFF'; rrect(c, 60, gy, 960, gh, 28); c.fill(); c.fillStyle = '#8E8E93'; c.font = F(700, 24); c.fillText('IN PALESTRA', 90, gy + 46);
+  let ry = gy + 70;
+  if (!rows.length){ c.font = F(500, 28); c.fillText('Nessun allenamento registrato', 90, gy + 110); }
+  rows.forEach((r, k) => { const rh = r[2] ? 92 : 70; if (k){ c.fillStyle = '#E5E5EA'; c.fillRect(90, ry, 900, 2); }
+    c.fillStyle = '#1C1C1E'; c.font = F(600, 32); c.fillText(cut(r[0], 40), 90, ry + 46);
+    if (r[1]){ c.fillStyle = '#6C6C70'; c.textAlign = 'right'; c.fillText(r[1], 990, ry + 46); c.textAlign = 'left'; }
+    if (r[2]){ c.fillStyle = '#8E8E93'; c.font = F(500, 26); c.fillText(r[2], 90, ry + 80); }
+    ry += rh; });
+  c.fillStyle = '#8E8E93'; c.font = F(600, 26); c.textAlign = 'center'; c.fillText('Di&T – diet & training', W / 2, H - 40); c.textAlign = 'left';
+  return await new Promise(res => cv.toBlob(b => res(b), 'image/jpeg', .92));
+}
+async function shareRecapImage(mk){
+  try {
+    toast('Preparo l\'immagine…');
+    const blob = await recapImage(mk), [y, m] = mk.split('-').map(Number), name = `month-recap-${MESI_L[m - 1]}-${y}.jpg`, file = new File([blob], name, {type: 'image/jpeg'});
+    if (navigator.canShare && navigator.canShare({files: [file]})){ await navigator.share({files: [file], title: 'Month Recap'}); return; }
+    const url = URL.createObjectURL(file), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Immagine scaricata');
+  } catch(e){ if (e && e.name !== 'AbortError') toast('Non è stato possibile creare l\'immagine'); }
+}
+
 function recapMonths(){
   const set = new Set([monthKey(new Date())]);
   Object.keys(Store.get('ledger', {})).forEach(w => set.add(w.slice(0, 7)));
@@ -1816,6 +1876,7 @@ document.addEventListener('click', ev => {
   else if (d.a === 'histcsv') exportHistCsv();
   else if (d.a === 'buyscsv') exportBuysCsv();
   else if (d.a === 'buysarch') archiveOldBuys();
+  else if (d.recapimg){ shareRecapImage(d.recapimg); }
   else if (d.recap !== undefined){ closeSheetQuiet(); openRecap(d.recap || undefined); }
   else if (d.other){ if (d.other === '1') S.oth = null; openOther(); }
   else if (d.othp){ openOther(d.othp); }
