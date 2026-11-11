@@ -252,6 +252,12 @@ button.row:active,label.row:active{background:var(--fill2)}
 .photobox .edit svg{width:14px;height:14px}
 .bigphoto{width:100%;border-radius:12px;display:block;margin:0 0 16px;max-height:60vh;object-fit:cover}
 
+/* macro nelle alternative */
+.ml{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;font-size:13px;line-height:18px;color:var(--label);font-variant-numeric:tabular-nums}
+.ml b{font-weight:700;margin-right:1px}
+.dl{font-size:11px;margin-left:3px;font-weight:600}
+.dl.up{color:var(--label2)} .dl.dn{color:var(--label2)}
+
 /* banner e approvazione */
 .banner{display:flex;align-items:center;gap:12px;width:100%;border:none;background:var(--card);border-radius:12px;padding:11px 14px;margin:0 0 16px;text-align:left}
 .banner .st{font-size:13px;line-height:18px;color:var(--label2)}
@@ -557,22 +563,28 @@ function noteHtml(t){ return esc(t).replace(/(ricetta n\. ?)(\d+)/gi, (m, a, n) 
 /* ---------- foglio delle alternative ---------- */
 function openOptions(di, mi){
   const wk = menuWk(), ph = PH(), m = ph.days[di].meals[mi], veg = Store.get('veg', false), ch = choiceOf(wk, di, mi), locked = isLocked(wk);
-  const b = baseOf(m, veg), other = veg ? m : m.alt, cands = candidates(m, veg);
+  const b = baseOf(m, veg), other = veg ? m : m.alt, cands = candidates(m, veg), so = S.osort || 'sim';
+  const sc = {p: x => -x.r.p * x.f, c: x => x.r.c * x.f, g: x => x.r.g * x.f, sim: x => Math.abs(x.r.p * x.f - b.p) * 4 + Math.abs(x.r.c * x.f - b.c) * 4 + Math.abs(x.r.g * x.f - b.g) * 9}[so];
+  cands.sort((x, y) => sc(x) - sc(y));
   const PC = slotOf(m.name) === 'Pranzo o cena', pi = it => PC ? protIcon(it) : '';
   const chk = on => on ? `<span style="color:var(--blue);display:grid">${I.check.replace('viewBox="0 0 14 14"', 'viewBox="0 0 14 14" width="18" height="18"')}</span>` : '';
   let h = '';
   if (locked) h += `<div class="note-card warn">La lista della spesa di questa settimana è già approvata. Puoi comunque cambiare: la settimana torna da approvare.<div style="margin-top:10px"><button class="btn sm" data-unlock="1">Sblocca e modifica</button></div></div>`;
   h += `<div class="sec"><div class="sec-h">Proposta del piano</div><div class="list">
-    <button class="row" data-pick="" ${locked ? 'disabled' : ''}>${pi(b.items)}<span class="grow"><span class="tt" style="display:block">${esc(b.title)}</span><span class="st" style="display:block">${macStr(b)}</span></span>${chk(!ch)}</button>`;
-  if (other) h += `<button class="row" data-pick="alt" ${locked ? 'disabled' : ''}>${pi(other.items)}<span class="grow"><span class="tt" style="display:block">${esc(other.title)}</span><span class="st" style="display:block">${veg ? 'Versione onnivora' : 'Alternativa ' + esc(other.tipo.toLowerCase())} · ${macStr(other)}</span></span>${chk(ch === 'alt')}</button>`;
+    <button class="row" data-pick="" ${locked ? 'disabled' : ''}>${pi(b.items)}<span class="grow"><span class="tt" style="display:block">${esc(b.title)}</span><span class="st" style="display:block">Proposta del piano</span>${macroLine(b)}</span><span class="val">${nf(b.k)} kcal</span>${chk(!ch)}</button>`;
+  if (other) h += `<button class="row" data-pick="alt" ${locked ? 'disabled' : ''}>${pi(other.items)}<span class="grow"><span class="tt" style="display:block">${esc(other.title)}</span><span class="st" style="display:block">${veg ? 'Versione onnivora' : 'Alternativa ' + esc(other.tipo.toLowerCase())}</span>${macroLine(other, b)}</span><span class="val">${nf(other.k)} kcal</span>${chk(ch === 'alt')}</button>`;
   h += `</div></div>`;
-  if (cands.length) h += `<div class="sec"><div class="sec-h">Dal ricettario<span class="r">${cands.length}</span></div><div class="list">${cands.map(({r, f}) =>
+  if (cands.length) h += `<div class="sec"><div class="sec-h">Dal ricettario<span class="r">${cands.length}</span></div>${seg([['sim','Più simili'],['p','+ Proteine'],['c','− Carbo'],['g','− Grassi']], so, 'osort', 'Ordina').replace('margin:0 0 16px', '')}<div class="list">${cands.map(({r, f}) =>
     `<button class="row" data-pick="${r.n}" ${locked ? 'disabled' : ''}>${pi(r.items)}<span class="grow"><span class="tt" style="display:block">${esc(r.title)}</span>
-      <span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)} · ${Math.round(r.p * f)} g proteine${Math.abs(f - 1) > .04 ? ' · porzione ×' + f.toFixed(2).replace('.', ',') : ''}</span></span>${photoOf('extra', r.n) ? `<img class="thumb sm" src="${photoOf('extra', r.n)}" alt="">` : ''}<span class="val">${nf(Math.round(r.k * f))} kcal</span>${chk(ch === r.n)}</button>`).join('')}</div>
-    <div class="sec-f">Le porzioni sono adattate per avere le stesse calorie del pasto previsto.${veg ? ' Con la versione vegana attiva vedi solo ricette vegane.' : ''}</div></div>`;
+      <span class="st" style="display:block">${r.paese ? esc(r.paese) + ' · ' : ''}${esc(r.tag)}${Math.abs(f - 1) > .04 ? ' · porzione ×' + f.toFixed(2).replace('.', ',') : ''}</span>${macroLine({p: Math.round(r.p * f), c: Math.round(r.c * f), g: Math.round(r.g * f)}, b)}</span>${photoOf('extra', r.n) ? `<img class="thumb sm" src="${photoOf('extra', r.n)}" alt="">` : ''}<span class="val">${nf(Math.round(r.k * f))} kcal</span>${chk(ch === r.n)}</button>`).join('')}</div>
+    <div class="sec-f">Le porzioni sono adattate per avere le stesse calorie del pasto previsto. Accanto a proteine (P), carboidrati (C) e grassi (G) vedi in piccolo la differenza in grammi rispetto alla proposta del piano. «Più simili» mette prima le ricette con la ripartizione dei macro più vicina al pasto previsto.${veg ? ' Con la versione vegana attiva vedi solo ricette vegane.' : ''}</div></div>`;
   S.opt = [di, mi];
   openSheet(m.name + ' · ' + ph.days[di].short + ' ' + weekDate(wk, di).getDate(), h, 'Chiudi');
   $('#shB').scrollTop = 0;
+}
+function macroLine(m, base){
+  const d = (v, b) => { if (!base) return ''; const x = Math.round(v - b); return x === 0 ? '' : `<small class="dl ${x > 0 ? 'up' : 'dn'}">${x > 0 ? '+' : '−'}${Math.abs(x)}</small>`; };
+  return `<span class="ml"><span><b class="c-p">P</b> ${m.p} g${d(m.p, base && base.p)}</span><span><b class="c-c">C</b> ${m.c} g${d(m.c, base && base.c)}</span><span><b class="c-g">G</b> ${m.g} g${d(m.g, base && base.g)}</span></span>`;
 }
 function pickOption(val){
   const [di, mi] = S.opt, wk = menuWk();
@@ -821,6 +833,7 @@ document.addEventListener('click', ev => {
   else if (d.goshop){ S.swk = d.goshop; switchTab('spesa'); window.scrollTo(0, 0); }
   else if (d.opts){ const [a, c] = d.opts.split('|').map(Number); openOptions(a, c); }
   else if (d.pick !== undefined){ pickOption(d.pick); }
+  else if (d.osort){ S.osort = d.osort; const [a, c] = S.opt; openOptions(a, c); }
   else if (d.unlock){ unlockWeek(); }
   else if (d.approve){ const wk = shopWk(), r = settle(wk); r.status = 'approved'; r.at = Date.now(); delete r.unlocked; wsave(wk, r); render(); toast('Lista della spesa approvata'); }
   else if (d.resetwk){ if (confirm('Tornare al piano di default per questa settimana? Le alternative scelte verranno tolte.')){ const wk = shopWk(), r = settle(wk); Object.keys(r.ch).filter(k => k.startsWith(S.phase + '|')).forEach(k => delete r.ch[k]); wsave(wk, r); render(); } }
