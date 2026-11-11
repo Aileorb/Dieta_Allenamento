@@ -242,6 +242,23 @@ img.fig{object-fit:cover}
 .meal .hd .tm{font-size:13px;color:var(--label2);font-variant-numeric:tabular-nums}
 .mtitle{padding:12px 16px 10px}
 .mtitle .tt{font-size:17px;line-height:22px;font-weight:600}
+.stairw{display:flex;align-items:center;gap:16px;padding:14px 16px 10px}
+.stairw svg{width:132px;height:auto;flex:none;overflow:visible}
+.stairw .info{display:flex;flex-direction:column;min-width:0}
+.stairw .info b{font-size:34px;line-height:38px;font-weight:700;font-variant-numeric:tabular-nums}
+.stairw .info b small{font-size:20px;font-weight:600;color:var(--label2)}
+.stairw .info .lab{font-size:15px;color:var(--label2)}
+.stairw .info .msg{font-size:15px;line-height:20px;font-weight:600;margin-top:6px}
+.sts{fill:var(--fill)}.sts.on{fill:var(--blue)}
+.stb{fill:none;stroke:var(--label3);stroke-width:1.5;stroke-dasharray:4 3}.stb.on{fill:#FFB800;stroke:none}
+.stg{stroke:var(--sep);stroke-width:1.5}
+.stface{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.stface.happy{animation:stbob 2.4s ease-in-out infinite}
+@keyframes stbob{50%{translate:0 -2px}}
+@media (prefers-reduced-motion: reduce){.stface{transition:none}.stface.happy{animation:none}}
+.quote{padding:12px 16px 14px;font-size:15px;line-height:21px;font-style:italic;position:relative}
+.quote::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+.quote span{display:block;font-style:normal;font-size:13px;color:var(--label2);margin-top:4px}
 .mlink{display:flex;align-items:center;gap:10px;width:100%;border:none;background:none;text-align:left;color:inherit;font:inherit}
 .mlink .grow{flex:1;min-width:0}
 .mlink .chev{width:8px;height:14px;color:var(--label3);flex:none}
@@ -1412,6 +1429,81 @@ function renderMenu(){
 }
 const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
 // pagina di un pasto del menu: macro, ingredienti, passaggi e cosa preparare il giorno prima
+/* ---------- Widget settimanale: scala degli allenamenti con faccina e frase motivazionale ---------- */
+const QUOTES = [
+ ['Le ultime tre o quattro ripetizioni sono ciò che fa crescere il muscolo.', 'Arnold Schwarzenegger'],
+ ['Non ci sono scorciatoie: tutto è ripetizioni, ripetizioni, ripetizioni.', 'Arnold Schwarzenegger'],
+ ['Il successo è la somma di piccoli sforzi, ripetuti giorno dopo giorno.', 'Robert Collier'],
+ ["Siamo ciò che facciamo ripetutamente. L'eccellenza non è un atto, ma un'abitudine.", 'Will Durant, da Aristotele'],
+ ['Per vincere ci vuole talento; per ripetersi ci vuole carattere.', 'John Wooden'],
+ ['Un campione è qualcuno che si alza quando non può.', 'Jack Dempsey'],
+ ['La forza non viene dal vigore fisico. Viene da una volontà indomabile.', 'Mahatma Gandhi'],
+ ['La soddisfazione sta nello sforzo, non nel risultato.', 'Mahatma Gandhi'],
+ ['Sbagli il 100% dei colpi che non tiri.', 'Wayne Gretzky'],
+ ['Più difficile è la vittoria, più grande è la felicità nel vincere.', 'Pelé'],
+ ['Soffri ora e vivi il resto della tua vita da campione.', 'Muhammad Ali'],
+ ["Ogni pressione negativa, ogni sfida, è un'opportunità per crescere.", 'Kobe Bryant'],
+ ['Lo sport non costruisce il carattere. Lo rivela.', 'Heywood Hale Broun'],
+ ['La pazienza, la persistenza e il sudore sono una combinazione imbattibile per il successo.', 'Napoleon Hill'],
+ ['Non basta guardare i gradini, bisogna salire le scale.', 'Václav Havel'],
+ ['Ben fatto è meglio che ben detto.', 'Benjamin Franklin'],
+ ['Ciò che fa male oggi ti rende più forte domani.', 'Jay Cutler'],
+ ['Ci sarà sempre qualcuno con più talento di te, ma non hai scuse se qualcuno lavora più duro di te.', 'Derek Jeter'],
+ ['Devi aspettarti grandi cose da te stesso, prima ancora di farle.', 'Michael Jordan'],
+ ["Ho sbagliato ancora e ancora nella mia vita. Ed è per questo che ho avuto successo.", 'Michael Jordan'],
+ ['Per essere un campione devi credere in te stesso quando nessun altro lo fa.', 'Sugar Ray Robinson'],
+ ["La differenza tra il possibile e l'impossibile sta nella determinazione di una persona.", 'Tommy Lasorda'],
+ ['Chi combatte rischia di perdere, ma chi non combatte ha già perso.', 'Bertolt Brecht'],
+ ['Si impara più perdendo che vincendo: si impara ad andare avanti.', 'Morgan Wootten'],
+ ['Stabilisci i tuoi obiettivi più alti e non fermarti finché non li raggiungi.', 'Bo Jackson'],
+ ['Non puoi mettere limiti a niente. Più sogni, più lontano arrivi.', 'Michael Phelps'],
+ ['La mente è il muscolo più forte che puoi allenare.', 'Greg Plitt'],
+ ['Lo sport va a cercare la paura per dominarla, la fatica per trionfarne, la difficoltà per vincerla.', 'Pierre de Coubertin'],
+ ['Il bodybuilding non sono i 90 minuti in palestra: è uno stile di vita.', 'Lee Priest'],
+ ['Tutto è possibile per chi ci crede.', 'Gail Devers'],
+];
+const QI = Math.floor(Math.random() * QUOTES.length);   // una frase a caso a ogni apertura dell'app
+const STAIR_GOAL = 3;                                     // lunedì, martedì, giovedì; il mercoledì è il gradino bonus
+function stairFace(lvl){
+  // da indifferente (0) a raggiante (4): colore più caldo, bocca che si apre, guance, alone e scintille
+  const col = ['#E3D7A6', '#F5D66E', '#FFCD3C', '#FFC21A', '#FFB800'][lvl], ink = '#5A3A12';
+  const eyes = lvl >= 3 ? `<path d="M-7.5-2.5q2.5-4.5 5 0M2.5-2.5q2.5-4.5 5 0" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`
+                        : `<circle cx="-4.5" cy="-3" r="1.9" fill="${ink}"/><circle cx="4.5" cy="-3" r="1.9" fill="${ink}"/>`;
+  const mouth = [`<path d="M-5 5h10" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`,
+                 `<path d="M-5 4.2q5 2.6 10 0" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`,
+                 `<path d="M-6 3q6 6.5 12 0" fill="none" stroke="${ink}" stroke-width="1.9" stroke-linecap="round"/>`,
+                 `<path d="M-6.5 2.5q6.5 9.5 13 0z" fill="${ink}"/><path d="M-3 7.2q3 2 6 0" fill="#F0717A"/>`,
+                 `<path d="M-7 2q7 11 14 0z" fill="${ink}"/><path d="M-3.4 7.6q3.4 2.4 6.8 0" fill="#F0717A"/>`][lvl];
+  const cheeks = lvl >= 2 ? `<circle cx="-8" cy="3" r="2.4" fill="#FF7A7A" opacity="${lvl >= 3 ? .55 : .35}"/><circle cx="8" cy="3" r="2.4" fill="#FF7A7A" opacity="${lvl >= 3 ? .55 : .35}"/>` : '';
+  const spark = (x, y, s) => `<path d="M${x} ${y - s}L${x + s * .28} ${y - s * .28}L${x + s} ${y}L${x + s * .28} ${y + s * .28}L${x} ${y + s}L${x - s * .28} ${y + s * .28}L${x - s} ${y}L${x - s * .28} ${y - s * .28}Z" fill="#FFD84D"/>`;
+  const glow = lvl >= 3 ? `<circle r="${lvl === 4 ? 25 : 21}" fill="url(#stGlow)"/>` : '';
+  const sparks = lvl >= 3 ? spark(-17, -13, 4) + spark(17, -9, 3.2) + (lvl === 4 ? spark(13, -20, 4.4) + spark(-19, 6, 3) + spark(19, 9, 2.6) : '') : '';
+  return `${glow}<circle r="13" fill="${col}"/><circle r="13" fill="url(#stShade)"/>${cheeks}${eyes}${mouth}${sparks}`;
+}
+function weekWidget(){
+  const mon = mondayOf(new Date()).getTime(), ses = HIST.sedute.filter(s => s.inizio >= mon && s.inizio < mon + 7 * 864e5);
+  const days = new Set(ses.map(s => keyOf(new Date(s.inizio)))).size, lvl = Math.min(days, STAIR_GOAL + 1);
+  const mins = Math.round(ses.reduce((a, s) => a + Math.max(0, s.fine - s.inizio), 0) / 60000);
+  const base = 118, sx = i => 30 + i * 27, sh = i => (i + 1) * 21;
+  let steps = '';
+  for (let i = 0; i <= STAIR_GOAL; i++){
+    const bonus = i === STAIR_GOAL, done = i < days;
+    steps += `<rect x="${sx(i)}" y="${base - sh(i)}" width="27" height="${sh(i)}" rx="3" class="${bonus ? (done ? 'stb on' : 'stb') : (done ? 'sts on' : 'sts')}"/>`;
+  }
+  const fx = lvl ? sx(lvl - 1) + 13.5 : 14, fy = lvl ? base - sh(lvl - 1) - 14 : base - 14;
+  const svg = `<svg viewBox="0 0 142 122" role="img" aria-label="${days} allenamenti su ${STAIR_GOAL} questa settimana">
+    <defs><radialGradient id="stGlow"><stop offset="0" stop-color="#FFE27A" stop-opacity=".9"/><stop offset="1" stop-color="#FFE27A" stop-opacity="0"/></radialGradient>
+    <radialGradient id="stShade" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#B07800" stop-opacity=".18"/></radialGradient></defs>
+    <line x1="2" x2="140" y1="${base}" y2="${base}" class="stg"/>${steps}
+    <g class="stface${lvl >= 3 ? ' happy' : ''}" style="transform:translate(${fx}px,${fy}px)">${stairFace(lvl)}</g></svg>`;
+  const msg = ['Il primo gradino è il più importante', 'Ottimo inizio, avanti così', 'Ancora un gradino alla cima', 'Settimana completa!', 'Gradino bonus: sei in cima!'][lvl];
+  const tm = mins >= 60 ? Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min' : mins + ' min', [q, au] = QUOTES[QI];
+  return `<div class="sec" style="margin-top:22px"><div class="sec-h">Questa settimana</div><div class="list stairw-card">
+    <div class="stairw">${svg}<div class="info"><b>${days}<small> di ${STAIR_GOAL}</small></b><span class="lab">${days === 1 ? 'allenamento' : 'allenamenti'}${days ? ' · ' + tm : ''}</span><span class="msg">${msg}</span></div></div>
+    <div class="quote">«${esc(q)}»<span>${esc(au)}</span></div></div>
+    <div class="sec-f">Conta i giorni con un allenamento nello storico, da lunedì a domenica. Il quarto gradino è il mercoledì facoltativo.</div></div>`;
+}
+
 function renderMealPage(){
   const ph = PH(), wk = menuWk(), [di, mi] = S.meal.map(Number), d = ph.days[di], m = d && d.meals[mi];
   if (!m){ S.meal = null; return renderMenu(); }
@@ -1834,6 +1926,7 @@ function renderTrain(){
   }
   h += `<div class="sec" style="margin-top:22px"><div class="list"><button class="row ind othrow" data-other="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 12h8M4 17h6"/><path d="M15 15l3 3 4-6"/></svg>', 'teal')}<span class="grow"><span class="tt" style="display:block">Hai fatto una scheda diversa oggi?</span><span class="st" style="display:block">Selezionala qui e registrala nello storico con esercizi e carichi</span></span>${I.chev}</button></div></div>`;
   h += renderHistory();
+  h += weekWidget();
   h += `<div class="sec" style="margin-top:28px"><div class="sec-h">Carichi</div><div class="list">
     <button class="row ind" data-a="export">${iconTile(I.share, 'blue')}<span class="grow tt">Esporta i carichi (.txt)</span>${I.chev}</button>
     <button class="row ind" data-a="importfile">${iconTile(I.doc, 'indigo')}<span class="grow tt">Importa da file</span>${I.chev}</button>
