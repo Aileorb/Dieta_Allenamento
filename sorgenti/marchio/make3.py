@@ -1,5 +1,6 @@
 import json, math
 DEXTRA=0
+TGAP=0
 G=json.load(open('glyphs.json')); g=G['g']; T=json.load(open('tag.json'))
 def meatball(cx, cy, r, uid, k, sauce=False, sx=1.0, sy=1.0):
     # contorno irregolare (bozzoli) come una polpetta vera
@@ -37,7 +38,7 @@ def wordmark(uid, tag=True):
     ax=x; d="M 640 40 C 520 150, 420 260, 330 380 C 250 480, 200 560, 250 650 C 300 735, 430 720, 440 630 C 450 540, 330 480, 230 420 C 120 350, 70 260, 110 150 C 160 20, 330 0, 450 90 C 540 160, 590 240, 620 320"
     pasta=(f'<g transform="translate({ax} 0)" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="{d}" stroke="#C7840F" stroke-width="150"/>'
            f'<path d="{d}" stroke="#F6C445" stroke-width="112"/><path d="{d}" stroke="#FFE59A" stroke-width="30" transform="translate(-14 14)" opacity=".9"/></g>')
-    x+=700+track+190
+    x+=700+track+190-TGAP
     tx=x; stem_w=168; scx=tx+330
     stem=f'<rect x="{scx-stem_w/2:.0f}" y="-9" width="{stem_w}" height="640" rx="78" fill="{lab}"/>'
     barL=tx+20; barR=tx+640; by=566; bh=120; cyb=by+bh/2
