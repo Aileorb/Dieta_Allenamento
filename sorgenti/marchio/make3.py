@@ -1,4 +1,5 @@
 import json, math
+DEXTRA=0
 G=json.load(open('glyphs.json')); g=G['g']; T=json.load(open('tag.json'))
 def meatball(cx, cy, r, uid, k, sauce=False, sx=1.0, sy=1.0):
     # contorno irregolare (bozzoli) come una polpetta vera
@@ -24,7 +25,7 @@ def meatball(cx, cy, r, uid, k, sauce=False, sx=1.0, sy=1.0):
     return s
 def wordmark(uid, tag=True):
     top=840; parts=[]; track=-18; x=60; lab='var(--label,#000)'
-    parts.append(f'<path transform="translate({x} 0)" d="{g["D"]["d"]}" fill="{lab}"/>'); x+=g['D']['adv']+track+20
+    parts.append(f'<path transform="translate({x} 0)" d="{g["D"]["d"]}" fill="{lab}"/>'); x+=g['D']['adv']+track+20+DEXTRA
     # i: gambo di polpette impilate + puntino-polpetta con il sugo
     cx=x+118; balls=''
     stack=[(104,1.12,.78,-3),(98,1.07,.88,4),(93,1.03,.96,-2)]  # (raggio, larghezza, altezza, spostamento)
