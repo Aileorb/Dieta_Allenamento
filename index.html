@@ -274,12 +274,12 @@ img.fig{object-fit:cover}
 .ex .tg{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
 .ex .tg span{font-size:11px;line-height:13px;font-weight:600;padding:3px 7px;border-radius:6px;background:var(--fill);color:var(--label2)}
 .ex .tg span.k{background:var(--tint-bg);color:var(--blue)}
-.ex .st4{display:grid;grid-template-columns:repeat(4,1fr);border-top:.5px solid var(--sep);padding:9px 0}
-.ex .st4 div{text-align:center;border-left:.5px solid var(--sep)}
-.ex .st4 div:first-child{border:none}
-.ex .st4 b{display:block;font:600 19px/24px var(--rounded);font-variant-numeric:tabular-nums}
-.ex .st4 span{font-size:11px;line-height:13px;color:var(--label2)}
-.ex .st4 .mod b{color:var(--orange)}
+.ex .st4,.wo-st{display:grid;grid-template-columns:repeat(4,1fr);border-top:.5px solid var(--sep);padding:9px 0}
+.ex .st4 div,.wo-st div{text-align:center;border-left:.5px solid var(--sep)}
+.ex .st4 div:first-child,.wo-st div:first-child{border:none}
+.ex .st4 b,.wo-st b{display:block;font:600 19px/24px var(--rounded);font-variant-numeric:tabular-nums}
+.ex .st4 span,.wo-st span{font-size:11px;line-height:13px;color:var(--label2)}
+.ex .st4 .mod b,.wo-st .mod b{color:var(--orange)}
 .ex .nt{font-size:13px;line-height:18px;color:var(--label2);padding:0 16px 10px}
 .ex .fld{display:flex;align-items:center;gap:12px;padding:0 16px;min-height:44px;border-top:.5px solid var(--sep)}
 .ex .fld label{font-size:16px;flex:none;width:64px}
@@ -380,6 +380,44 @@ button.row:disabled{opacity:.4}
 .nx{text-align:center;font-size:13px;color:var(--label2);min-height:18px;margin-bottom:14px}
 .clock{display:flex;justify-content:space-between;align-items:center;padding:0 8px;margin-bottom:16px}
 .cbtn{width:84px;height:84px;border-radius:50%;border:none;padding:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;line-height:18px;font-weight:500;position:relative;flex:none}
+.wo{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+body.wo-on .wo{display:block}
+body.wo-on{overflow:hidden}
+.wo-top{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+.wo-meta{display:flex;flex-direction:column;gap:2px}
+.wo-step{font-size:13px;font-weight:600;color:var(--label2);text-transform:uppercase;letter-spacing:.3px}
+.wo-el{display:flex;align-items:center;gap:6px;font:600 20px/24px var(--rounded);font-variant-numeric:tabular-nums}
+.rec{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;animation:recb 1.6s infinite}
+@keyframes recb{50%{opacity:.25}}
+.wo-btns{display:flex;gap:12px}
+.cbtn2{width:44px;height:44px;border-radius:50%;border:none;padding:0;display:grid;place-items:center}
+.cbtn2 svg{width:16px;height:16px}
+.cbtn2.or{background:rgba(255,149,0,.2);color:var(--orange)}
+.cbtn2.rd{background:rgba(255,59,48,.18);color:var(--red)}
+.wo-in{max-width:560px;margin:0 auto;padding:6px 16px 0}
+.wo-fig{background:var(--card);border-radius:18px;padding:10px;margin:6px 0 14px}
+.wo-fig .fig{width:100%;height:auto;aspect-ratio:6/5;display:block;border-radius:12px;background:var(--card2)}
+.wo-fig img.fig{object-fit:cover}
+.wo-fig .figph svg{width:90px;height:76px}
+.wo-ss{font-size:13px;font-weight:600;color:var(--indigo);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.wo-name{font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;margin:0}
+.wo-mu{color:var(--label2);font-size:15px;margin-top:2px}
+.wo-st{background:var(--card);border-radius:14px;margin:14px 0 10px;border-top:none!important;padding:12px 0!important}
+.wo-st b{font-size:22px!important;line-height:28px!important}
+.wo-st span{font-size:12px!important}
+.wo-note{font-size:15px;color:var(--label2);margin:0 2px 8px}
+.wo-sug{font-size:15px;color:var(--orange);margin:0 2px 8px}
+.wo-dial{width:min(60vw,230px)}
+.wo-nav{display:flex;gap:10px;margin:18px 0 10px}
+.wo-nav .btn:disabled{opacity:.4}
+.wo-start{margin:0 0 12px}
+.lnkbtn{border:none;background:none;color:var(--blue);font-size:13px;padding:0;text-transform:none}
+.womini{position:fixed;left:0;right:0;bottom:calc(49px + env(safe-area-inset-bottom));z-index:29;padding:0 10px 8px}
+.wm{width:100%;max-width:700px;margin:0 auto;display:flex;align-items:center;gap:10px;border:none;border-radius:14px;padding:10px 14px;background:var(--card);box-shadow:0 4px 18px rgba(0,0,0,.14),0 0 0 .5px var(--sep);color:var(--label);text-align:left}
+.wm b{display:block;font-size:15px;line-height:19px}
+.wm #wmTxt{font-size:13px;color:var(--label2);font-variant-numeric:tabular-nums}
+.wm-go{color:#fff;background:var(--orange);border-radius:14px;padding:6px 12px;font-size:14px;font-weight:600}
+body.wo-mini .wrap{padding-bottom:150px}
 .tctl{display:flex;justify-content:center;gap:10px;margin:-6px 0 14px}
 .tctl button{border:none;border-radius:16px;padding:7px 18px;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
 .tctl .ps{background:var(--fill);color:var(--label)}
@@ -419,6 +457,8 @@ button.row:disabled{opacity:.4}
 </div>
 <input type="file" id="fileIn" accept=".txt,.json,text/plain,application/json" hidden>
 <input type="file" id="photoIn" accept="image/*" hidden>
+<div class="wo" id="wo" role="dialog" aria-modal="true" aria-label="Allenamento"></div>
+<div class="womini" id="womini" hidden></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -1220,6 +1260,8 @@ function renderTrain(){
     if (s.optional && wi.skipD) h += `<div class="note-card warn">${rientro() ? `Nelle prime ${rSkip()} settimane di rientro la sessione del mercoledì si salta.` : 'Settimana di scarico: la sessione del mercoledì si salta.'}</div>`;
     if (rientro()) h += `<div class="note-card warn"><b>Rientro.</b> Niente cedimento, rest-pause o discese lentissime per tutto il rientro. Se il carico indicato ti sembra leggero puoi salire, ma resta al RIR indicato.</div>`;
     if (s.note) h += `<div class="note-card">${esc(s.note)}</div>`;
+    const wcur = W(), here = wcur && wcur.prog === p.id && wcur.day === S.tday;
+    h += `<button class="btn ${here ? 'tinted' : ''} wo-start" ${here ? 'data-w="open"' : 'data-wostart="1"'}>${I.play.replace('<svg', '<svg width="16" height="16"')}${here ? 'Riprendi l\'allenamento in corso' : 'Avvia allenamento'}</button>`;
     h += `<div class="note-card"><b>Riscaldamento, 8-10 min.</b> 5 minuti di cyclette o vogatore, mobilità, poi 3-4 serie di avvicinamento sul primo esercizio.</div>`;
     const L0 = loads();
     groupsOf(s.ex).forEach((g, gi) => {
@@ -1234,7 +1276,7 @@ function renderTrain(){
           ${sg ? `<div class="sug">${sg}</div>` : ''}
           <div class="fld"><label for="c-${e.id}">${rientro() ? 'Prima' : 'Carico'}</label><input id="c-${e.id}" data-id="${e.id}" data-f="c" value="${esc(ld.c || '')}" placeholder="${esc(ph)}" autocomplete="off"></div>
           <div class="fld"><label for="n-${e.id}">Note</label><input id="n-${e.id}" data-id="${e.id}" data-f="n" value="${esc(ld.n || '')}" placeholder="es. 7-7-6-6" autocomplete="off"></div>
-          ${ei === g.ex.length - 1 ? `<div class="go"><button class="btn tinted sm" data-timer="${gi}">${I.play.replace('<svg', '<svg width="15" height="15"')}${ss ? 'Avvia superserie' : 'Avvia timer'}</button></div>` : ''}
+          ${ei === g.ex.length - 1 ? `<div class="go"><button class="btn tinted sm" data-timer="${gi}">${I.play.replace('<svg', '<svg width="15" height="15"')}${ss ? 'Inizia da questa superserie' : 'Inizia da questo esercizio'}</button></div>` : ''}
         </article>`;
       });
       h += `</div>`;
@@ -1243,6 +1285,7 @@ function renderTrain(){
     if (custom) h += `<div class="list" style="margin-top:6px"><button class="row ind" data-sessname="${p.id}|${S.tday}">${iconTile(I.doc, 'gray')}<span class="grow tt">Nome della seduta</span><span class="val">${esc(s.title)}</span>${I.chev}</button></div>`;
     h += `<div class="sec-f">Con il + in alto aggiungi un esercizio a questa seduta. Gli esercizi tuoi hanno il tag «Personalizzato»: tocca «Modifica» per cambiarli o eliminarli.</div>`;
   }
+  h += renderHistory();
   h += `<div class="sec" style="margin-top:28px"><div class="sec-h">Carichi</div><div class="list">
     <button class="row ind" data-a="export">${iconTile(I.share, 'blue')}<span class="grow tt">Esporta i carichi (.txt)</span>${I.chev}</button>
     <button class="row ind" data-a="importfile">${iconTile(I.doc, 'indigo')}<span class="grow tt">Importa da file</span>${I.chev}</button>
@@ -1348,7 +1391,11 @@ document.addEventListener('click', ev => {
   else if (d.rp !== undefined){ startRientro(+d.rp); }
   else if (d.a === 'rpause'){ askPause(); }
   else if (d.statin){ S.statin = !S.statin; const bx = document.getElementById('statinBox'); if (bx) bx.hidden = !S.statin; b.setAttribute('aria-expanded', S.statin); }
-  else if (d.timer !== undefined) openTimer(+d.timer);
+  else if (d.timer !== undefined) startWorkout(+d.timer);
+  else if (d.wostart){ startWorkout(0); }
+  else if (d.hist){ openHistory(d.hist); }
+  else if (d.histall){ S.histAll = true; render(); }
+  else if (d.histdel){ if (confirm('Eliminare questo allenamento dallo storico?')){ Store.set('sessions', Store.get('sessions', []).filter(x => x.id !== d.histdel)); closeSheet(); toast('Eliminato'); } }
   else if (d.a === 'export') exportLoads();
   else if (d.a === 'backup') exportBackup();
   else if (d.a === 'importfile') $('#fileIn').click();
@@ -1389,7 +1436,7 @@ function unlockWeek(){
   if (inSheet){ const [a, c] = S.opt; closeSheet(); openOptions(a, c); } else render();
   toast('Settimana sbloccata: ricordati di approvare di nuovo la spesa');
 }
-function closeSheet(){ $('#ov').classList.remove('on'); $('#sheet').classList.remove('on'); document.body.style.overflow = ''; S.opt = null; if (T) stopTimer(); render(); }
+function closeSheet(){ $('#ov').classList.remove('on'); $('#sheet').classList.remove('on'); document.body.style.overflow = ''; S.opt = null; render(); }
 $('#shL').onclick = closeSheet; $('#ov').onclick = closeSheet;
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && $('#sheet').classList.contains('on')) closeSheet(); });
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2400); }
@@ -1631,72 +1678,191 @@ if (!reduce) requestAnimationFrame(loop);
 
 
 /* ---------- timer ---------- */
-let T = null, tick = null, actx = null, wake = null;
+/* ================== ALLENAMENTO A SCHERMO INTERO ================== */
+let T = null, tick = null, actx = null, wake = null;   // T resta per compatibilità con closeSheet
 function beep(f = 880, ms = 160){ try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.2, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + ms/1000); o.start(); o.stop(actx.currentTime + ms/1000); } catch(e) {} }
 const mmss = s => { s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ':' + String(s%60).padStart(2, '0'); };
-function openTimer(gi){
-  const p = prog(), s = p.sessions[S.tday], groups = groupsOf(s.ex), wi = weekInfo(), g = groups[gi];
-  const sets = g.ex.map(e => adjSets(e, wi)), N = Math.max(...sets), rest = Math.max(...g.ex.map(e => e.restSec)) || 60;
-  T = {gi, groups, g, sets, N, set:1, i:0, phase:'ready', rest, t0:0, end:0, dur:rest, wi};
+const hmm = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600); return h ? h + ':' + pad(Math.floor(s % 3600 / 60)) + ':' + pad(s % 60) : mmss(s); };
+const W = () => Store.get('wsession', null);
+const wsetS = w => Store.set('wsession', w);
+let WO_OPEN = false;
+// ricostruisce gruppi ed esercizi della seduta salvata
+function woCtx(w){
+  const pr = w.prog === 'R' ? withMine(TRAIN.programs.find(p => p.id === 'R')) : withMine(PROGS().find(p => p.id === w.prog));
+  const s = pr && pr.sessions[w.day]; if (!s) return null;
+  const groups = groupsOf(s.ex), g = groups[Math.min(w.gi, groups.length - 1)];
+  const sets = g.ex.map(e => adjSets(e, w.wi)), N = Math.max(...sets), rest = Math.max(...g.ex.map(e => e.restSec)) || 60;
+  return {pr, s, groups, g, sets, N, rest, e: g.ex[Math.min(w.i, g.ex.length - 1)]};
+}
+function startWorkout(gi){
+  let w = W();
+  const p = prog();
+  if (w && (w.prog !== p.id || w.day !== S.tday)){
+    if (!confirm('C\'è già un allenamento in corso (' + w.title + '). Chiuderlo e salvarlo per iniziare questo?')) { openWorkout(); return; }
+    finishWorkout(true);
+  }
+  w = W();
+  if (!w){
+    const s = p.sessions[S.tday];
+    w = {id: uid('s'), prog: p.id, progName: p.id === 'R' ? 'Rientro' : p.name, day: S.tday, title: s.title, start: Date.now(), wi: weekInfo(), week: week(),
+         gi: gi || 0, i: 0, set: 1, phase: 'ready', t0: 0, end: 0, dur: 0, paused: 0, log: {}};
+  } else if (gi !== undefined && gi !== w.gi){ Object.assign(w, {gi, i: 0, set: nextSetFor(w, gi), phase: 'ready', paused: 0}); }
+  wsetS(w); openWorkout();
+}
+function nextSetFor(w, gi){
+  const c = woCtx(Object.assign({}, w, {gi, i: 0})); if (!c) return 1;
+  const done = Math.min(...c.g.ex.map(e => ((w.log[e.id] || {}).sets || []).length));
+  return Math.min(c.N, done + 1);
+}
+function openWorkout(){
+  WO_OPEN = true; document.body.classList.add('wo-on');
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume && actx.resume(); } catch(e) {}
-  try { if (navigator.wakeLock && !wake) navigator.wakeLock.request('screen').then(w => { wake = w; }).catch(() => {}); } catch(e) {}
-  openSheet(g.ex.length > 1 ? 'Superserie ' + g.ex.map(e => e.num).join(' + ') : 'Esercizio ' + g.ex[0].num, `<div id="tm"></div>`, 'Chiudi');
-  drawTimer(); clearInterval(tick); tick = setInterval(step, 250);
+  try { if (navigator.wakeLock && !wake) navigator.wakeLock.request('screen').then(x => { wake = x; }).catch(() => {}); } catch(e) {}
+  drawWorkout(); ensureTick(); renderMini();
 }
-function stopTimer(){ clearInterval(tick); T = null; try { wake && wake.release(); } catch(e) {} wake = null; }
-function nextInSet(){ for (let j = T.i + 1; j < T.g.ex.length; j++) if (T.sets[j] >= T.set) return j; return -1; }
-function act(a){
-  if (!T) return;
-  if (a === 'start'){ T.phase = 'work'; T.t0 = Date.now(); T.paused = 0; beep(660, 120); }
-  else if (a === 'done'){ T.paused = 0; const j = nextInSet();
-    if (j >= 0){ T.i = j; T.phase = 'ready'; }
-    else if (T.set >= T.N){ T.phase = 'finished'; beep(990, 300); }
-    else { T.phase = 'rest'; T.dur = T.rest; T.end = Date.now() + T.rest*1000; T.last = null; T.i = Math.max(0, T.sets.findIndex(x => x >= T.set + 1)); } }
-  else if (a === 'skip'){ T.paused = 0; endRest(); return; }
-  else if (a === 'pause'){ if (!T.paused) T.paused = Date.now(); }
-  else if (a === 'resume'){ if (T.paused){ const d = Date.now() - T.paused; T.end += d; T.t0 += d; T.paused = 0; } }
-  else if (a === 'stop'){ if (T.set > 1 && !confirm('Fermare il timer e ripartire dalla prima serie?')) return; T.paused = 0; T.set = 1; T.i = 0; T.phase = 'ready'; T.last = null; }
-  else if (a === 'plus'){ T.end += 15000; T.dur += 15; }
-  else if (a === 'minus') T.end = Math.max(Date.now(), T.end - 15000);
-  else if (a === 'next'){ const ng = T.gi + 1; if (ng < T.groups.length){ stopTimer(); openTimer(ng); return; } closeSheet(); toast('Seduta completata'); return; }
-  drawTimer();
+function minimizeWorkout(){ WO_OPEN = false; document.body.classList.remove('wo-on'); $('#wo').innerHTML = ''; try { wake && wake.release(); } catch(e) {} wake = null; renderMini(); render(); }
+function ensureTick(){ clearInterval(tick); if (W()) tick = setInterval(woStep, 250); }
+function woNextInSet(w, c){ for (let j = w.i + 1; j < c.g.ex.length; j++) if (c.sets[j] >= w.set) return j; return -1; }
+function logSet(w, e){
+  const lv = ($('#woLoad') || {}).value, rv = ($('#woReps') || {}).value;
+  const L = w.log[e.id] || (w.log[e.id] = {name: e.name, sets: []});
+  L.sets.push({n: w.set, load: (lv || '').trim(), reps: parseInt(rv, 10) || 0, at: Date.now()});
+  if (w.dft && w.dft[e.id]) delete w.dft[e.id].r;
+  if ((lv || '').trim()){ const l = Object.assign({}, loads()); l[e.id] = Object.assign({}, l[e.id], {c: lv.trim(), d: isoToday()}); Store.set('loads', l); }
 }
-function endRest(){ T.set++; T.i = Math.max(0, T.sets.findIndex(x => x >= T.set)); T.phase = 'ready'; beep(990, 260); drawTimer(); }
-function step(){ if (!T || T.paused) return; if (T.phase === 'rest'){ const left = (T.end - Date.now())/1000, sec = Math.ceil(left); if (sec <= 3 && sec > 0 && T.last !== sec){ T.last = sec; beep(720, 90); } if (left <= 0){ endRest(); return; } } drawClock(); }
-function drawClock(){
-  const ring = document.getElementById('ring'), big = document.getElementById('big'); if (!ring || !T) return;
-  const C = 339.29, now = T.paused || Date.now();
-  if (T.phase === 'rest'){ const left = Math.max(0, (T.end - now)/1000); big.textContent = mmss(left); ring.style.stroke = 'var(--orange)'; ring.style.strokeDashoffset = (C * (1 - left / T.dur)).toFixed(1); }
-  else if (T.phase === 'work'){ const el = (now - T.t0)/1000; big.textContent = mmss(el); ring.style.stroke = 'var(--green)'; ring.style.strokeDashoffset = (C * (1 - (el % 60)/60)).toFixed(1); }
-  else { ring.style.stroke = 'var(--green)'; ring.style.strokeDashoffset = T.phase === 'finished' ? 0 : C; big.textContent = T.phase === 'finished' ? '✓' : mmss(0); }
+function woAct(a){
+  const w = W(); if (!w) return; const c = woCtx(w); if (!c) return;
+  if (a === 'start'){ w.phase = 'work'; w.t0 = Date.now(); w.paused = 0; beep(660, 120); }
+  else if (a === 'done'){
+    w.paused = 0; logSet(w, c.e);
+    const j = woNextInSet(w, c);
+    if (j >= 0){ w.i = j; w.phase = 'ready'; }
+    else if (w.set >= c.N){ w.phase = 'finished'; beep(990, 300); }
+    else { w.phase = 'rest'; w.dur = c.rest; w.end = Date.now() + c.rest * 1000; w.last = null; w.i = Math.max(0, c.sets.findIndex(x => x >= w.set + 1)); }
+  }
+  else if (a === 'skip'){ w.paused = 0; woEndRest(w, c); return; }
+  else if (a === 'plus'){ w.end += 15000; w.dur += 15; }
+  else if (a === 'minus') w.end = Math.max(Date.now(), w.end - 15000);
+  else if (a === 'tpause'){ if (!w.paused) w.paused = Date.now(); }
+  else if (a === 'tresume'){ if (w.paused){ const d = Date.now() - w.paused; w.end += d; w.t0 += d; w.paused = 0; } }
+  else if (a === 'tstop'){ w.paused = 0; w.phase = 'ready'; w.last = null; }
+  else if (a === 'next' || a === 'prev'){
+    const ng = w.gi + (a === 'next' ? 1 : -1);
+    if (ng >= c.groups.length){ wsetS(w); askFinish(); return; }
+    if (ng < 0) return;
+    Object.assign(w, {gi: ng, i: 0, phase: 'ready', paused: 0}); w.set = nextSetFor(w, ng);
+    if (w.set > woCtx(w).N || woCtx(w).g.ex.every(e => ((w.log[e.id] || {}).sets || []).length >= woCtx(w).sets[woCtx(w).g.ex.indexOf(e)])) w.phase = 'finished';
+  }
+  else if (a === 'undo'){ const L = w.log[c.e.id]; if (L && L.sets.length){ L.sets.pop(); w.set = Math.max(1, nextSetFor(w, w.gi)); w.phase = 'ready'; } }
+  wsetS(w); drawWorkout();
 }
-function drawTimer(){
-  const e = T.g.ex[T.i], ld = loads()[e.id] || {}, sg = suggest(ld.c, T.wi);
-  const ph = T.paused ? 'In pausa' : {ready:`Serie ${T.set} di ${T.N}`, work:`Serie ${T.set} di ${T.N} in corso`, rest:`Recupero, poi serie ${T.set + 1}`, finished:'Esercizio completato'}[T.phase];
-  const j = nextInSet();
-  const nx = T.phase === 'rest' ? 'Prepara il carico per la prossima serie' : (T.g.ex.length > 1 && T.phase !== 'finished' && j >= 0 ? 'Subito dopo: ' + T.g.ex[j].name : '');
-  let L = '', R = '';
-  if (T.phase === 'ready'){ L = `<button class="cbtn gy" disabled>Recupero</button>`; R = `<button class="cbtn gr" data-t="start">Inizia</button>`; }
-  else if (T.phase === 'work'){ L = `<button class="cbtn gy" disabled>Recupero</button>`; R = `<button class="cbtn or" data-t="done">Fatto</button>`; }
-  else if (T.phase === 'rest'){ L = `<button class="cbtn gy" data-t="skip">Salta</button>`; R = `<button class="cbtn gr" disabled>Inizia</button>`; }
-  else { L = `<span style="width:84px"></span>`; R = `<button class="cbtn bl" data-t="next">${T.gi + 1 < T.groups.length ? 'Avanti' : 'Fine'}</button>`; }
-  document.getElementById('tm').innerHTML = `<div class="tm-ex">${figHtml(e, 'tmFig')}
-    <div><div class="nm">${esc(e.name)}</div><div class="s">${T.sets[T.i]} serie da ${esc(e.reps)} · RIR ${esc(adjRir(e, T.wi))}${ld.c ? ' · ' + esc(ld.c) : ''}</div></div></div>
-    ${sg ? `<div class="sec-f" style="text-align:center;color:var(--orange)">${sg}</div>` : ''}
-    <div class="dial"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--fill)" stroke-width="7"/><circle id="ring" cx="60" cy="60" r="54" fill="none" stroke="var(--green)" stroke-width="7" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="339.29"/></svg>
-      <div class="ctr"><div class="big" id="big" aria-live="polite">0:00</div><div class="ph">${ph}</div></div></div>
-    <div class="dots">${Array.from({length:T.N}, (_, k) => `<i class="${k + 1 < T.set || T.phase === 'finished' ? 'd' : (k + 1 === T.set ? 'c' : '')}"></i>`).join('')}</div>
-    <div class="nx">${esc(nx)}</div>
-    ${T.phase === 'work' || T.phase === 'rest' ? `<div class="tctl"><button class="ps" data-t="${T.paused ? 'resume' : 'pause'}">${T.paused ? I.play.replace('<svg', '<svg width="12" height="12"') + 'Riprendi' : '<svg viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="1.5" width="3" height="9" rx="1"/><rect x="7" y="1.5" width="3" height="9" rx="1"/></svg>Pausa'}</button><button class="stp" data-t="stop"><svg viewBox="0 0 12 12" fill="currentColor"><rect x="1.5" y="1.5" width="9" height="9" rx="2"/></svg>Stop</button></div>` : (T.phase === 'ready' && T.set > 1 ? `<div class="tctl"><button class="stp" data-t="stop"><svg viewBox="0 0 12 12" fill="currentColor"><rect x="1.5" y="1.5" width="9" height="9" rx="2"/></svg>Stop</button></div>` : '')}
-    <div class="clock">${L}${R}</div>
-    ${T.phase === 'rest' ? `<div class="adj"><button data-t="minus">−15 s</button><button data-t="plus">+15 s</button></div>` : ''}
-    <div class="list"><div class="row"><span class="grow tt">${rientro() ? 'Carico di prima' : 'Carico'}</span><input data-id="${e.id}" data-f="c" value="${esc(ld.c || '')}" placeholder="${esc(loadInfo(e, T.wi).ph)}" style="border:none;background:none;text-align:right;outline:none;font-size:17px;color:var(--label2);width:50%"></div></div>`;
-  const tf = document.getElementById('tmFig'); if (tf && tf.tagName.toLowerCase() === 'svg') mountFig(tf); drawClock();
+function woEndRest(w, c){ w.set++; w.i = Math.max(0, c.sets.findIndex(x => x >= w.set)); w.phase = 'ready'; beep(990, 260); wsetS(w); if (WO_OPEN) drawWorkout(); else { renderMini(); toast('Recupero finito: serie ' + w.set); } }
+function woStep(){
+  const w = W(); if (!w){ clearInterval(tick); return; }
+  if (w.phase === 'rest' && !w.paused){ const left = (w.end - Date.now())/1000, sec = Math.ceil(left);
+    if (sec <= 3 && sec > 0 && w.last !== sec){ w.last = sec; wsetS(w); beep(720, 90); }
+    if (left <= 0){ const c = woCtx(w); if (c) woEndRest(w, c); return; } }
+  if (WO_OPEN) woClock(w); else miniClock(w);
 }
-$('#shB').addEventListener('click', ev => { const b = ev.target.closest('[data-t]'); if (b) act(b.dataset.t); });
+function woClock(w){
+  const ring = $('#woRing'), big = $('#woBig'), el = $('#woElapsed'); if (el) el.textContent = hmm((Date.now() - w.start) / 1000);
+  if (!ring || !big) return;
+  const C = 339.29, now = w.paused || Date.now();
+  if (w.phase === 'rest'){ const left = Math.max(0, (w.end - now)/1000); big.textContent = mmss(left); ring.style.stroke = 'var(--orange)'; ring.style.strokeDashoffset = (C * (1 - left / w.dur)).toFixed(1); }
+  else if (w.phase === 'work'){ const e = (now - w.t0)/1000; big.textContent = mmss(e); ring.style.stroke = 'var(--green)'; ring.style.strokeDashoffset = (C * (1 - (e % 60)/60)).toFixed(1); }
+  else { ring.style.stroke = 'var(--green)'; ring.style.strokeDashoffset = w.phase === 'finished' ? 0 : C; big.textContent = w.phase === 'finished' ? '✓' : mmss(0); }
+}
+function repsGuess(e, L){ const last = L && L.sets.length ? L.sets[L.sets.length - 1].reps : 0; if (last) return last; const m = String(e.reps).match(/\d+/g); return m ? m[m.length - 1] : ''; }
+function drawWorkout(){
+  const w = W(); if (!w){ minimizeWorkout(); return; }
+  const c = woCtx(w); if (!c){ $('#wo').innerHTML = `<div class="wo-in"><p class="sub-lt" style="margin-top:80px;text-align:center">Questa seduta non esiste più.</p><button class="btn" data-w="close">Chiudi e salva</button></div>`; return; }
+  const e = c.e, wi = w.wi, L = w.log[e.id], ld = loads()[e.id] || {}, df = (w.dft || {})[e.id] || {}, sg = wi.rientro ? suggest(ld.c || (prevLoad(e) || {}).c, wi) : '';
+  const ss = c.g.ex.length > 1, nEx = c.groups.length;
+  const ph = w.paused ? 'In pausa' : {ready: `Serie ${w.set} di ${c.N}`, work: `Serie ${w.set} di ${c.N} in corso`, rest: `Recupero, poi serie ${w.set + 1}`, finished: 'Esercizio completato'}[w.phase];
+  const j = woNextInSet(w, c);
+  const nx = w.phase === 'rest' ? 'Prepara il carico per la prossima serie' : (ss && w.phase !== 'finished' && j >= 0 ? 'Subito dopo: ' + c.g.ex[j].name : '');
+  let Lb = '', Rb = '';
+  if (w.phase === 'ready'){ Lb = `<button class="cbtn gy" disabled>Recupero</button>`; Rb = `<button class="cbtn gr" data-w="start">Inizia</button>`; }
+  else if (w.phase === 'work'){ Lb = `<button class="cbtn gy" disabled>Recupero</button>`; Rb = `<button class="cbtn or" data-w="done">Fatto</button>`; }
+  else if (w.phase === 'rest'){ Lb = `<button class="cbtn gy" data-w="skip">Salta</button>`; Rb = `<button class="cbtn gr" disabled>Inizia</button>`; }
+  else { Lb = `<span style="width:84px"></span>`; Rb = `<button class="cbtn bl" data-w="next">${w.gi + 1 < nEx ? 'Avanti' : 'Fine'}</button>`; }
+  const pauseSvg = '<svg viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="1.5" width="3" height="9" rx="1"/><rect x="7" y="1.5" width="3" height="9" rx="1"/></svg>', stopSvg = '<svg viewBox="0 0 12 12" fill="currentColor"><rect x="1.5" y="1.5" width="9" height="9" rx="2"/></svg>';
+  const done = (L ? L.sets : []);
+  $('#wo').innerHTML = `<div class="wo-top"><div class="wo-meta"><span class="wo-step">Esercizio ${w.gi + 1} di ${nEx}</span><span class="wo-el"><i class="rec"></i><span id="woElapsed">${hmm((Date.now() - w.start)/1000)}</span></span></div>
+      <div class="wo-btns"><button class="cbtn2 or" data-w="min" aria-label="Metti in pausa e naviga nell'app">${pauseSvg}</button><button class="cbtn2 rd" data-w="close" aria-label="Termina e salva l'allenamento"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button></div></div>
+    <div class="wo-in">
+      <div class="wo-fig">${figHtml(e, 'woFig')}</div>
+      ${ss ? `<div class="wo-ss">Superserie ${c.g.ex.map(x => x.num).join(' + ')}</div>` : ''}
+      <h1 class="wo-name">${esc(e.name)}</h1>${e.muscles ? `<div class="wo-mu">${esc(e.muscles)}</div>` : ''}
+      <div class="st4 wo-st"><div class="${wi.deload || wi.rientro ? 'mod' : ''}"><b>${c.sets[w.i]}</b><span>serie</span></div><div><b>${esc(e.reps)}</b><span>ripetizioni</span></div><div class="${wi.d || wi.deload || wi.rientro ? 'mod' : ''}"><b>${esc(adjRir(e, wi))}</b><span>RIR</span></div><div><b>${esc(e.rest)}</b><span>pausa</span></div></div>
+      ${e.note ? `<div class="wo-note">${esc(e.note)}</div>` : ''}${sg ? `<div class="wo-sug">${sg}</div>` : ''}
+      <div class="dial wo-dial"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--fill)" stroke-width="7"/><circle id="woRing" cx="60" cy="60" r="54" fill="none" stroke="var(--green)" stroke-width="7" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="339.29"/></svg>
+        <div class="ctr"><div class="big" id="woBig">0:00</div><div class="ph">${ph}</div></div></div>
+      <div class="dots">${Array.from({length: c.N}, (_, k) => `<i class="${k + 1 < w.set || w.phase === 'finished' ? 'd' : (k + 1 === w.set ? 'c' : '')}"></i>`).join('')}</div>
+      <div class="nx">${esc(nx)}</div>
+      ${w.phase === 'work' || w.phase === 'rest' ? `<div class="tctl"><button class="ps" data-w="${w.paused ? 'tresume' : 'tpause'}">${w.paused ? I.play.replace('<svg', '<svg width="12" height="12"') + 'Riprendi' : pauseSvg + 'Pausa'}</button><button class="stp" data-w="tstop">${stopSvg}Stop</button></div>` : ''}
+      <div class="clock">${Lb}${Rb}</div>
+      ${w.phase === 'rest' ? `<div class="adj"><button data-w="minus">−15 s</button><button data-w="plus">+15 s</button></div>` : ''}
+      ${w.phase !== 'finished' ? `<div class="list"><label class="row frow"><span class="grow tt">Carico</span><input id="woLoad" class="fin" data-wex="${e.id}" value="${esc(df.l !== undefined ? df.l : (ld.c || ''))}" placeholder="${esc(loadInfo(e, wi).ph)}" autocomplete="off" inputmode="decimal"></label>
+        <label class="row frow"><span class="grow tt">Ripetizioni fatte</span><input id="woReps" class="fin" data-wex="${e.id}" type="number" inputmode="numeric" min="0" max="99" value="${esc(df.r !== undefined ? df.r : repsGuess(e, L))}"></label></div>
+        <div class="sec-f" style="margin:6px 4px 14px">Carico e ripetizioni vengono registrati quando tocchi «Fatto».</div>` : ''}
+      ${done.length ? `<div class="sec"><div class="sec-h">Serie registrate<span class="r"><button class="lnkbtn" data-w="undo">Annulla l'ultima</button></span></div><div class="list">${done.map(x => `<div class="row"><span class="grow tt">Serie ${x.n}</span><span class="val">${x.load ? esc(x.load) + ' × ' : ''}${x.reps} rip.</span></div>`).join('')}</div></div>` : ''}
+      <div class="wo-nav"><button class="btn tinted sm" data-w="prev" ${w.gi === 0 ? 'disabled' : ''}>‹ Precedente</button><button class="btn tinted sm" data-w="next">${w.gi + 1 < nEx ? 'Successivo ›' : 'Termina ›'}</button></div>
+    </div>`;
+  const f = $('#woFig'); if (f && f.tagName.toLowerCase() === 'svg') mountFig(f);
+  woClock(w);
+}
+function askFinish(){ if (confirm('Terminare l\'allenamento? Carichi, ripetizioni e orari vengono salvati.')) finishWorkout(); }
+function finishWorkout(silent){
+  const w = W(); if (!w) return;
+  const ex = Object.entries(w.log).map(([id, L]) => ({id, name: L.name, sets: L.sets})).filter(x => x.sets.length);
+  const nSets = ex.reduce((a, x) => a + x.sets.length, 0);
+  if (!nSets && !silent && !confirm('Non hai registrato nessuna serie. Chiudere senza salvare?')) return;
+  if (nSets){
+    const volume = ex.reduce((a, x) => a + x.sets.reduce((b, st) => b + (parseFloat(String(st.load).replace(',', '.')) || 0) * st.reps, 0), 0);
+    const rec = {id: w.id, prog: w.prog, progName: w.progName, day: w.day, title: w.title, week: w.week, start: w.start, end: Date.now(), ex, nSets, volume: Math.round(volume)};
+    const all = Store.get('sessions', []).filter(x => x.id !== rec.id); all.unshift(rec); Store.set('sessions', all.slice(0, 300));
+    if (!silent) toast(`Allenamento salvato · ${Math.round((rec.end - rec.start) / 60000)} min · ${nSets} serie`);
+  } else if (!silent) toast('Allenamento chiuso');
+  Store.set('wsession', null); clearInterval(tick);
+  WO_OPEN = false; document.body.classList.remove('wo-on'); $('#wo').innerHTML = ''; try { wake && wake.release(); } catch(e) {} wake = null;
+  renderMini(); if (!silent) render();
+}
+function renderMini(){
+  const w = W(), m = $('#womini'); if (!m) return;
+  if (!w || WO_OPEN){ m.hidden = true; document.body.classList.remove('wo-mini'); return; }
+  m.hidden = false; document.body.classList.add('wo-mini');
+  m.innerHTML = `<button class="wm" data-w="open"><i class="rec"></i><span class="grow"><b>${esc(w.title)}</b><span id="wmTxt"></span></span><span class="wm-go">Riprendi</span></button>`;
+  miniClock(w);
+}
+function miniClock(w){ const t = $('#wmTxt'); if (!t) return; const rest = w.phase === 'rest' && !w.paused ? ' · recupero ' + mmss((w.end - Date.now()) / 1000) : ''; t.textContent = hmm((Date.now() - w.start) / 1000) + rest; }
+document.addEventListener('input', ev => {
+  const t = ev.target; if (t.id !== 'woLoad' && t.id !== 'woReps') return; const w = W(); if (!w) return;
+  const d = (w.dft = w.dft || {}), k = t.dataset.wex; d[k] = Object.assign({}, d[k], {[t.id === 'woLoad' ? 'l' : 'r']: t.value}); wsetS(w);
+});
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-w]'); if (!b) return; const a = b.dataset.w;
+  if (a === 'min') minimizeWorkout(); else if (a === 'open') openWorkout(); else if (a === 'close') askFinish(); else woAct(a);
+});
+/* ---------- storico ---------- */
+function fmtDT(ts){ const d = new Date(ts); return ['dom','lun','mar','mer','gio','ven','sab'][d.getDay()] + ' ' + d.getDate() + ' ' + MESI[d.getMonth()] + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function renderHistory(){
+  const all = Store.get('sessions', []); if (!all.length) return '';
+  return `<div class="sec" style="margin-top:28px"><div class="sec-h">Storico allenamenti<span class="r">${all.length}</span></div><div class="list">${all.slice(0, S.histAll ? 300 : 5).map(x =>
+    `<button class="row" data-hist="${x.id}"><span class="grow"><span class="tt" style="display:block">${esc(x.title)} <span class="st">· ${esc(x.progName)}</span></span><span class="st" style="display:block">${fmtDT(x.start)} – ${pad(new Date(x.end).getHours())}:${pad(new Date(x.end).getMinutes())} · ${Math.round((x.end - x.start) / 60000)} min</span></span><span class="val">${x.nSets} serie</span>${I.chev}</button>`).join('')}
+    ${all.length > 5 && !S.histAll ? `<button class="row" data-histall="1"><span class="grow tt link" style="text-align:center">Mostra tutti</span></button>` : ''}</div></div>`;
+}
+function openHistory(id){
+  const x = Store.get('sessions', []).find(y => y.id === id); if (!x) return;
+  S.histId = id;
+  openSheet(x.title, `<p class="sec-f" style="margin:0 0 12px">${esc(x.progName)} · ${fmtDT(x.start)} – ${pad(new Date(x.end).getHours())}:${pad(new Date(x.end).getMinutes())} · ${Math.round((x.end - x.start) / 60000)} min · ${x.nSets} serie${x.volume ? ' · volume ' + nf(x.volume) + ' kg' : ''}</p>
+    ${x.ex.map(e => `<div class="sec"><div class="sec-h">${esc(e.name)}</div><div class="list">${e.sets.map(st => `<div class="row"><span class="grow tt">Serie ${st.n}</span><span class="val">${st.load ? esc(st.load) + ' × ' : ''}${st.reps} rip.</span></div>`).join('')}</div></div>`).join('')}
+    <div class="list"><button class="row" data-histdel="${x.id}"><span class="grow tt destr" style="text-align:center">Elimina dallo storico</span></button></div>`, 'Chiudi');
+}
 
 /* ---------- avvio ---------- */
 renderTabbar();
+setTimeout(() => { if (W()){ renderMini(); ensureTick(); } }, 0);
 document.querySelectorAll('.screen').forEach(s => s.classList.toggle('hidden', s.dataset.scr !== S.tab));
 render(false);
 Photos.load().then(() => { if (Object.keys(Photos.map).length) render(); });
