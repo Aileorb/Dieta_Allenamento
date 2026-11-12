@@ -280,6 +280,17 @@ img.fig{object-fit:cover}
 .pzc>div{display:flex;flex-direction:column}.pzc small{display:block;line-height:16px}
 .pzc .pzd{font-weight:700;font-variant-numeric:tabular-nums;color:var(--label2)}.pzc .pzd.up{color:var(--orange)}.pzc .pzd.dn{color:var(--blue)}
 .chips button.chipadd{color:var(--blue);background:transparent;box-shadow:inset 0 0 0 1px var(--blue)}
+.pg{position:fixed;inset:0;z-index:55;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.pg.on{animation:pgin .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes pgin{from{transform:translateX(100%)}to{transform:none}}
+@media (prefers-reduced-motion: reduce){.pg.on{animation:none}}
+.pgbar{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:44px;padding:env(safe-area-inset-top) 8px 0;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:0 .5px 0 var(--sep)}
+.pgbar .back{justify-self:start;display:flex;align-items:center;gap:2px;border:none;background:none;color:var(--blue);font-size:17px;padding:8px 6px;margin-left:-4px}
+.pgbar .back svg{width:13px;height:21px}
+.pgbar .t{font-weight:600;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw;text-align:center}
+.pgbar .pgr{justify-self:end;border:none;background:none;color:var(--blue);font-size:17px;font-weight:600;padding:8px 6px}
+.pgb{max-width:720px;margin:0 auto;padding:14px 16px calc(40px + env(safe-area-inset-bottom))}
+.pzl{color:var(--label2);transition:color .15s}.pzl.k{color:var(--red)}.pzl.p{color:var(--blue)}.pzl.c{color:var(--green)}.pzl.g{color:var(--orange)}
 .mlink{display:flex;align-items:center;gap:10px;width:100%;border:none;background:none;text-align:left;color:inherit;font:inherit}
 .mlink .grow{flex:1;min-width:0}
 .mlink .chev{width:8px;height:14px;color:var(--label3);flex:none}
@@ -542,6 +553,7 @@ body.wo-mini .wrap{padding-bottom:150px}
 <input type="file" id="photoIn" accept="image/*" hidden>
 <div class="wo" id="wo" role="dialog" aria-modal="true" aria-label="Allenamento"></div>
 <div class="womini" id="womini" hidden></div>
+<div class="pg" id="pg" hidden role="dialog" aria-modal="true" aria-labelledby="pgT"><header class="pgbar"><button class="back" id="pgL"></button><div class="t" id="pgT"></div><button class="pgr" id="pgR"></button></header><div class="pgb" id="pgB"></div></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -991,8 +1003,7 @@ function openOther(pid){
     <div class="chips" style="flex-wrap:wrap;overflow:visible">${progs.map(x => `<button data-othp="${x.id}" aria-pressed="${x.id === p.id}" style="margin-bottom:6px">${esc(lab(x))}</button>`).join('')}<button class="chipadd" data-othnew="1" style="margin-bottom:6px">+ Personalizza</button></div>
     <div class="list">${rows || (p.group ? '<div class="row"><span class="grow st" style="font-size:15px">Gruppo vuoto: aggiungi la prima scheda.</span></div>' : '')}
       ${p.group ? `<button class="row" data-gadd="${p.id.slice(1)}"><span class="grow tt link">+ Aggiungi scheda</span></button>` : ''}</div>
-    ${p.group ? `<div class="list" style="margin-top:18px"><button class="row" data-gren="${p.id.slice(1)}"><span class="grow tt">Rinomina gruppo</span><span class="val">${esc(p.name)}</span>${I.chev}</button>
-      <button class="row" data-gdel="${p.id.slice(1)}"><span class="grow tt destr">Elimina gruppo</span></button></div>` : ''}`, 'Chiudi');
+    ${p.group ? `<div class="list" style="margin-top:18px"><button class="row ind" data-gpage="${p.id.slice(1)}">${iconTile(PENCIL, 'indigo')}<span class="grow tt">Modifica il gruppo</span>${I.chev}</button></div>` : ''}`, 'Chiudi');
 }
 function otherSession(){ const p = allProgsFor().find(x => x.id === S.ol.prog); return p && p.sessions[S.ol.day]; }
 function openOtherLog(day){
@@ -1534,6 +1545,16 @@ function weekWidget(){
     <div class="sec-f">Conta i giorni con un allenamento nello storico, da lunedì a domenica. Il quarto gradino è il mercoledì facoltativo.</div></div>`;
 }
 
+/* ---------- finestra a schermo intero (Personalizza, gruppi di schede) ---------- */
+function openPage(title, body, left, right){
+  const el = $('#pg'), first = el.hidden;
+  el.hidden = false; if (first){ el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); document.body.style.overflow = 'hidden'; }
+  $('#pgT').textContent = title;
+  const L = $('#pgL'); L.innerHTML = left ? I.back + `<span>${esc(left[0])}</span>` : ''; L.style.visibility = left ? 'visible' : 'hidden'; L.onclick = left ? left[1] : null;
+  const R = $('#pgR'); R.textContent = right ? right[0] : ''; R.style.visibility = right ? 'visible' : 'hidden'; R.onclick = right ? right[1] : null;
+  $('#pgB').innerHTML = body;
+}
+function closePage(){ $('#pg').hidden = true; document.body.style.overflow = ''; S.pz = null; S.gs = null; render(); }
 /* ---------- Personalizza la giornata: cosa hai mangiato davvero, a confronto con il piano ---------- */
 // salvato per data: {m: {indice pasto: voce}, x: [voci fuori pasto]}; non cambia il menu né la lista della spesa
 const PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>';
@@ -1575,7 +1596,7 @@ function pzSummary(wk, di, veg, modOn, plan){
 }
 function pzCtx(){ const z = S.pz, veg = Store.get('veg', false), modOn = !!S.mod[z.wk + S.phase + z.di]; return {z, veg, modOn, plan: dayTotals(z.wk, z.di, veg, modOn)}; }
 function drawPz(){
-  const {z, veg, modOn, plan} = pzCtx(), d = PH().days[z.di], keep = $('#sheet').classList.contains('on') ? $('#shB').scrollTop : 0;
+  const {z, veg, modOn, plan} = pzCtx(), d = PH().days[z.di], keep = $('#pg').hidden ? 0 : $('#pg').scrollTop;
   let body = '';
   if (z.view === 'main'){
     const c = diaryCalc(z.wk, z.di, veg, modOn), cell = (cls, lab, v, p, u) => `<div><span class="${cls}">${lab}</span><b>${nf(v)}</b><small>piano ${nf(p)}</small><small class="pzd ${v - p > 0 ? 'up' : v - p < 0 ? 'dn' : ''}">${sgn(v - p)}</small></div>`;
@@ -1586,40 +1607,36 @@ function drawPz(){
         <button class="row" data-pz="pick|x"><span class="grow tt link">+ Aggiungi qualcosa</span></button></div>
       ${c.custom ? `<div class="list" style="margin-top:20px"><button class="row" data-pz="reset"><span class="grow tt destr" style="text-align:center">Torna al piano</span></button></div>` : ''}
       <div class="sec-f" style="margin:10px 4px 0">Serve a tenere il conto quando non segui il menu: non cambia il menu della settimana né la lista della spesa.</div>`;
-    openSheet('Personalizza la giornata', body, 'Fine');
+    openPage('Personalizza la giornata', body, ['Menu', closePage], ['Fine', closePage]);
   } else if (z.view === 'pick'){
     const meal = z.target !== 'x' ? d.meals[+z.target] : null;
-    body += `<button class="btn plain" data-pz="main" style="margin:-6px 0 8px;min-height:32px">‹ Indietro</button>
-      <input class="bigin" type="search" data-pzq placeholder="Cerca un piatto o una ricetta" value="${esc(z.q || '')}" autocomplete="off">
+    body += `<input class="bigin" type="search" data-pzq placeholder="Cerca un piatto o una ricetta" value="${esc(z.q || '')}" autocomplete="off">
       <div class="list">${meal ? `<button class="row ind" data-pz="set|plan">${iconTile(I.undo, 'blue')}<span class="grow tt">Come da piano</span></button><button class="row ind" data-pz="set|skip">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', 'gray')}<span class="grow tt">Ho saltato il pasto</span></button>` : ''}
         <button class="row ind" data-pz="food">${iconTile(I.leaf, 'green')}<span class="grow tt">Un alimento, a grammi</span>${I.chev}</button>
         <button class="row ind" data-pz="free">${iconTile(PENCIL, 'orange')}<span class="grow"><span class="tt" style="display:block">Inserisci a mano</span><span class="st" style="display:block">Pizza, pranzo fuori, aperitivo…</span></span>${I.chev}</button></div>
       <div id="pzList">${pzList()}</div>`;
-    openSheet(meal ? meal.name : 'Fuori pasto', body, 'Fine');
+    openPage(meal ? meal.name : 'Fuori pasto', body, ['Indietro', () => pzAct('main')], ['Fine', closePage]);
   } else if (z.view === 'portion'){
     const base = entryInfo(Object.assign({}, z.sel, {f: 1})), cur = mul(base, z.f || 1);
-    body += `<button class="btn plain" data-pz="pick|${z.target}" style="margin:-6px 0 8px;min-height:32px">‹ Indietro</button>
-      <h3 style="margin:4px 0 12px;font-size:20px">${esc(base.title)}</h3>
+    body += `<h3 style="margin:4px 0 12px;font-size:20px">${esc(base.title)}</h3>
       <div class="sec-h">Quanto ne hai mangiato?</div><div class="chips" style="flex-wrap:wrap;overflow:visible">${PZF.map(f => `<button data-pz="f|${f}" aria-pressed="${f === (z.f || 1)}" style="margin-bottom:6px">${portionTxt(f)}</button>`).join('')}</div>
       ${pzPrev(cur)}<button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
-    openSheet('Porzione', body, 'Fine');
+    openPage('Porzione', body, ['Indietro', () => pzAct('pick|' + z.target)], ['Fine', closePage]);
   } else if (z.view === 'food'){
     const v = z.fk && DIET.mac[z.fk];
-    body += `<button class="btn plain" data-pz="pick|${z.target}" style="margin:-6px 0 8px;min-height:32px">‹ Indietro</button>`;
     if (v) body += `<h3 style="margin:4px 0 12px;font-size:20px">${esc(v[0])}</h3><div class="list"><label class="row frow"><span class="grow tt">Quantità</span><input class="fin" data-pzg type="text" inputmode="decimal" value="${z.g || ''}" placeholder="100"><span class="eu">${v[1]}</span></label></div>
-      <div id="pzPrev">${pzPrev(foodMac(z.fk, +z.g || 0))}</div><button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button><button class="btn plain" data-pz="fk|">Scegli un altro alimento</button>`;
+      <div id="pzPrev">${pzPrev(foodMac(z.fk, +z.g || 0))}</div><button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
     else body += `<input class="bigin" type="search" data-pzq placeholder="Cerca un alimento" value="${esc(z.q || '')}" autocomplete="off"><div id="pzList">${pzFoods()}</div>`;
-    openSheet('Alimento', body, 'Fine');
+    openPage('Alimento', body, ['Indietro', () => pzAct(v ? 'fk|' : 'pick|' + z.target)], ['Fine', closePage]);
   } else if (z.view === 'free'){
-    const f = z.free || (z.free = {title: '', k: '', p: '', c: '', g: ''}), num = (k, lab, u) => `<label class="row frow"><span class="grow tt">${lab}</span><input class="fin" data-pzf="${k}" type="text" inputmode="decimal" value="${esc(f[k])}" placeholder="0"><span class="eu">${u}</span></label>`;
-    body += `<button class="btn plain" data-pz="pick|${z.target}" style="margin:-6px 0 8px;min-height:32px">‹ Indietro</button>
-      <input class="bigin" data-pzf="title" placeholder="Cosa hai mangiato (es. pizza margherita)" value="${esc(f.title)}" autocomplete="off">
+    const f = z.free || (z.free = {title: '', k: '', p: '', c: '', g: ''}), num = (k, lab, u) => `<label class="row frow"><span class="grow tt pzl${String(f[k]).trim() ? ' ' + k : ''}">${lab}</span><input class="fin" data-pzf="${k}" type="text" inputmode="decimal" value="${esc(f[k])}" placeholder="0"><span class="eu">${u}</span></label>`;
+    body += `<input class="bigin" data-pzf="title" placeholder="Cosa hai mangiato (es. pizza margherita)" value="${esc(f.title)}" autocomplete="off">
       <div class="list">${num('k', 'Calorie', 'kcal')}${num('p', 'Proteine', 'g')}${num('c', 'Carboidrati', 'g')}${num('g', 'Grassi', 'g')}</div>
       <div class="sec-f" style="margin:6px 4px 0">Se non conosci i macro, basta una stima delle calorie: ti servono per vedere quanto ti sei allontanato dal piano.</div>
       <button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
-    openSheet('Inserisci a mano', body, 'Fine');
+    openPage('Inserisci a mano', body, ['Indietro', () => pzAct('pick|' + z.target)], ['Fine', closePage]);
   }
-  $('#shB').scrollTop = z.view === z.lastView ? keep : 0; z.lastView = z.view;
+  $('#pg').scrollTop = z.view === z.lastView ? keep : 0; z.lastView = z.view;
 }
 const pzPrev = m => `<div class="macros pzc" style="margin:12px 0 0"><div><span class="c-kcal">Calorie</span><b>${nf(m.k)}</b><small>kcal</small></div><div><span class="c-p">Proteine</span><b>${m.p}</b><small>g</small></div><div><span class="c-c">Carbo</span><b>${m.c}</b><small>g</small></div><div><span class="c-g">Grassi</span><b>${m.g}</b><small>g</small></div></div>`;
 function pzList(){
@@ -1628,12 +1645,16 @@ function pzList(){
   const rec = DIET.extra.filter(r => ok(r.title)).map(r => ({key: `rec|extra|${r.n}`, o: r, sub: r.slot}));
   const mine = myRecList().filter(r => ok(r.title)).map(r => ({key: `rec|mine|${r.n}`, o: r, sub: 'Ricetta tua'}));
   const sec = (lab, l) => l.length ? `<div class="sec-h" style="margin-top:18px">${lab}<span class="r">${l.length}</span></div><div class="list">${l.map(x => `<button class="row" data-pz="sel|${x.key}">${protIcon(x.o.items || [])}<span class="grow"><span class="tt" style="display:block">${esc(x.o.title)}</span><span class="st" style="display:block">${esc(x.sub)}</span></span><span class="val"><b class="kv">${nf(x.o.k)}</b> <span class="c-kcal">kcal</span></span>${I.chev}</button>`).join('')}</div>` : '';
-  const h = sec('Le mie ricette', mine) + sec('Pasti del menu', menu) + sec('Ricette', rec);
-  return h || '<p class="sub-lt" style="text-align:center;margin-top:20px">Nessun risultato: prova «Inserisci a mano».</p>';
+  const raw = (S.pz.q || '').trim(), exact = raw && [...menu, ...rec, ...mine].some(x => x.o.title.toLowerCase() === q);
+  const add = raw && !exact ? `<div class="list" style="margin-top:14px"><button class="row ind" data-pz="newfree">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', 'blue')}<span class="grow"><span class="tt link" style="display:block">Aggiungi «${esc(raw)}»</span><span class="st" style="display:block">Inserisci calorie e macro a mano</span></span>${I.chev}</button></div>` : '';
+  const res = sec('Le mie ricette', mine) + sec('Pasti del menu', menu) + sec('Ricette', rec);
+  return res ? res + add : add;
 }
 function pzFoods(){
   const q = (S.pz.q || '').trim().toLowerCase(), l = Object.entries(DIET.mac).filter(([k, v]) => !q || v[0].toLowerCase().includes(q)).sort((a, b) => a[1][0].localeCompare(b[1][0], 'it'));
-  return `<div class="list">${l.map(([k, v]) => `<button class="row" data-pz="fk|${k}"><span class="grow"><span class="tt" style="display:block">${esc(v[0])}</span><span class="st" style="display:block">per 100 ${v[1]}: ${nf(Math.round(4 * v[2] + 4 * v[3] + 9 * v[4]))} kcal · P ${v[2]} · C ${v[3]} · G ${v[4]}</span></span>${I.chev}</button>`).join('') || '<div class="row"><span class="grow st">Nessun alimento trovato</span></div>'}</div>`;
+  const raw = (S.pz.q || '').trim(), add = raw && !l.some(([k, v]) => v[0].toLowerCase() === q) ? `<div class="list"><button class="row" data-pz="newfree"><span class="grow tt link">+ Aggiungi «${esc(raw)}»</span>${I.chev}</button></div>` : '';
+  if (!l.length) return add || '<div class="list"><div class="row"><span class="grow st">Nessun alimento trovato</span></div></div>';
+  return `<div class="list" style="margin-bottom:14px">${l.map(([k, v]) => `<button class="row" data-pz="fk|${k}"><span class="grow"><span class="tt" style="display:block">${esc(v[0])}</span><span class="st" style="display:block">per 100 ${v[1]}: ${nf(Math.round(4 * v[2] + 4 * v[3] + 9 * v[4]))} kcal · P ${v[2]} · C ${v[3]} · G ${v[4]}</span></span>${I.chev}</button>`).join('')}</div>` + add;
 }
 function pzSave(entry){
   const z = S.pz, date = dKey(z.wk, z.di), D = diaryDay(date);
@@ -1651,6 +1672,7 @@ function pzAct(a){
   else if (t === 'food'){ Object.assign(z, {view: 'food', q: '', fk: ''}); }
   else if (t === 'fk'){ z.fk = r[0]; z.g = r[0] ? (z.g || 100) : ''; z.q = ''; }
   else if (t === 'free'){ z.view = 'free'; }
+  else if (t === 'newfree'){ z.free = {title: (z.q || '').trim(), k: '', p: '', c: '', g: ''}; z.view = 'free'; z.q = ''; }
   else if (t === 'sel'){ z.sel = r[0] === 'menu' ? {t: 'menu', ph: S.phase, di: +r[1], mi: +r[2], alt: r[3] === '1'} : {t: 'rec', src: r[1], n: r[2], ph: S.phase}; z.f = 1; z.view = 'portion'; }
   else if (t === 'f'){ z.f = +r[0]; }
   else if (t === 'ok'){
@@ -1677,7 +1699,8 @@ function groupProgs(){
   return myGroups().map(g => {
     const sessions = {};
     (g.sessions || []).forEach(s => {
-      const ex = s.ex.map((x, i) => { const b = lib.get(x.id); return b ? Object.assign({}, b, {num: String(i + 1), sets: +x.sets || b.sets, reps: x.reps || b.reps}) : null; }).filter(Boolean);
+      const ex = s.ex.map((x, i) => { const b = x.custom ? {id: x.id, name: x.name, sets: 3, reps: '8-12', rir: '2', rest: '1′30″', restSec: 90, note: '', pattern: '', kind: 'Personalizzato', tool: '', muscles: '', mine: true} : lib.get(x.id);
+        return b ? Object.assign({}, b, {num: String(i + 1), sets: +x.sets || b.sets, reps: x.reps || b.reps}) : null; }).filter(Boolean);
       sessions[s.id] = {title: s.title, sub: '', optional: false, note: null, ex, dur: Math.max(15, 8 + Math.round(ex.reduce((a, e) => a + e.sets * (45 + (e.restSec || 90)), 0) / 60))};
     });
     return {id: 'G' + g.id, letter: '', name: g.name, group: true, block: 4, sessions};
@@ -1688,45 +1711,60 @@ function newGroup(){
   const n = myGroups().length + 1, name = prompt('Nome del nuovo gruppo di schede', 'Gruppo ' + n);
   if (name === null) return;
   const g = {id: uid('g'), name: name.trim() || 'Gruppo ' + n, sessions: []};
-  Store.set('mygroups', myGroups().concat([g])); openOther('G' + g.id); toast('Gruppo creato: aggiungi le schede');
+  Store.set('mygroups', myGroups().concat([g])); closeSheetQuiet(); openGroupPage(g.id); toast('Gruppo creato: aggiungi le schede');
+}
+function openGroupPage(gid){
+  const g = myGroups().find(x => x.id === gid); if (!g){ closePage(); return; }
+  S.gs = null; const P = groupProgs().find(x => x.id === 'G' + gid), back = () => { closePage(); openOther('G' + gid); };
+  const body = `<p class="sec-f" style="margin:0 0 12px">Le schede di questo gruppo le trovi in «Hai fatto una scheda diversa oggi?»: da lì le registri a posteriori o le avvii a schermo intero.</p>
+    <div class="sec-h">Schede<span class="r">${g.sessions.length || ''}</span></div>
+    <div class="list">${g.sessions.map(s => { const ps = P && P.sessions[s.id]; return `<button class="row" data-gpe="${s.id}"><span class="grow"><span class="tt" style="display:block">${esc(s.title)}</span><span class="st" style="display:block">${s.ex.length} esercizi${ps ? ' · circa ' + ps.dur + ' min' : ''}</span></span>${I.chev}</button>`; }).join('') || '<div class="row"><span class="grow st" style="font-size:15px">Gruppo vuoto: aggiungi la prima scheda.</span></div>'}
+      <button class="row" data-gadd="${gid}"><span class="grow tt link">+ Aggiungi scheda</span></button></div>
+    <div class="list" style="margin-top:22px"><button class="row" data-gren="${gid}"><span class="grow tt">Nome del gruppo</span><span class="val">${esc(g.name)}</span>${I.chev}</button>
+      <button class="row" data-gdel="${gid}"><span class="grow tt destr">Elimina gruppo</span></button></div>`;
+  openPage(g.name, body, ['Indietro', back], ['Fine', back]);
 }
 function openGroupSession(gid, sid){
   const g = myGroups().find(x => x.id === gid); if (!g) return;
   const s = sid && g.sessions.find(x => x.id === sid);
-  S.gs = {gid, sid: sid || null, title: s ? s.title : '', q: '', order: s ? s.ex.map(x => x.id) : [], sel: s ? Object.fromEntries(s.ex.map(x => [x.id, {sets: x.sets, reps: x.reps}])) : {}};
+  S.gs = {gid, sid: sid || null, title: s ? s.title : '', q: '', order: s ? s.ex.map(x => x.id) : [], sel: s ? Object.fromEntries(s.ex.map(x => [x.id, x.custom ? {sets: x.sets, reps: x.reps, name: x.name, custom: true} : {sets: x.sets, reps: x.reps}])) : {}};
   drawGroupSession();
 }
 function gsList(){
-  const z = S.gs, q = z.q.trim().toLowerCase(), lib = exLibrary().filter(e => !q || (e.name + ' ' + (e.muscles || '')).toLowerCase().includes(q));
-  return `<div class="list">${lib.map(e => { const on = !!z.sel[e.id]; return `<div class="row ck${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-gsx="${e.id}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(e.name)}</span><span class="st" style="display:block">${esc(e.muscles || e.kind || '')} · ${esc(e.from)}</span></span></div>`; }).join('') || '<div class="row"><span class="grow st">Nessun esercizio trovato</span></div>'}</div>`;
+  const z = S.gs, q = z.q.trim().toLowerCase(), all = exLibrary(), lib = all.filter(e => !q || (e.name + ' ' + (e.muscles || '')).toLowerCase().includes(q));
+  const dup = q && (all.some(e => e.name.toLowerCase() === q) || Object.values(z.sel).some(x => x.custom && x.name.toLowerCase() === q));
+  const add = q && !dup ? `<div class="list"><button class="row ind" data-gsnew="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', 'blue')}<span class="grow"><span class="tt link" style="display:block">Aggiungi «${esc(z.q.trim())}»</span><span class="st" style="display:block">Esercizio nuovo: lo trovi nello storico quando registri la scheda</span></span></button></div>` : '';
+  if (!lib.length) return add || '<div class="list"><div class="row"><span class="grow st">Nessun esercizio trovato</span></div></div>';
+  return `<div class="list" style="margin-bottom:14px">${lib.map(e => { const on = !!z.sel[e.id]; return `<div class="row ck${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-gsx="${e.id}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(e.name)}</span><span class="st" style="display:block">${esc(e.muscles || e.kind || '')} · ${esc(e.from)}</span></span></div>`; }).join('')}</div>` + add;
 }
 function drawGroupSession(){
-  const z = S.gs, lib = new Map(exLibrary().map(e => [e.id, e])), keep = $('#sheet').classList.contains('on') ? $('#shB').scrollTop : 0;
-  const chosen = z.order.filter(id => z.sel[id] && lib.get(id));
+  const z = S.gs, lib = new Map(exLibrary().map(e => [e.id, e])), keep = $('#pg').hidden ? 0 : $('#pg').scrollTop;
+  const chosen = z.order.filter(id => z.sel[id] && (z.sel[id].custom || lib.get(id)));
   const body = `<input class="bigin" data-gsf="title" placeholder="Nome della scheda (es. Petto e spalle)" value="${esc(z.title)}" autocomplete="off">
     <div class="sec-h" style="margin-top:10px">Esercizi scelti<span class="r">${chosen.length || ''}</span></div>
-    <div class="list">${chosen.map((id, i) => { const e = lib.get(id), x = z.sel[id]; return `<div class="row frow"><span class="num">${i + 1}</span><span class="grow tt" style="font-size:16px">${esc(e.name)}</span>
+    <div class="list">${chosen.map((id, i) => { const x = z.sel[id], e = x.custom ? {name: x.name} : lib.get(id); return `<div class="row frow"><span class="num">${i + 1}</span><span class="grow tt" style="font-size:16px">${esc(e.name)}</span>
       <input class="qin" style="width:44px;text-align:center" data-gss="${id}|sets" inputmode="numeric" value="${esc(x.sets)}" aria-label="Serie"><span class="eu">×</span><input class="qin" style="width:64px;text-align:center" data-gss="${id}|reps" value="${esc(x.reps)}" aria-label="Ripetizioni"><button class="xbtn" data-gsx="${id}" aria-label="Togli">×</button></div>`; }).join('') || '<div class="row"><span class="grow st" style="font-size:15px">Scegli gli esercizi dalla lista qui sotto.</span></div>'}</div>
     <div class="sec-f" style="margin:6px 4px 16px">Serie × ripetizioni: puoi cambiarle per questa scheda. Gli esercizi restano collegati ai loro carichi.</div>
     <div class="sec-h">Aggiungi esercizi</div><input class="bigin" type="search" data-gsq placeholder="Cerca per nome o muscolo" value="${esc(z.q)}" autocomplete="off">
     <div id="gsList">${gsList()}</div>
     ${z.sid ? `<div class="list" style="margin-top:22px"><button class="row" data-gsdel="1"><span class="grow tt destr" style="text-align:center">Elimina scheda</span></button></div>` : ''}`;
-  openSheet(z.sid ? 'Modifica scheda' : 'Nuova scheda', body, 'Annulla', 'Salva', saveGroupSession);
-  $('#shB').scrollTop = keep;
+  openPage(z.sid ? 'Modifica scheda' : 'Nuova scheda', body, ['Indietro', () => openGroupPage(z.gid)], ['Salva', saveGroupSession]);
+  $('#pg').scrollTop = keep;
 }
 function saveGroupSession(){
   const z = S.gs; if (!z) return;
-  const ex = z.order.filter(id => z.sel[id]).map(id => ({id, sets: Math.max(1, parseInt(z.sel[id].sets, 10) || 3), reps: String(z.sel[id].reps || '8-12').trim()}));
+  const ex = z.order.filter(id => z.sel[id]).map(id => Object.assign({id, sets: Math.max(1, parseInt(z.sel[id].sets, 10) || 3), reps: String(z.sel[id].reps || '8-12').trim()}, z.sel[id].custom ? {name: z.sel[id].name, custom: true} : {}));
   if (!z.title.trim()){ toast('Dai un nome alla scheda'); return; }
   if (!ex.length){ toast('Scegli almeno un esercizio'); return; }
   groupSave(z.gid, g => { const s = {id: z.sid || uid('t'), title: z.title.trim(), ex}; const i = g.sessions.findIndex(x => x.id === s.id); if (i >= 0) g.sessions[i] = s; else g.sessions.push(s); return g; });
-  const gid = z.gid; S.gs = null; closeSheetQuiet(); openOther('G' + gid); toast('Scheda salvata');
+  const gid = z.gid; S.gs = null; openGroupPage(gid); toast('Scheda salvata');
 }
 function gsAct(d){
   const z = S.gs; if (!z) return false;
+  if (d.gsnew){ const name = z.q.trim(); if (!name) return true; const id = uid('c'); z.sel[id] = {sets: 3, reps: '8-12', name, custom: true}; z.order.push(id); z.q = ''; drawGroupSession(); return true; }
   if (d.gsx){ const id = d.gsx; if (z.sel[id]){ delete z.sel[id]; z.order = z.order.filter(x => x !== id); } else { const e = exLibrary().find(x => x.id === id); z.sel[id] = {sets: e ? e.sets : 3, reps: e ? e.reps : '8-12'}; z.order.push(id); } drawGroupSession(); return true; }
   if (d.gsdel){ if (!confirm('Eliminare la scheda «' + (z.title || 'senza nome') + '»? Gli allenamenti già salvati nello storico restano.')) return true;
-    const gid = z.gid, sid = z.sid; groupSave(gid, g => { g.sessions = g.sessions.filter(s => s.id !== sid); return g; }); S.gs = null; closeSheetQuiet(); openOther('G' + gid); toast('Scheda eliminata'); return true; }
+    const gid = z.gid, sid = z.sid; groupSave(gid, g => { g.sessions = g.sessions.filter(s => s.id !== sid); return g; }); S.gs = null; openGroupPage(gid); toast('Scheda eliminata'); return true; }
   return false;
 }
 
@@ -2220,10 +2258,12 @@ document.addEventListener('click', ev => {
   else if (d.pzopen){ S.pz = {wk: menuWk(), di: S.day, view: 'main', q: ''}; drawPz(); }
   else if (d.pz) pzAct(d.pz);
   else if (d.othnew) newGroup();
-  else if (d.gadd){ openGroupSession(d.gadd); }
-  else if (d.gedit){ openGroupSession(S.oth.prog.slice(1), d.gedit); }
-  else if (d.gren){ const g = myGroups().find(x => x.id === d.gren), n = g && prompt('Nome del gruppo', g.name); if (n && n.trim()){ groupSave(d.gren, x => { x.name = n.trim(); return x; }); openOther('G' + d.gren); } }
-  else if (d.gdel){ const g = myGroups().find(x => x.id === d.gdel); if (g && confirm('Eliminare il gruppo «' + g.name + '» con le sue schede? Gli allenamenti già salvati nello storico restano.')){ Store.set('mygroups', myGroups().filter(x => x.id !== d.gdel)); S.oth = null; openOther(); toast('Gruppo eliminato'); } }
+  else if (d.gadd){ closeSheetQuiet(); openGroupSession(d.gadd); }
+  else if (d.gedit){ closeSheetQuiet(); openGroupSession(S.oth.prog.slice(1), d.gedit); }
+  else if (d.gpage){ closeSheetQuiet(); openGroupPage(d.gpage); }
+  else if (d.gpe){ const gid = $('#pgB [data-gadd]').dataset.gadd; openGroupSession(gid, d.gpe); }
+  else if (d.gren){ const g = myGroups().find(x => x.id === d.gren), n = g && prompt('Nome del gruppo', g.name); if (n && n.trim()){ groupSave(d.gren, x => { x.name = n.trim(); return x; }); openGroupPage(d.gren); } }
+  else if (d.gdel){ const g = myGroups().find(x => x.id === d.gdel); if (g && confirm('Eliminare il gruppo «' + g.name + '» con le sue schede? Gli allenamenti già salvati nello storico restano.')){ Store.set('mygroups', myGroups().filter(x => x.id !== d.gdel)); S.oth = null; $('#pg').hidden = true; document.body.style.overflow = ''; render(); openOther(); toast('Gruppo eliminato'); } }
   else if (d.chk || d.prep) toggleCheck(b);
   else if (d.phlock){ S.phaseOpen = !S.phaseOpen; render(); }
   else if (d.ph){ if (S.tab === 'menu' && !S.phaseOpen) return; const ch = d.ph !== S.phase; S.phase = d.ph; Store.set('phase', d.ph); S.phaseOpen = false; render(); if (ch) toast('Fase: ' + PH().label); }
@@ -2320,7 +2360,7 @@ document.addEventListener('change', ev => {
 document.addEventListener('input', ev => { const t = ev.target, ds = t.dataset || {};
   if (ds.pzq !== undefined && S.pz){ S.pz.q = t.value; const l = $('#pzList'); if (l) l.innerHTML = S.pz.view === 'food' ? pzFoods() : pzList(); return; }
   if (ds.pzg !== undefined && S.pz){ S.pz.g = t.value; const p = $('#pzPrev'); if (p) p.innerHTML = pzPrev(foodMac(S.pz.fk, parseFloat(String(t.value).replace(',', '.')) || 0)); return; }
-  if (ds.pzf !== undefined && S.pz && S.pz.free){ S.pz.free[ds.pzf] = t.value; return; }
+  if (ds.pzf !== undefined && S.pz && S.pz.free){ S.pz.free[ds.pzf] = t.value; const l = t.closest('.row') && t.closest('.row').querySelector('.pzl'); if (l) l.classList.toggle(ds.pzf, !!t.value.trim()); return; }
   if (ds.gsf !== undefined && S.gs){ S.gs[ds.gsf] = t.value; return; }
   if (ds.gsq !== undefined && S.gs){ S.gs.q = t.value; const l = $('#gsList'); if (l) l.innerHTML = gsList(); return; }
   if (ds.gss !== undefined && S.gs){ const [id, f] = ds.gss.split('|'); if (S.gs.sel[id]) S.gs.sel[id][f] = t.value; return; }
