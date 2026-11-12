@@ -1011,7 +1011,7 @@ function openOtherLog(day){
     const p = allProgsFor().find(x => x.id === S.oth.prog), s = p.sessions[day], now = new Date(), st = new Date(now.getTime() - 60 * 60000), L0 = loads();
     const top = e => { const m = String(e.reps).match(/\d+/g); return m ? m[m.length - 1] : ''; };
     S.ol = {prog: p.id, progName: p.id === 'R' ? 'Rientro' : p.name, day, title: s.title, date: isoToday(), t1: pad(st.getHours()) + ':' + pad(st.getMinutes()), t2: pad(now.getHours()) + ':' + pad(now.getMinutes()), ex: {}};
-    s.ex.forEach(e => { S.ol.ex[e.id] = {on: true, sets: Array.from({length: e.sets}, () => ({l: (L0[e.id] || {}).c || '', r: top(e)}))}; });
+    s.ex.forEach(e => { const l0 = p.id === 'R' ? rientroLoad(e) : (L0[e.id] || {}).c || ''; S.ol.ex[e.id] = {on: true, sets: Array.from({length: p.id === 'R' ? adjSets(e, rWi()) : e.sets}, () => ({l: l0, r: top(e)}))}; });
   }
   drawOtherLog();
 }
@@ -1052,7 +1052,9 @@ async function saveOtherLog(){
   await histPut(rows.seduta, rows.serie);
   // aggiorna l'ultimo carico usato per ogni esercizio, se la seduta registrata è la più recente
   const L0 = Object.assign({}, loads());
-  ex.forEach(e => { const last = e.sets.filter(st => st.load).pop(); if (last && (!L0[e.id] || !L0[e.id].d || L0[e.id].d <= o.date)) L0[e.id] = Object.assign({}, L0[e.id], {c: last.load, d: o.date}); });
+  ex.forEach(e => { const last = e.sets.filter(st => st.load).pop(); if (!last) return;
+    if (o.prog === 'R'){ if (!L0[e.id] || !L0[e.id].rd || L0[e.id].rd <= o.date) L0[e.id] = Object.assign({}, L0[e.id], {r: last.load, rd: o.date}); }
+    else if (!L0[e.id] || !L0[e.id].d || L0[e.id].d <= o.date) L0[e.id] = Object.assign({}, L0[e.id], {c: last.load, d: o.date}); });
   Store.set('loads', L0);
   S.ol = null; closeSheet(); toast(`Salvato nello storico · ${ex.reduce((a, e) => a + e.sets.length, 0)} serie`);
 }
@@ -2120,6 +2122,16 @@ function suggest(load, wi){
   const u = /kg/i.test(load) ? ' kg' : '';
   return `Questa settimana: circa ${nf(r(v*wi.rientro.lo/100))}–${nf(r(v*wi.rientro.hi/100))}${u} (${wi.rientro.lo}-${wi.rientro.hi}% di ${esc(load)})`;
 }
+// rientro: il carico da usare adesso è la percentuale della settimana applicata al carico di prima (campo «Prima»);
+// quello che registri nelle sedute di rientro va in «r» e non sovrascrive «Prima»
+const rWi = wi => wi && wi.rientro ? wi : (rientro() ? weekInfo() : {rientro: RT()[0]});
+function rientroLoad(e, wi){
+  const ld = loads()[e.id] || {}, base = ld.c || (prevLoad(e) || {}).c, W0 = rWi(wi);
+  const m = base && String(base).replace(',', '.').match(/(\d+(?:\.\d+)?)/); if (!m) return ld.r || '';
+  const v = parseFloat(m[1]); if (!v) return ld.r || '';
+  const step = v >= 20 ? 2.5 : 1, x = Math.round(v * (W0.rientro.lo + W0.rientro.hi) / 200 / step) * step;
+  return String(x).replace('.', ',') + (/kg/i.test(base) ? ' kg' : '');
+}
 function prevLoad(e){
   const L0 = loads(); let best = null;
   PROGS().forEach(p => Object.values(p.sessions).forEach(s => s.ex.forEach(x => { const l = L0[x.id];
@@ -2515,7 +2527,7 @@ function logSet(w, e){
   const L = w.log[e.id] || (w.log[e.id] = {name: e.name, sets: []});
   L.sets.push({n: w.set, load: (lv || '').trim(), reps: parseInt(rv, 10) || 0, at: Date.now()});
   if (w.dft && w.dft[e.id]) delete w.dft[e.id].r;
-  if ((lv || '').trim()){ const l = Object.assign({}, loads()); l[e.id] = Object.assign({}, l[e.id], {c: lv.trim(), d: isoToday()}); Store.set('loads', l); }
+  if ((lv || '').trim()){ const l = Object.assign({}, loads()); l[e.id] = Object.assign({}, l[e.id], w.prog === 'R' ? {r: lv.trim(), rd: isoToday()} : {c: lv.trim(), d: isoToday()}); Store.set('loads', l); }
 }
 function woAct(a){
   const w = W(); if (!w) return; const c = woCtx(w); if (!c) return;
@@ -2590,7 +2602,7 @@ function drawWorkout(){
       ${w.phase === 'work' || w.phase === 'rest' ? `<div class="tctl"><button class="ps" data-w="${w.paused ? 'tresume' : 'tpause'}">${w.paused ? I.play.replace('<svg', '<svg width="12" height="12"') + 'Riprendi' : pauseSvg + 'Pausa'}</button><button class="stp" data-w="tstop">${stopSvg}Stop</button></div>` : ''}
       <div class="clock">${Lb}${Rb}</div>
       ${w.phase === 'rest' ? `<div class="adj"><button data-w="minus">−15 s</button><button data-w="plus">+15 s</button></div>` : ''}
-      ${w.phase !== 'finished' ? `<div class="list"><label class="row frow"><span class="grow tt">Carico</span><input id="woLoad" class="fin" data-wex="${e.id}" value="${esc(df.l !== undefined ? df.l : (ld.c || ''))}" placeholder="${esc(loadInfo(e, wi).ph)}" autocomplete="off" inputmode="decimal"></label>
+      ${w.phase !== 'finished' ? `<div class="list"><label class="row frow"><span class="grow tt">Carico</span><input id="woLoad" class="fin" data-wex="${e.id}" value="${esc(df.l !== undefined ? df.l : (w.prog === 'R' ? rientroLoad(e, wi) : (ld.c || '')))}" placeholder="${esc(loadInfo(e, wi).ph)}" autocomplete="off" inputmode="decimal"></label>
         <label class="row frow"><span class="grow tt">Ripetizioni fatte</span><input id="woReps" class="fin" data-wex="${e.id}" type="number" inputmode="numeric" min="0" max="99" value="${esc(df.r !== undefined ? df.r : repsGuess(e, L))}"></label></div>
         <div class="sec-f" style="margin:6px 4px 14px">Carico e ripetizioni vengono registrati quando tocchi «Fatto».</div>` : ''}
       ${done.length ? `<div class="sec"><div class="sec-h">Serie registrate<span class="r"><button class="lnkbtn" data-w="undo">Annulla l'ultima</button></span></div><div class="list">${done.map(x => `<div class="row"><span class="grow tt">Serie ${x.n}</span><span class="val">${x.load ? esc(x.load) + ' × ' : ''}${x.reps} rip.</span></div>`).join('')}</div></div>` : ''}
