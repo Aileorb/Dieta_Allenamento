@@ -60,6 +60,15 @@ button{cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:man
 .navbar .t.brandt{max-width:none;justify-self:center}
 /* nome fissato: sempre al centro; se lo spazio tra i pulsanti non basta si rimpicciolisce (proporzioni 7,24:1) */
 .navbar .t.brandt svg{width:min(174px, calc(100vw - 196px));height:auto;display:block}
+/* pagine principali dei tab: scorrendo la barra in alto sparisce; nel Menu resta solo il marchio su una sfumatura */
+.navbar.root{pointer-events:none}
+.navbar.root .rt{display:none}
+.navbar.root:not(.brandbar) .t{display:none}
+.navbar.root.compact{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}
+.navbar.root.brandbar.compact{background:var(--bg)}
+.navbar.root.brandbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:26px;background:linear-gradient(var(--bg),transparent);opacity:0;transition:opacity .15s;pointer-events:none}
+.navbar.root.brandbar.compact::after{opacity:1}
+.navbar.root.brandbar .t.brandt svg{width:min(230px, calc(100vw - 48px))}
 h1.lt{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.37px;margin:2px 0 10px}
 .lthead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 10px}
 .lthead h1.lt{margin:0}
@@ -680,7 +689,7 @@ const DAYL = ['L','M','M','G','V','S','D'];
 /* ---------- componenti ---------- */
 function navbar(title, opts = {}){
   if (opts.acts) opts.right = `<span class="rtc">${opts.acts}</span>`;
-  return `<header class="navbar${opts.always ? ' always compact' : ''}"><div class="in">
+  return `<header class="navbar${opts.always ? ' always compact' : ''}${opts.root ? ' root' : ''}${opts.root && opts.titleHtml ? ' brandbar' : ''}"><div class="in">
     <div>${opts.back ? `<button class="back" data-a="${opts.back}">${I.back}<span>${esc(opts.backLabel || 'Indietro')}</span></button>` : ''}</div>
     <div class="t${opts.titleHtml ? ' brandt' : ''}">${opts.titleHtml || esc(title)}</div><div class="rt">${opts.right || ''}</div></div></header>`;
 }
@@ -1381,7 +1390,7 @@ function renderMenu(){
   const locked = isLocked(wk), r0 = settle(wk), isNow = wk === WK_NOW();
   const tot = dayTotals(wk, S.day, veg, modOn);
   const acts = addBtn('data-newrec="1"', 'Nuova ricetta') + avatarHtml();
-  let h = navbar('Menu', {titleHtml: `<span role="img" aria-label="Di&T – diet & training">${BRAND_FULL}</span>`, acts: addBtn('data-newrec="1"', 'Nuova ricetta', 'sm') + avatarHtml('sm')}) + `<div class="wrap"><div class="brand" role="img" aria-label="Di&T">${BRAND_BIG}</div>` + ltitle('Menu', acts);
+  let h = navbar('Menu', {root: true, titleHtml: `<span role="img" aria-label="Di&T – diet & training">${BRAND_FULL}</span>`, acts: addBtn('data-newrec="1"', 'Nuova ricetta', 'sm') + avatarHtml('sm')}) + `<div class="wrap"><div class="brand" role="img" aria-label="Di&T">${BRAND_BIG}</div>` + ltitle('Menu', acts);
   h += recapBanner() + nextApprovalBanner();
   h += seg([['now', 'Questa settimana'], ['next', 'Prossima · ' + fmtRange(WK_NEXT())]], S.wkm || 'now', 'wkm', 'Settimana');
   h += `<div class="strip" role="group" aria-label="Giorno">${ph.days.map((x, i) => { const dt = weekDate(wk, i), today = isNow && i === todayIdx;
@@ -1572,7 +1581,7 @@ function subsFor(r){ const out = []; PH().days.forEach(d => d.meals.forEach(m =>
 function renderRecipes(){
   if (S.rec) return renderRecipe();
   const recs = recList(S.rsrc), q = S.rq.trim().toLowerCase();
-  let h = navbar('Ricette', {acts: addBtn('data-newrec="1"', 'Nuova ricetta', 'sm')}) + `<div class="wrap">` + ltitle('Ricette', addBtn('data-newrec="1"', 'Nuova ricetta'));
+  let h = navbar('Ricette', {root: true, acts: addBtn('data-newrec="1"', 'Nuova ricetta', 'sm')}) + `<div class="wrap">` + ltitle('Ricette', addBtn('data-newrec="1"', 'Nuova ricetta'));
   h += `<label class="search">${I.search}<input type="search" id="rq" placeholder="Cerca" value="${esc(S.rq)}" autocomplete="off" enterkeyhint="search"></label>`;
   h += seg([['menu', 'Menu (' + (PH().recipes || []).length + ')'], ['extra', 'Ricettario (' + (DIET.extra || []).length + ')'], ['mine', 'Mie (' + myRecs().length + ')']], S.rsrc, 'rs', 'Raccolta');
   if (S.rsrc === 'menu') h += `<p class="sub-lt" style="margin:-6px 0 14px">Ricette del menu ${esc(PH().label.toLowerCase())}. La fase si cambia in fondo alla pagina Menu.</p>`;
@@ -1765,7 +1774,7 @@ function renderShop(){
   });
   const keys = Object.keys(plan), done = keys.filter(k => chk[k]).length, nCh = changedCount(r, S.phase);
   const spend = keys.reduce((a, k) => a + costOf(k, plan[k]), 0), nMine = keys.filter(k => prices()[k]).length;
-  let h = navbar('Spesa') + `<div class="wrap">` + ltitle('Spesa');
+  let h = navbar('Spesa', {root: true}) + `<div class="wrap">` + ltitle('Spesa');
   h += seg([['now', 'Questa sett. · ' + fmtRange(WK_NOW())], ['next', 'Prossima · ' + fmtRange(WK_NEXT())]], isNext ? 'next' : 'now', 'swk', 'Settimana');
   // stato approvazione
   const dl = deadline(wk);
@@ -1874,7 +1883,7 @@ function groupsOf(ex){ const g = []; ex.forEach(e => { const n = parseInt(e.num,
 function renderTrain(){
   const p = prog(), wi = weekInfo(), w = week(), max = rientro() ? rLen() : p.block, R = rientro();
   const xa = `data-exadd="${p.id}|${S.tday}"`;
-  let h = navbar('Allenamento', {acts: addBtn(xa, 'Aggiungi esercizio', 'sm')}) + `<div class="wrap">` + ltitle('Allenamento', addBtn(xa, 'Aggiungi esercizio'));
+  let h = navbar('Allenamento', {root: true, acts: addBtn(xa, 'Aggiungi esercizio', 'sm')}) + `<div class="wrap">` + ltitle('Allenamento', addBtn(xa, 'Aggiungi esercizio'));
   h += seg(PROGS().map(x => [x.id, x.id === 'f1' ? 'Ricomp.' : x.id === 'U' ? 'Mia' : x.id === 'B' ? 'Ipertr.' : x.id === 'C' ? 'Essenz.' : x.name]), userProg().id, 'prog', 'Programma').replace('class="seg"', `class="seg${R ? ' locked' : ''}"${R ? ' aria-disabled="true"' : ''}`);
   h += R ? `<p class="sub-lt locknote">${I.lockL}<span>Programma bloccato durante il rientro: il recupero è lo stesso qualunque sia la scheda. Alla fine riprendi con <b>${esc(userProg().name)}</b> dalla settimana 1.</span></p><p class="sub-lt">${esc(p.desc)}</p>` : `<p class="sub-lt">${esc(p.desc)}</p>`;
   h += `<div class="sec"><div class="list">${swRow('rientro', R, 'Rientro dopo una pausa', R ? `${rLen()} settimane con carichi e serie ridotti` : 'Da 4 a 6 settimane, secondo quanto sei stato fermo', iconTile(I.undo, 'teal'))}${R ? `<button class="row" data-a="rpause"><span class="grow tt">Pausa</span><span class="val">${rLen() === 6 ? 'Più di 2 mesi' : '1-2 mesi'}</span>${I.chev}</button>` : ''}</div></div>`;
