@@ -271,6 +271,37 @@ img.fig{object-fit:cover}
 .stb{fill:none;stroke:var(--label3);stroke-width:1.5;stroke-dasharray:4 3}.stb.on{fill:#FFB800;stroke:none}
 .stg{stroke:var(--sep);stroke-width:1.5}
 .stface{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.stairw .face{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stairw .jump{transform-box:fill-box;transform-origin:50% 100%}
+.stairw .face.hop .jump{animation:hop .62s cubic-bezier(.3,.7,.4,1)}
+@keyframes hop{0%{transform:none}15%{transform:scale(1.12,.86)}45%{transform:translateY(-14px) scale(.94,1.08)}70%{transform:translateY(0) scale(1.08,.92)}85%{transform:scale(.98,1.02)}100%{transform:none}}
+.stairw .eo,.stairw .ec,.stairw .es{transition:opacity .08s}
+.stairw .ec,.stairw .es{opacity:0}
+.stairw .face.hop .eo{opacity:0}.face.hop .ec{opacity:1}
+/* terzo allenamento: braccia, occhi a stella, bagliore bianco */
+.stairw .arm{transform-box:fill-box;opacity:0}
+.stairw .arm.l{transform-origin:100% 85%}.arm.r{transform-origin:0% 85%}
+.stairw .face.flex .arm{animation:armin .35s cubic-bezier(.3,1.5,.5,1) forwards, flexr 1.6s .35s ease-in-out}
+.stairw .face.flex .arm.l{animation-name:armin,flexl}
+@keyframes armin{from{opacity:1;transform:scale(.2)}to{opacity:1;transform:scale(1)}}
+@keyframes flexr{0%,100%{opacity:1;transform:none}20%,60%{opacity:1;transform:rotate(-14deg) scale(1.06)}40%,80%{opacity:1;transform:rotate(4deg)}}
+@keyframes flexl{0%,100%{opacity:1;transform:none}20%,60%{opacity:1;transform:rotate(14deg) scale(1.06)}40%,80%{opacity:1;transform:rotate(-4deg)}}
+.stairw .face.flex.out .arm{animation:armout .3s ease-in forwards}
+@keyframes armout{from{opacity:1;transform:none}to{opacity:0;transform:scale(.2)}}
+.stairw .glow{opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.stairw .face.flex .glow{animation:glow 2.2s ease-out}
+@keyframes glow{0%{opacity:0;transform:scale(.4)}20%{opacity:1;transform:scale(1.05)}35%{transform:scale(.92)}50%{transform:scale(1.04)}80%{opacity:1}100%{opacity:0;transform:scale(1)}}
+.stairw .face.flex .eo{opacity:0}.face.flex .es{opacity:1}
+.stairw .face.flex .es path{transform-box:fill-box;transform-origin:50% 50%;animation:spin 1.8s linear}
+@keyframes spin{to{transform:rotate(144deg)}}
+.stairw .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flick 1.1s ease-in-out infinite}
+.stairw .flame path:nth-child(2){transform-box:fill-box;transform-origin:50% 100%;animation:flick2 .8s ease-in-out infinite}
+.stairw .flame path:nth-child(3){transform-box:fill-box;transform-origin:50% 100%;animation:flick .6s ease-in-out infinite reverse}
+@keyframes flick{0%,100%{transform:scale(1,1) skewX(0)}25%{transform:scale(1.03,.95) skewX(-3deg)}50%{transform:scale(.97,1.05) skewX(2deg)}75%{transform:scale(1.02,.97) skewX(-1deg)}}
+@keyframes flick2{0%,100%{transform:scale(1)}50%{transform:scale(.94,1.08) skewX(3deg)}}
+.stairw .face.blaze .flame{animation:blaze 2.2s ease-in-out}
+@keyframes blaze{0%{transform:scale(1)}12%{transform:scale(1.35,1.5) skewX(-6deg)}24%{transform:scale(1.25,1.65) skewX(5deg)}36%{transform:scale(1.4,1.55) skewX(-4deg)}48%{transform:scale(1.3,1.7) skewX(6deg)}60%{transform:scale(1.38,1.5) skewX(-3deg)}75%{transform:scale(1.2,1.35) skewX(2deg)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.stairw .face *{animation-duration:.01s !important}}
 .stface.happy{animation:stbob 2.4s ease-in-out infinite}
 @keyframes stbob{50%{translate:0 -2px}}
 @media (prefers-reduced-motion: reduce){.stface{transition:none}.stface.happy{animation:none}}
@@ -1508,11 +1539,14 @@ const QUOTES = [
 ];
 const QI = Math.floor(Math.random() * QUOTES.length);   // una frase a caso a ogni apertura dell'app
 const STAIR_GOAL = 3;                                     // lunedì, martedì, giovedì; il mercoledì è il gradino bonus
+const stStar = (x, y, r) => { let d = ''; for (let i = 0; i < 10; i++){ const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; d += (i ? 'L' : 'M') + (x + rr * Math.cos(a)).toFixed(2) + ' ' + (y + rr * Math.sin(a)).toFixed(2); } return d + 'Z'; };
 function stairFace(lvl){
-  // da indifferente (0) a raggiante (4): colore più caldo, bocca che si apre, guance, alone e scintille
+  // da indifferente (0) a raggiante (4); al tocco: occhi chiusi e salto; dal terzo allenamento braccia che flettono, occhi a stella e bagliore; al quarto una fiamma
   const col = ['#E3D7A6', '#F5D66E', '#FFCD3C', '#FFC21A', '#FFB800'][lvl], ink = '#5A3A12';
-  const eyes = lvl >= 3 ? `<path d="M-7.5-2.5q2.5-4.5 5 0M2.5-2.5q2.5-4.5 5 0" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`
+  const open = lvl >= 3 ? `<path d="M-7.5-2.5q2.5-4.5 5 0M2.5-2.5q2.5-4.5 5 0" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`
                         : `<circle cx="-4.5" cy="-3" r="1.9" fill="${ink}"/><circle cx="4.5" cy="-3" r="1.9" fill="${ink}"/>`;
+  const closed = `<path d="M-7-3.2q2.5 2.6 5 0M2-3.2q2.5 2.6 5 0" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`;
+  const stars = `<path d="${stStar(-4.6, -3, 4.1)}" fill="#FFE033" stroke="#C99A06" stroke-width="1.1" stroke-linejoin="round"/><path d="${stStar(4.6, -3, 4.1)}" fill="#FFE033" stroke="#C99A06" stroke-width="1.1" stroke-linejoin="round"/>`;
   const mouth = [`<path d="M-5 5h10" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`,
                  `<path d="M-5 4.2q5 2.6 10 0" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`,
                  `<path d="M-6 3q6 6.5 12 0" fill="none" stroke="${ink}" stroke-width="1.9" stroke-linecap="round"/>`,
@@ -1522,7 +1556,16 @@ function stairFace(lvl){
   const spark = (x, y, s) => `<path d="M${x} ${y - s}L${x + s * .28} ${y - s * .28}L${x + s} ${y}L${x + s * .28} ${y + s * .28}L${x} ${y + s}L${x - s * .28} ${y + s * .28}L${x - s} ${y}L${x - s * .28} ${y - s * .28}Z" fill="#FFD84D"/>`;
   const glow = lvl >= 3 ? `<circle r="${lvl === 4 ? 25 : 21}" fill="url(#stGlow)"/>` : '';
   const sparks = lvl >= 3 ? spark(-17, -13, 4) + spark(17, -9, 3.2) + (lvl === 4 ? spark(13, -20, 4.4) + spark(-19, 6, 3) + spark(19, 9, 2.6) : '') : '';
-  return `${glow}<circle r="13" fill="${col}"/><circle r="13" fill="url(#stShade)"/>${cheeks}${eyes}${mouth}${sparks}`;
+  const flame = lvl === 4 ? `<g class="flame"><path d="M0 9C-13 9-17 0-14-8C-12-14-8-16-8-23C-4-19-3-16-2-13C0-20 2-27 0-36C8-29 13-21 13-13C15-16 15-19 14-22C19-15 19-2 13 4C10 7 6 9 0 9Z" fill="#F0442B"/><path d="M0 9C-10 9-12 1-10-5C-8-10-5-11-5-16C-2-13-1-11 0-9C1-15 3-20 2-26C8-20 10-14 10-8C12-10 12-12 12-14C15-8 14 0 10 4C7 7 4 9 0 9Z" fill="#FF8A1F"/><path d="M0 9C-6 9-8 4-7 0C-6-4-4-5-3-8C-1-6 0-4 0-3C1-7 2-10 2-14C6-10 7-6 7-2C8-3 8-4 8-5C10-1 9 4 6 6C4 8 2 9 0 9Z" fill="#FFD84D"/></g>` : '';
+  const arms = lvl >= 3 ? `<g class="arm l"><use href="#stArm" x="-34" y="-15" width="26" height="26"/></g><g class="arm r"><g transform="scale(-1 1)"><use href="#stArm" x="-34" y="-15" width="26" height="26"/></g></g>` : '';
+  const white = lvl >= 3 ? `<circle class="glow" r="30" fill="url(#whGlow)"/>` : '';
+  return `<g class="jump">${flame}${white}${arms}${glow}<circle r="13" fill="${col}"/><circle r="13" fill="url(#stShade)"/>${cheeks}<g class="eo">${open}</g><g class="ec">${closed}</g>${lvl >= 3 ? `<g class="es">${stars}</g>` : ''}${mouth}${sparks}</g>`;
+}
+function faceTap(f){
+  const l = +f.dataset.l;
+  if (l >= 3){ if (f.classList.contains('flex')) return; f.classList.remove('out'); f.classList.add('flex', 'hop'); if (l === 4){ f.classList.add('blaze'); setTimeout(() => f.classList.remove('blaze'), 2250); }
+    setTimeout(() => f.classList.remove('hop'), 650); setTimeout(() => f.classList.add('out'), 2000); setTimeout(() => f.classList.remove('flex', 'out'), 2350); }
+  else { f.classList.remove('hop'); void f.getBoundingClientRect(); f.classList.add('hop'); setTimeout(() => f.classList.remove('hop'), 650); }
 }
 function weekWidget(){
   const mon = mondayOf(new Date()).getTime(), ses = HIST.sedute.filter(s => s.inizio >= mon && s.inizio < mon + 7 * 864e5);
@@ -1535,11 +1578,13 @@ function weekWidget(){
     steps += `<rect x="${sx(i)}" y="${base - sh(i)}" width="27" height="${sh(i)}" rx="3" class="${bonus ? (done ? 'stb on' : 'stb') : (done ? 'sts on' : 'sts')}"/>`;
   }
   const fx = lvl ? sx(lvl - 1) + 13.5 : 14, fy = lvl ? base - sh(lvl - 1) - 14 : base - 14;
-  const svg = `<svg viewBox="0 0 142 122" role="img" aria-label="${days} allenamenti su ${STAIR_GOAL} questa settimana">
+  const svg = `<svg viewBox="0 -46 142 168" role="img" aria-label="${days} allenamenti su ${STAIR_GOAL} questa settimana: tocca la faccina">
     <defs><radialGradient id="stGlow"><stop offset="0" stop-color="#FFE27A" stop-opacity=".9"/><stop offset="1" stop-color="#FFE27A" stop-opacity="0"/></radialGradient>
+    <symbol id="stArm" viewBox="0 0 128 128"><path style="fill:#F9DDBD;" d="M79.5,28.9c1.9,2,2.3,4.5,1.5,5.9c-0.9,1.6-2,2.4-3.7,2.4c-0.7,0-4-0.1-5.8,1 c-2,1.2-6.3,3.3-11.3,2.8c-3.3-0.3-7.6-3.6-9.6-1.2c-1,1.2-2.6,5.7-2.7,12c-0.1,4.4,0.6,19.9-1.4,29.8C46.4,82.3,47,83,47.7,83 c1.9-0.1,4.1-0.9,6-5.5c10.1-24.7,51.5-23.1,57.6,4.7c2.3,10.2,5.4,31.2-14.7,37.2c-14.9,4.4-35.9,0.8-47.1-0.1 c-7-0.6-32.4-1.7-34.6-15.9c-0.7-4.1,0.3-11.2,1.6-20.6c0.4-3.2,1.4-12.2,4.7-22.1C24,52.7,28,45.3,33,37c1.8-3,4-7.9,9.8-13.9 c8.1-8.4,18-14.2,23.7-16.8c4.2-1.9,6.6,1.4,7.7,4c0.9,2.2,6.1,9.2,8.5,12.5c0.7,1,1.2,3.2-0.3,4.2C81,28.1,79.5,28.9,79.5,28.9z"/> <g> <g> <g> <defs> <path id="SVGID_1_" d="M79.5,28.9c1.9,2,2.3,4.5,1.5,5.9c-0.9,1.6-2,2.4-3.7,2.4c-0.7,0-4-0.1-5.8,1c-2,1.2-6.3,3.3-11.3,2.8 c-3.3-0.3-7.6-3.6-9.6-1.2c-1,1.2-2.6,5.7-2.7,12c-0.1,4.4,0.6,19.9-1.4,29.8C46.4,82.3,47,83,47.7,83c1.9-0.1,4.1-0.9,6-5.5 c10.1-24.7,51.5-23.1,57.6,4.7c2.3,10.2,5.4,31.2-14.7,37.2c-14.9,4.4-35.9,0.8-47.1-0.1c-7-0.6-32.4-1.7-34.6-15.9 c-0.7-4.1,0.3-11.2,1.6-20.6c0.4-3.2,1.4-12.2,4.7-22.1C24,52.7,28,45.3,33,37c1.8-3,4-7.9,9.8-13.9c8.1-8.4,18-14.2,23.7-16.8 c4.2-1.9,6.6,1.4,7.7,4c0.9,2.2,6.1,9.2,8.5,12.5c0.7,1,1.2,3.2-0.3,4.2C81,28.1,79.5,28.9,79.5,28.9z"/> </defs> <clipPath id="SVGID_00000080185341174257548620000007512397827962629769_"> <use xlink:href="#SVGID_1_" style="overflow:visible;"/> </clipPath> <g style="clip-path:url(#SVGID_00000080185341174257548620000007512397827962629769_);"> <path style="fill:#EFB682;" d="M109.6,73.4c-2.6-0.3-10.3-1.5-11,6.3c-0.4,4.3,0.7,14.5-6.5,20.2s-15.9,9-28.1,3 c-1.1-0.6-1.5-0.2-0.5,1c1,1.1,5.1,4.7,8.2,6.4c2.4,1.3,1.6,4.2-1.4,4.6c-9.6,1.2-16.1-2.7-24.4-2.9 c-18.2-0.5-20.1-0.2-23.8-2.7c0,0-5-3.3-4.8-8.3c0.8-27.5,8.5-46.1,16.9-60c4.1-6.8,10.3-20.4,32.7-33.4C68,7,69.9,6.5,71.5,9 c2.2,3.5,3.4,5.1,5.1,7.7c1.8,2.6,4.5,1.3,4.5,1.3L70.9,1.5L44.3,16.9L16.5,56.5l-5.8,51.9l13.4,12.3l72.1,3.8l20.4-13.5V86.4 L109.6,73.4z"/> <path style="fill:#EFB682;" d="M58.2,39.7c2.5,0.1,7.7-1.1,10.2-3s5.3-1.4,6.3-1.3c1,0.1,3.3-0.3,3.1-2.9 c-0.2-2.6-0.3-3.8-0.3-3.8l5.8,0.8l1.4,11L62,48.8L58.2,39.7z"/> <path style="fill:#EFB682;" d="M50.1,39.1c-1.3,1-5.8,4.3-5.6,13.2c0.6,27.8-5.6,25.4-5.6,31.6c0,2.8,8.7,0,8.7,0l3-15.5 L50.1,39.1z"/> <path style="fill:#EFB682;" d="M96.9,61.6c-0.5,0.8-0.9,2.7-4,2.1s-8.7-3.3-19.8-0.3c-4.2,1.1-4.2-1.8-4.2-1.8l15.8-8.7 L96.9,61.6z"/> </g> </g> </g> </g> <g> <g> <g> <defs> <path id="SVGID_00000045619018990360221250000003621337632896527806_" d="M79.5,28.9c1.9,2,2.3,4.5,1.5,5.9 c-0.9,1.6-2,2.4-3.7,2.4c-0.7,0-4-0.1-5.8,1c-2,1.2-6.3,3.3-11.3,2.8c-3.3-0.3-7.6-3.6-9.6-1.2c-1,1.2-2.6,5.7-2.7,12 c-0.1,4.4,0.6,19.9-1.4,29.8C46.4,82.3,47,83,47.7,83c1.9-0.1,4.1-0.9,6-5.5c10.1-24.7,51.5-23.1,57.6,4.7 c2.3,10.2,5.4,31.2-14.7,37.2c-14.9,4.4-35.9,0.8-47.1-0.1c-7-0.6-32.4-1.7-34.6-15.9c-0.7-4.1,0.3-11.2,1.6-20.6 c0.4-3.2,1.4-12.2,4.7-22.1C24,52.7,28,45.3,33,37c1.8-3,4-7.9,9.8-13.9c8.1-8.4,18-14.2,23.7-16.8c4.2-1.9,6.6,1.4,7.7,4 c0.9,2.2,6.1,9.2,8.5,12.5c0.7,1,1.2,3.2-0.3,4.2C81,28.1,79.5,28.9,79.5,28.9z"/> </defs> <clipPath id="SVGID_00000017486783958213822160000001815918908225486466_"> <use xlink:href="#SVGID_00000045619018990360221250000003621337632896527806_" style="overflow:visible;"/> </clipPath> <g style="clip-path:url(#SVGID_00000017486783958213822160000001815918908225486466_);"> <path style="fill:#B26830;" d="M98.4,84c-0.9,17.5-20.6,25.8-34.8,17c-1.5-0.9-2.7,0.5-1.4,1.5c12.9,10.5,27.6,5.6,34.3-2.7 c3.6-4.5,5.2-10.8,4.4-15.8C100.6,82.3,98.5,82.5,98.4,84z"/> <path style="fill:#B26830;" d="M76.8,59.2c-0.1,0.8-0.4,3.7-3.6,4.3c-1.2,0.2-12,3.9-16.9,17c-1.7,4.6-6.3,5.5-8.1,5.7 c-1.8,0.1-9.6-1.8-12.5,5.8c-0.5,1.2-1.7,0.6-1.5-0.2c0.5-3.1,1.6-7.9,8.5-8.8c0.8-0.1,1.5-0.6,1.7-1.4c1.5-3.9,2.5-7.7,4.1-8.2 c1.7-0.5,23-15.4,23-15.4L76.8,59.2z"/> <path style="fill:#B26830;" d="M48.9,48.8c-0.7-1-1.8-2.4-1.3-4.6c0.5-2.2,1.1-4.3,1.3-4.8s0.5-1.6-0.5-2.8 c-0.9-1-0.2-2.5,1.2-1.6c11.3,7.4,18.1,3.5,20.5,2.1c1.3-0.8,5.2-0.8,7-0.9c4.3-0.1,3.8-6.1,0.5-6.8c-3.3-0.7-5.3,1.3-8,0.2 c-1.6-0.6-3.2-2-5.7-2.3c-1.1-0.1-0.7-1-0.2-1c1,0,1.9,0.1,2.7,0.2c-0.5-5.5,3.3-7.7,3.3-13.7c0-1,0.7-0.6,0.8-0.3 c0.3,0.9,1.1,3.8-0.1,6.9c3.6,2.9,6.1,1.9,8.2,3.6c0.5,0.5,0.2,0.9-0.2,0.8c-2-0.7-3.1-0.7-3.8-0.7c-0.5,0-1.3,0.2-1.1,0.8 s0.7,1.3,0.9,1.6c0.5,0.6-0.3,1.5-0.9,0.7c-0.3-0.4-1.4-3.1-2.8-3.3c-0.7-0.1-1.5-0.1-1.9,1c-1.1,3.2,0.2,3.6,2.1,3.8 c1.5,0.1,3-0.5,3.9-0.5c1.4,0,2.9,0.4,3.5,0.9c0.8-0.6,2.2-1.6,2.9-2.1c0.5-0.4,0.8-1.3,0.3-2c-0.5-0.8-6-9.7-6.3-10.4 c-0.4-0.6-0.6-2.3,0.2-2.8C75.6,10.2,87,25.4,87,25.4l-6.2,13.9L48.9,48.8z"/> </g> </g> </g> </g></symbol>
+    <radialGradient id="whGlow"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".4" stop-color="#fff" stop-opacity=".9"/><stop offset=".7" stop-color="#FFF3C4" stop-opacity=".55"/><stop offset="1" stop-color="#FFF3C4" stop-opacity="0"/></radialGradient>
     <radialGradient id="stShade" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#B07800" stop-opacity=".18"/></radialGradient></defs>
     <line x1="2" x2="140" y1="${base}" y2="${base}" class="stg"/>${steps}
-    <g class="stface${lvl >= 3 ? ' happy' : ''}" style="transform:translate(${fx}px,${fy}px)">${stairFace(lvl)}</g></svg>`;
+    <g class="stface${lvl >= 3 ? ' happy' : ''}" style="transform:translate(${fx}px,${fy}px)"><g class="face" data-face="1" data-l="${lvl}" role="button" aria-label="Faccina">${stairFace(lvl)}</g></g></svg>`;
   const msg = ['Il primo gradino è il più importante', 'Ottimo inizio, avanti così', 'Ancora un gradino alla cima', 'Settimana completa!', 'Gradino bonus: sei in cima!'][lvl];
   const tm = mins >= 60 ? Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min' : mins + ' min', [q, au] = QUOTES[QI];
   return `<div class="sec" style="margin-top:22px"><div class="sec-h">Questa settimana</div><div class="list stairw-card">
@@ -2264,6 +2309,7 @@ function toggleCheck(el){
   else if (el.dataset.prep){ const [k, i] = el.dataset.prep.split('|'), c = Object.assign({}, Store.get(k, {})); c[i] = !c[i]; Store.set(k, c); render(); }
 }
 document.addEventListener('click', ev => {
+  const fc = ev.target.closest('[data-face]'); if (fc){ faceTap(fc); return; }
   const b = ev.target.closest('button, [data-chk], [data-prep], [data-gsx]'); if (!b) return;
   const d = b.dataset;
   if (S.gs && gsAct(d)) return;
