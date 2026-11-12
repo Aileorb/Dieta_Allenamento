@@ -66,6 +66,8 @@ d['food'] = {k: [DB[k][0], 'ml' if k in ('latte','latte_soia','salsa_soia') else
 d['cats'] = [[n, [k for k in ks if k in used]] for n, ks in CATS]
 for ph in ('f1','f2'): d[ph].pop('shopping', None)
 import preparazioni; preparazioni.apply(d)
+# valori per 100 g di tutti gli alimenti, per «Personalizza la giornata»
+d['mac'] = {k: [v[0], 'ml' if k in ('latte','latte_soia','salsa_soia') else 'g', v[1], v[2], v[3]] for k, v in DB.items()}
 import ricette_menu; ricette_menu.apply(d)
 json.dump(d, open('diet2.json','w'), ensure_ascii=False)
 print(len(extra), sum(r['new'] for r in extra))
