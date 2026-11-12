@@ -1607,7 +1607,7 @@ function drawPz(){
         <button class="row" data-pz="pick|x"><span class="grow tt link">+ Aggiungi qualcosa</span></button></div>
       ${c.custom ? `<div class="list" style="margin-top:20px"><button class="row" data-pz="reset"><span class="grow tt destr" style="text-align:center">Torna al piano</span></button></div>` : ''}
       <div class="sec-f" style="margin:10px 4px 0">Serve a tenere il conto quando non segui il menu: non cambia il menu della settimana né la lista della spesa.</div>`;
-    openPage('Personalizza la giornata', body, ['Menu', closePage], ['Fine', closePage]);
+    openPage('Personalizza la giornata', body, ['Menu', closePage]);
   } else if (z.view === 'pick'){
     const meal = z.target !== 'x' ? d.meals[+z.target] : null;
     body += `<input class="bigin" type="search" data-pzq placeholder="Cerca un piatto o una ricetta" value="${esc(z.q || '')}" autocomplete="off">
@@ -1615,26 +1615,26 @@ function drawPz(){
         <button class="row ind" data-pz="food">${iconTile(I.leaf, 'green')}<span class="grow tt">Un alimento, a grammi</span>${I.chev}</button>
         <button class="row ind" data-pz="free">${iconTile(PENCIL, 'orange')}<span class="grow"><span class="tt" style="display:block">Inserisci a mano</span><span class="st" style="display:block">Pizza, pranzo fuori, aperitivo…</span></span>${I.chev}</button></div>
       <div id="pzList">${pzList()}</div>`;
-    openPage(meal ? meal.name : 'Fuori pasto', body, ['Indietro', () => pzAct('main')], ['Fine', closePage]);
+    openPage(meal ? meal.name : 'Fuori pasto', body, ['Indietro', () => pzAct('main')]);
   } else if (z.view === 'portion'){
     const base = entryInfo(Object.assign({}, z.sel, {f: 1})), cur = mul(base, z.f || 1);
     body += `<h3 style="margin:4px 0 12px;font-size:20px">${esc(base.title)}</h3>
       <div class="sec-h">Quanto ne hai mangiato?</div><div class="chips" style="flex-wrap:wrap;overflow:visible">${PZF.map(f => `<button data-pz="f|${f}" aria-pressed="${f === (z.f || 1)}" style="margin-bottom:6px">${portionTxt(f)}</button>`).join('')}</div>
       ${pzPrev(cur)}<button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
-    openPage('Porzione', body, ['Indietro', () => pzAct('pick|' + z.target)], ['Fine', closePage]);
+    openPage('Porzione', body, ['Indietro', () => pzAct('pick|' + z.target)]);
   } else if (z.view === 'food'){
     const v = z.fk && DIET.mac[z.fk];
     if (v) body += `<h3 style="margin:4px 0 12px;font-size:20px">${esc(v[0])}</h3><div class="list"><label class="row frow"><span class="grow tt">Quantità</span><input class="fin" data-pzg type="text" inputmode="decimal" value="${z.g || ''}" placeholder="100"><span class="eu">${v[1]}</span></label></div>
       <div id="pzPrev">${pzPrev(foodMac(z.fk, +z.g || 0))}</div><button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
     else body += `<input class="bigin" type="search" data-pzq placeholder="Cerca un alimento" value="${esc(z.q || '')}" autocomplete="off"><div id="pzList">${pzFoods()}</div>`;
-    openPage('Alimento', body, ['Indietro', () => pzAct(v ? 'fk|' : 'pick|' + z.target)], ['Fine', closePage]);
+    openPage('Alimento', body, ['Indietro', () => pzAct(v ? 'fk|' : 'pick|' + z.target)]);
   } else if (z.view === 'free'){
     const f = z.free || (z.free = {title: '', k: '', p: '', c: '', g: ''}), num = (k, lab, u) => `<label class="row frow"><span class="grow tt pzl${String(f[k]).trim() ? ' ' + k : ''}">${lab}</span><input class="fin" data-pzf="${k}" type="text" inputmode="decimal" value="${esc(f[k])}" placeholder="0"><span class="eu">${u}</span></label>`;
     body += `<input class="bigin" data-pzf="title" placeholder="Cosa hai mangiato (es. pizza margherita)" value="${esc(f.title)}" autocomplete="off">
       <div class="list">${num('k', 'Calorie', 'kcal')}${num('p', 'Proteine', 'g')}${num('c', 'Carboidrati', 'g')}${num('g', 'Grassi', 'g')}</div>
       <div class="sec-f" style="margin:6px 4px 0">Se non conosci i macro, basta una stima delle calorie: ti servono per vedere quanto ti sei allontanato dal piano.</div>
       <button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
-    openPage('Inserisci a mano', body, ['Indietro', () => pzAct('pick|' + z.target)], ['Fine', closePage]);
+    openPage('Inserisci a mano', body, ['Indietro', () => pzAct('pick|' + z.target)]);
   }
   $('#pg').scrollTop = z.view === z.lastView ? keep : 0; z.lastView = z.view;
 }
@@ -1722,7 +1722,7 @@ function openGroupPage(gid){
       <button class="row" data-gadd="${gid}"><span class="grow tt link">+ Aggiungi scheda</span></button></div>
     <div class="list" style="margin-top:22px"><button class="row" data-gren="${gid}"><span class="grow tt">Nome del gruppo</span><span class="val">${esc(g.name)}</span>${I.chev}</button>
       <button class="row" data-gdel="${gid}"><span class="grow tt destr">Elimina gruppo</span></button></div>`;
-  openPage(g.name, body, ['Indietro', back], ['Fine', back]);
+  openPage(g.name, body, ['Indietro', back]);
 }
 function openGroupSession(gid, sid){
   const g = myGroups().find(x => x.id === gid); if (!g) return;
