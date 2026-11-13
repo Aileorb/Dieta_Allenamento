@@ -73,8 +73,11 @@ function poseVal(A, M, B, uOf){
   }
   return q;
 }
-const ease = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3)/2;
-const easeOut = x => 1 - Math.pow(1 - x, 2.4);
+// profilo a minimo jerk (come i movimenti umani): velocità e accelerazione nulle all'inizio e alla fine
+const mj = x => x * x * x * (10 + x * (-15 + 6 * x));
+const ease = mj;
+// concentrica: spinta più decisa all'inizio, poi rallenta verso il blocco
+const easeOut = x => mj(Math.pow(x, .8));
 function cycleOf(name){
   const t = Object.assign({}, TEMPO, SPEC[name] || {}), ef = ECC_FIRST.has(name);
   const seq = ef ? [['hold', t.top, 0], ['move', t.ecc, 0, 1, 'ecc'], ['hold', t.bot, 1], ['move', t.con, 1, 0, 'con']]
@@ -91,14 +94,63 @@ function phaseAt(name, sec){
 function jointU(r, lag, kind){
   const x = lag >= 0 ? (r - lag) / (1 - lag) : r / (1 + lag);
   const c = Math.min(1, Math.max(0, x));
-  return kind === 'con' ? (c < .5 ? ease(c) : easeOut(c)) : ease(c);
+  return kind === 'con' ? easeOut(c) : ease(c);
 }
-function poseAt(name, sec){
-  const pat = PAT[name], ph = phaseAt(name, sec);
+/* ---------- vincoli per traiettorie realistiche ---------- */
+const deg = (dx, dy) => Math.atan2(dx, -dy) * 180 / Math.PI;
+const lerp2 = (a, b, u) => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+// IK a due segmenti: gomito/ginocchio dalla spalla/anca e dal polso/caviglia, piegato dalla stessa parte della posa di partenza
+function ik2(R, T, l1, l2, side){
+  let dx = T[0] - R[0], dy = T[1] - R[1], d = Math.hypot(dx, dy) || 1e-6;
+  const dm = Math.min(l1 + l2 - .01, Math.max(Math.abs(l1 - l2) + .01, d)); if (dm !== d){ dx *= dm / d; dy *= dm / d; d = dm; }
+  const a = Math.acos(Math.min(1, Math.max(-1, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)))), b = Math.atan2(dy, dx) + side * a;
+  const E = [R[0] + Math.cos(b) * l1, R[1] + Math.sin(b) * l1];
+  return {E, T: [R[0] + dx, R[1] + dy]};
+}
+const cross = (R, M, T) => (M[0] - R[0]) * (T[1] - R[1]) - (M[1] - R[1]) * (T[0] - R[0]);
+// verso di piegatura preso dalla posa più piegata delle due (quella distesa non lo dice)
+const bendSide = (a, b, r, m, t) => { const ca = cross(a[r], a[m], a[t]), cb = cross(b[r], b[m], b[t]); return -(Math.sign(Math.abs(ca) > Math.abs(cb) ? ca : cb) || 1); };
+// bilanciere sulla verticale del mezzo piede: il busto si inclina quanto serve (squat, stacchi, affondi)
+const BAR = {squat:'S', goblet:'S', split:'S', deadlift:'S', rdl:'S'};
+// spinte e tirate multiarticolari: mani su una traiettoria quasi rettilinea, il gomito segue
+const HAND = {bench:.06, incline:.04, chestpress:0, ohp:-.05, ohp_seated:-.05, row_bent:0, row_db:0, row_seated:0};
+const FOOT = {legpress:1};
+const FK0 = {};
+function ends(name){ const p = PAT[name]; return FK0[name] || (FK0[name] = {a: fk(p.a), b: fk(p.b)}); }
+function constrain(name, q, u){
+  const p = PAT[name], E0 = ends(name);
+  if (BAR[name]){
+    const J = fk(Object.assign({}, q, {t: 0})), tx = E0.a.S[0] + (E0.b.S[0] - E0.a.S[0]) * u;
+    const sx = Math.max(-.98, Math.min(.98, (tx - J.P[0]) / L.torso));
+    q.t = Math.asin(sx) * 180 / Math.PI;
+    if (q.t < -10) q.t = -10;
+  }
+  if (HAND[name] !== undefined){
+    const J = fk(q), Wa = E0.a.W, Wb = E0.b.W, bow = HAND[name], W = lerp2(Wa, Wb, u);
+    // leggera curva (a J nella panca, verso il viso nella lento)
+    const nx = -(Wb[1] - Wa[1]), ny = Wb[0] - Wa[0], k = Math.sin(Math.PI * u) * bow; W[0] += nx * k; W[1] += ny * k;
+    const l1 = L.ua * (q.uaL === undefined ? 1 : q.uaL), l2 = L.fa * (q.faL === undefined ? 1 : q.faL), side = bendSide(E0.a, E0.b, 'S', 'E', 'W');
+    const r = ik2(J.S, W, l1, l2, side); q.ua = deg(r.E[0] - J.S[0], r.E[1] - J.S[1]); q.fa = deg(r.T[0] - r.E[0], r.T[1] - r.E[1]);
+  }
+  if (FOOT[name]){
+    const J = fk(q), A = lerp2(E0.a.A, E0.b.A, u), side = bendSide(E0.a, E0.b, 'P', 'K', 'A');
+    const r = ik2(J.P, A, L.thigh, L.shin, side); q.th = deg(r.E[0] - J.P[0], r.E[1] - J.P[1]); q.sh = deg(r.T[0] - r.E[0], r.T[1] - r.E[1]);
+  }
+  return q;
+}
+// respiro e piccole variazioni di ritmo: il gesto non si ripete identico come una macchina
+const warp = sec => sec + .22 * Math.sin(sec * .5) + .06 * Math.sin(sec * 1.3);
+function breathe(name, q, sec){ const b = Math.sin(sec * 1.25); q.t += .7 * b; if (q.an) q.an = [q.an[0], q.an[1], q.an[2] - .15 * (1 + b) * (q.an[0] === 'A' ? 1 : 0)]; return q; }
+function poseAt(name, sec0){
+  const sec = warp(sec0), pat = PAT[name], ph = phaseAt(name, sec);
   if (!pat){ const u = ph.hold ? ph.at : (ph.from + (ph.to - ph.from) * jointU(ph.r, 0, ph.kind)); return {u}; }
   const lag = LAG[name] || {};
   const prog = k => { if (ph.hold) return ph.at; const L = lag[k] || 0; return ph.from === 0 ? jointU(ph.r, L, ph.kind) : 1 - jointU(ph.r, -L, ph.kind); };
-  return {q: poseVal(pat.a, pat.m, pat.b, prog), u: prog('_')};
+  const q = poseVal(pat.a, pat.m, pat.b, prog), uMain = prog(HAND[name] !== undefined ? 'ua' : FOOT[name] ? 'th' : 'th');
+  if (!BAR[name]) breathe(name, q, sec0);
+  constrain(name, q, uMain);
+  if (BAR[name]) q.t += .6 * Math.sin(sec0 * 1.25);
+  return {q, u: prog('_')};
 }
 function lerpPose(a, b, u, m){ if (m) return poseVal(a, m, b, () => u); const q = {}; for (const k in a){ if (k === 'an') q.an = [a.an[0], a.an[1]+(b.an[1]-a.an[1])*u, a.an[2]+(b.an[2]-a.an[2])*u]; else q[k] = a[k]+(b[k]-a[k])*u; } return q; }
 const ln = (p, q, w, c, o) => `<line x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${q[0].toFixed(1)}" y2="${q[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${o?` opacity="${o}"`:''}/>`;
