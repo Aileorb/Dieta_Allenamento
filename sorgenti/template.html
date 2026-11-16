@@ -1794,9 +1794,9 @@ function openGroupSession(gid, sid){
 function gsList(){
   const z = S.gs, q = z.q.trim().toLowerCase(), all = exLibrary(), lib = all.filter(e => !q || (e.name + ' ' + (e.muscles || '')).toLowerCase().includes(q));
   const dup = q && (all.some(e => e.name.toLowerCase() === q) || Object.values(z.sel).some(x => x.custom && x.name.toLowerCase() === q));
-  const add = q && !dup ? `<div class="list"><button class="row ind" data-gsnew="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', 'blue')}<span class="grow"><span class="tt link" style="display:block">Aggiungi «${esc(z.q.trim())}»</span><span class="st" style="display:block">Esercizio nuovo: lo trovi nello storico quando registri la scheda</span></span></button></div>` : '';
+  const add = !dup ? `<div class="list" style="margin-bottom:14px"><button class="row ind" data-gsnew="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', 'blue')}<span class="grow"><span class="tt link" style="display:block">${q ? `Aggiungi «${esc(z.q.trim())}»` : 'Nuovo esercizio'}</span><span class="st" style="display:block">${q ? 'Esercizio nuovo: lo trovi nello storico quando registri la scheda' : 'Non è nella lista? Crealo tu'}</span></span></button></div>` : '';
   if (!lib.length) return add || '<div class="list"><div class="row"><span class="grow st">Nessun esercizio trovato</span></div></div>';
-  return `<div class="list" style="margin-bottom:14px">${lib.map(e => { const on = !!z.sel[e.id]; return `<div class="row ck${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-gsx="${e.id}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(e.name)}</span><span class="st" style="display:block">${esc(e.muscles || e.kind || '')} · ${esc(e.from)}</span></span></div>`; }).join('')}</div>` + add;
+  return add + `<div class="list" style="margin-bottom:14px">${lib.map(e => { const on = !!z.sel[e.id]; return `<div class="row ck${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-gsx="${e.id}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(e.name)}</span><span class="st" style="display:block">${esc(e.muscles || e.kind || '')} · ${esc(e.from)}</span></span></div>`; }).join('')}</div>`;
 }
 function drawGroupSession(){
   const z = S.gs, lib = new Map(exLibrary().map(e => [e.id, e])), keep = $('#pg').hidden ? 0 : $('#pg').scrollTop;
@@ -1822,7 +1822,7 @@ function saveGroupSession(){
 }
 function gsAct(d){
   const z = S.gs; if (!z) return false;
-  if (d.gsnew){ const name = z.q.trim(); if (!name) return true; const id = uid('c'); z.sel[id] = {sets: 3, reps: '8-12', name, custom: true}; z.order.push(id); z.q = ''; drawGroupSession(); return true; }
+  if (d.gsnew){ const name = (z.q.trim() || (prompt('Nome del nuovo esercizio') || '')).trim(); if (!name) return true; const id = uid('c'); z.sel[id] = {sets: 3, reps: '8-12', name, custom: true}; z.order.push(id); z.q = ''; drawGroupSession(); return true; }
   if (d.gsx){ const id = d.gsx; if (z.sel[id]){ delete z.sel[id]; z.order = z.order.filter(x => x !== id); } else { const e = exLibrary().find(x => x.id === id); z.sel[id] = {sets: e ? e.sets : 3, reps: e ? e.reps : '8-12'}; z.order.push(id); } drawGroupSession(); return true; }
   if (d.gsdel){ if (!confirm('Eliminare la scheda «' + (z.title || 'senza nome') + '»? Gli allenamenti già salvati nello storico restano.')) return true;
     const gid = z.gid, sid = z.sid; groupSave(gid, g => { g.sessions = g.sessions.filter(s => s.id !== sid); return g; }); S.gs = null; openGroupPage(gid); toast('Scheda eliminata'); return true; }
@@ -2002,9 +2002,9 @@ function mgList(){
   const z = S.mg, P = myProgRaw(), cur = (P.days[z.day] && P.days[z.day].ex) || [], has = new Set(cur.map(x => x.id)), q = z.q.trim().toLowerCase();
   const all = Object.values(exIndex()), seen = new Set(), lib = all.filter(e => { if (seen.has(e.name)) return false; seen.add(e.name); return !q || (e.name + ' ' + (e.muscles || '')).toLowerCase().includes(q); }).sort((a, b) => a.name.localeCompare(b.name, 'it'));
   const dup = q && (all.some(e => e.name.toLowerCase() === q) || cur.some(x => x.custom && x.name.toLowerCase() === q));
-  const add = q && !dup ? `<div class="list"><button class="row ind" data-mgnew="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', 'blue')}<span class="grow"><span class="tt link" style="display:block">Aggiungi «${esc(z.q.trim())}»</span><span class="st" style="display:block">Esercizio nuovo, con 3 × 8-12 da cambiare</span></span></button></div>` : '';
+  const add = !dup ? `<div class="list" style="margin-bottom:14px"><button class="row ind" data-mgnew="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', 'blue')}<span class="grow"><span class="tt link" style="display:block">${q ? `Aggiungi «${esc(z.q.trim())}»` : 'Nuovo esercizio'}</span><span class="st" style="display:block">${q ? 'Esercizio nuovo, con 3 × 8-12 da cambiare' : 'Non è nella lista? Crealo tu'}</span></span></button></div>` : '';
   if (!lib.length) return add || '<div class="list"><div class="row"><span class="grow st">Nessun esercizio trovato</span></div></div>';
-  return `<div class="list" style="margin-bottom:14px">${lib.map(e => { const on = has.has(e.id); return `<div class="row ck${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-mgx="${e.id}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(e.name)}</span><span class="st" style="display:block">${esc(e.muscles || e.kind || '')} · ${esc(e.from)}</span></span></div>`; }).join('')}</div>` + add;
+  return add + `<div class="list" style="margin-bottom:14px">${lib.map(e => { const on = has.has(e.id); return `<div class="row ck${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-mgx="${e.id}"><span class="chk">${I.check}</span><span class="grow"><span class="tt" style="display:block">${esc(e.name)}</span><span class="st" style="display:block">${esc(e.muscles || e.kind || '')} · ${esc(e.from)}</span></span></div>`; }).join('')}</div>`;
 }
 function drawMyProg(){
   const z = S.mg, P = myProgRaw(), idx = exIndex(), s = P.days[z.day], keep = $('#pg').hidden ? 0 : $('#pg').scrollTop, di = DAYK.indexOf(z.day);
@@ -2049,7 +2049,7 @@ function mgAct(d){
   if (d.mgup !== undefined){ const i = +d.mgup, x = s.ex.splice(i, 1)[0]; s.ex.splice(i - 1, 0, x); save(); return true; }
   if (d.mgadd){ z.view = 'add'; z.q = ''; drawMyProg(); return true; }
   if (d.mgx){ const i = s.ex.findIndex(x => x.id === d.mgx); if (i >= 0) s.ex.splice(i, 1); else { const e = idx()[d.mgx]; if (e) s.ex.push(rowOf(e)); } myProgSave(P); const l = $('#mgList'); if (l) l.innerHTML = mgList(); return true; }
-  if (d.mgnew){ const name = z.q.trim(); if (!name) return true; s.ex.push({id: uid('c'), name, custom: true, sets: 3, reps: '8-12', rest: 90, rir: '2'}); z.q = ''; z.view = 'main'; save(); toast('Esercizio aggiunto'); return true; }
+  if (d.mgnew){ const name = (z.q.trim() || (prompt('Nome del nuovo esercizio') || '')).trim(); if (!name) return true; s.ex.push({id: uid('c'), name, custom: true, sets: 3, reps: '8-12', rest: 90, rir: '2'}); z.q = ''; z.view = 'main'; save(); toast('Esercizio aggiunto'); return true; }
   if (d.mgblock !== undefined){ P.block = +d.mgblock; Store.set('week_U', 1); save(); return true; }
   if (d.mgfrom){ z.view = 'from'; drawMyProg(); return true; }
   if (d.mgfromdo){ const src = TRAIN.programs.find(p => p.id === d.mgfromdo); if (!src) return true;
