@@ -2502,6 +2502,7 @@ function renderTrain(){
   h += `<div class="sec" style="margin-top:22px"><div class="list"><button class="row ind othrow" data-other="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 12h8M4 17h6"/><path d="M15 15l3 3 4-6"/></svg>', 'teal')}<span class="grow"><span class="tt" style="display:block">Hai fatto una scheda diversa oggi?</span><span class="st" style="display:block">Selezionala qui e registrala nello storico con esercizi e carichi</span></span>${I.chev}</button></div></div>`;
   h += weekWidget();
   h += renderHistory();
+  h += pushSection();
   h += `<div class="sec" style="margin-top:28px"><div class="sec-h">Carichi</div><div class="list">
     <button class="row ind" data-a="export">${iconTile(I.share, 'blue')}<span class="grow tt">Esporta i carichi (.txt)</span>${I.chev}</button>
     <button class="row ind" data-a="importfile">${iconTile(I.doc, 'indigo')}<span class="grow tt">Importa da file</span>${I.chev}</button>
@@ -2655,6 +2656,9 @@ document.addEventListener('click', ev => {
   else if (d.a === 'migrate') runMigration(d.bk === '1');
   else if (d.a === 'export') exportLoads();
   else if (d.a === 'backup') exportBackup();
+  else if (d.a === 'pushon') pushEnable();
+  else if (d.a === 'pushoff') pushDisable();
+  else if (d.a === 'pushtest') pushPost('test').then(r => toast(r.ok ? 'Notifica di prova inviata' : 'Prova non riuscita: riattiva le notifiche'));
   else if (d.a === 'importfile') $('#fileIn').click();
   else if (d.a === 'importpaste') openPaste();
 });
@@ -2792,7 +2796,7 @@ function beep(f = 880, ms = 160){ try { actx = actx || new (window.AudioContext 
 const mmss = s => { s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ':' + String(s%60).padStart(2, '0'); };
 const hmm = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600); return h ? h + ':' + pad(Math.floor(s % 3600 / 60)) + ':' + pad(s % 60) : mmss(s); };
 const W = () => Store.get('wsession', null);
-const wsetS = w => Store.set('wsession', w);
+const wsetS = w => { Store.set('wsession', w); pushSync(w); };
 let WO_OPEN = false;
 // ricostruisce gruppi ed esercizi della seduta salvata
 function woCtx(w){
@@ -2840,7 +2844,7 @@ function logSet(w, e){
 }
 function woAct(a){
   const w = W(); if (!w) return; const c = woCtx(w); if (!c) return;
-  if (a === 'start'){ w.phase = 'work'; w.t0 = Date.now(); w.paused = 0; beep(660, 120); }
+  if (a === 'start'){ w.phase = 'work'; w.t0 = Date.now(); w.paused = 0; w.hold = holdSec(c.e); w.hb = 0; beep(660, 120); }
   else if (a === 'done'){
     w.paused = 0; logSet(w, c.e);
     const j = woNextInSet(w, c);
@@ -2870,6 +2874,9 @@ function woStep(){
   if (w.phase === 'rest' && !w.paused){ const left = (w.end - Date.now())/1000, sec = Math.ceil(left);
     if (sec <= 3 && sec > 0 && w.last !== sec){ w.last = sec; wsetS(w); beep(720, 90); }
     if (left <= 0){ const c = woCtx(w); if (c) woEndRest(w, c); return; } }
+  if (w.phase === 'work' && !w.paused && w.hold){ const el = (Date.now() - w.t0) / 1000, k = el >= w.hold.max ? 2 : el >= w.hold.min ? 1 : 0;
+    if (k > (w.hb || 0)){ w.hb = k; wsetS(w); beep(k === 2 ? 990 : 720, k === 2 ? 300 : 140); if (k === 2 && !WO_OPEN) toast(w.hold.max + '″ raggiunti'); } }
+  if (PUSH.last && !document.hidden && PUSH.at && PUSH.at - Date.now() < 2500) pushSync(w);
   if (WO_OPEN) woClock(w); else miniClock(w);
 }
 function woClock(w){
@@ -2933,7 +2940,7 @@ function finishWorkout(silent){
     histPut(rows.seduta, rows.serie).then(ok => { if (!ok){ const all = Store.get('sessions', []); all.unshift(rec); Store.set('sessions', all); } });
     if (!silent) toast(`Allenamento salvato · ${Math.round((rec.end - rec.start) / 60000)} min · ${nSets} serie`);
   } else if (!silent) toast('Allenamento chiuso');
-  Store.set('wsession', null); clearInterval(tick);
+  Store.set('wsession', null); pushSync(null); clearInterval(tick);
   WO_OPEN = false; document.body.classList.remove('wo-on'); $('#wo').innerHTML = ''; try { wake && wake.release(); } catch(e) {} wake = null;
   renderMini(); if (!silent) render();
 }
@@ -2953,6 +2960,109 @@ document.addEventListener('click', ev => {
   const b = ev.target.closest('[data-w]'); if (!b) return; const a = b.dataset.w;
   if (a === 'min') minimizeWorkout(); else if (a === 'open') openWorkout(); else if (a === 'close') askFinish(); else woAct(a);
 });
+/* ---------- Notifiche di fine recupero (Worker Cloudflare in /api) ---------- */
+// Il server tiene un solo timer per iPhone: l'app gli dice quando finisce il recupero (o il tempo di un esercizio a tempo)
+// e lui manda la notifica anche con il telefono bloccato. Ogni cambio di stato passa da pushSync(): un nuovo recupero
+// sostituisce il vecchio, pausa/salta/stop/fine lo annullano, ±15 s e «Riprendi» lo spostano.
+const PUSH = {srv: null, on: false, perm: '', reg: null, key: '', last: null, lastId: '', at: 0, busy: false};
+const pushApi = r => 'api/' + r + '?u=' + encodeURIComponent(pushUid());
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const pushIOSBrowser = () => /iPhone|iPad|iPod/.test(navigator.userAgent) && !navigator.standalone && !matchMedia('(display-mode: standalone)').matches;
+function pushUid(){
+  let u = ''; try { u = localStorage.getItem('dit-push-u') || ''; } catch(e) {}
+  if (!/^[A-Za-z0-9_-]{16,64}$/.test(u)){ const b = crypto.getRandomValues(new Uint8Array(18)); u = btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); try { localStorage.setItem('dit-push-u', u); } catch(e) {} }
+  return u;
+}
+const b64uBytes = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+const bytesB64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+function pushPost(route, body){
+  const url = pushApi(route), data = JSON.stringify(body || {});
+  // con l'app che va in background la richiesta deve partire lo stesso: sendBeacon non viene interrotta
+  if (document.hidden && navigator.sendBeacon && navigator.sendBeacon(url, data)) return Promise.resolve({ok: true});
+  return fetch(url, {method: 'POST', body: data, keepalive: true}).then(r => r.json()).catch(() => ({ok: false}));
+}
+async function pushInit(){
+  try { const r = await fetch('api/ping', {cache: 'no-store'}); PUSH.srv = r.ok && !!(await r.json()).push; } catch(e) { PUSH.srv = false; }
+  if (!PUSH.srv || !pushSupported()){ if (S.tab === 'train') render(); return; }
+  PUSH.perm = Notification.permission;
+  try {
+    PUSH.reg = await navigator.serviceWorker.ready;
+    const k = await (await fetch(pushApi('vapid'), {cache: 'no-store'})).json(); PUSH.key = k.key || '';
+    const sub = await PUSH.reg.pushManager.getSubscription();
+    if (sub && PUSH.perm === 'granted'){
+      const same = sub.options && sub.options.applicationServerKey && bytesB64u(sub.options.applicationServerKey) === PUSH.key;
+      if (same){ PUSH.on = (await pushPost('subscribe', {sub: sub.toJSON()})).ok !== false; }
+      else { await sub.unsubscribe().catch(() => {}); }
+    }
+  } catch(e) {}
+  pushSync(); if (S.tab === 'train') render();
+}
+// gesto dell'utente: subscribe() va chiamato subito, senza attese prima, altrimenti iOS non mostra la richiesta
+function pushEnable(){
+  if (PUSH.busy) return;
+  if (pushIOSBrowser()){ toast('Apri Di&T dall\'icona sulla schermata Home'); return; }
+  if (!pushSupported() || !PUSH.reg || !PUSH.key){ toast('Notifiche non disponibili su questo dispositivo'); return; }
+  PUSH.busy = true;
+  PUSH.reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: b64uBytes(PUSH.key)})
+    .then(sub => pushPost('subscribe', {sub: sub.toJSON()}))
+    .then(r => { if (r.ok === false) throw new Error(r.err || 'server'); PUSH.on = true; PUSH.last = null; pushSync(); toast('Notifiche attive'); return pushPost('test'); })
+    .catch(() => { PUSH.perm = Notification.permission; toast(PUSH.perm === 'denied' ? 'Notifiche bloccate: Impostazioni › Notifiche › Di&T' : 'Non sono riuscito ad attivarle, riprova'); })
+    .finally(() => { PUSH.busy = false; PUSH.perm = Notification.permission; render(); });
+}
+async function pushDisable(){
+  PUSH.on = false; await pushPost('cancel', {});
+  try { const sub = await PUSH.reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch(e) {}
+  PUSH.last = null; toast('Notifiche disattivate'); render();
+}
+// esercizi a tempo (plank, isometrie): «45-60″», «30 s», «40 sec»
+function holdSec(e){ const m = String(e && e.reps || '').match(/(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:″|"|''|s\b|sec)/); return m ? {min: +m[1], max: +(m[2] || m[1])} : null; }
+const kgTxt = v => { v = String(v || '').trim(); return !v ? '' : /^\d+([.,]\d+)?$/.test(v) ? v + ' kg' : v; };
+function woLoadFor(w, e){ const df = (w.dft || {})[e.id] || {}, ld = loads()[e.id] || {}; return df.l !== undefined && df.l !== '' ? df.l : (w.prog === 'R' ? rientroLoad(e, w.wi) : (ld.c || '')); }
+// il timer che il server deve avere adesso per questa seduta (null = nessuno)
+function pushJob(w){
+  if (!w || w.paused) return null;
+  const c = woCtx(w); if (!c) return null;
+  const vis = document.visibilityState === 'visible', ss = c.g.ex.length > 1;
+  if (w.phase === 'rest'){
+    // con l'app aperta e davanti agli occhi il recupero finisce col suono: annullo l'ultimo secondo per non avere un doppione
+    if (vis && w.end - Date.now() < 2500) return null;
+    const e = c.g.ex[Math.max(0, c.sets.findIndex(x => x >= w.set + 1))] || c.e, ld = kgTxt(woLoadFor(w, e)), n = w.set + 1;
+    const body = ss ? `Superserie ${c.g.ex.map(x => x.num).join(' + ')} · giro ${n} di ${c.N}: parti con ${e.name}${ld ? ' (' + ld + ')' : ''}`
+                    : `${e.name} · serie ${n} di ${c.N}${ld ? ' · ' + ld : ''}`;
+    return {id: [w.id, 'r', w.gi, w.set].join(':'), at: w.end, title: 'Recupero finito: riparti', body, tag: 'recupero'};
+  }
+  if (w.phase === 'work'){
+    const h = holdSec(c.e); if (!h) return null;
+    const at = w.t0 + h.max * 1000; if (vis && at - Date.now() < 2500) return null;
+    return {id: [w.id, 'h', w.gi, w.set, w.i].join(':'), at, title: `${h.max}″ raggiunti`, body: `${c.e.name} · serie ${w.set} di ${c.N}: chiudi e tocca «Fatto»`, tag: 'recupero'};
+  }
+  return null;
+}
+function pushSync(w){
+  if (!PUSH.on) return;
+  if (w === undefined) w = W();
+  const j = pushJob(w), key = j ? j.id + '@' + j.at : '';
+  if (key === PUSH.last) return;
+  PUSH.last = key;
+  PUSH.at = j ? j.at : 0;
+  if (j){ PUSH.lastId = j.id; pushPost('timer', j); }
+  else { const id = PUSH.lastId; PUSH.lastId = ''; pushPost('cancel', id ? {id} : {}); }
+}
+function pushSection(){
+  if (!PUSH.srv) return '';
+  const bell = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></svg>';
+  let rows, foot = 'A fine recupero ti arriva una notifica anche con l\'iPhone bloccato o con un\'altra app aperta, con esercizio, serie e carico della prossima. Vale per serie singole, superserie ed esercizi a tempo come il plank. Pausa, Salta, Stop e Fine la annullano; ±15 s la spostano.';
+  if (pushIOSBrowser()) rows = `<div class="row ind">${iconTile(bell, 'gray')}<span class="grow"><span class="tt" style="display:block">Notifiche del recupero</span><span class="st" style="display:block">Aprimi dall'icona sulla schermata Home per attivarle</span></span></div>`;
+  else if (!pushSupported()) rows = `<div class="row ind">${iconTile(bell, 'gray')}<span class="grow"><span class="tt" style="display:block">Notifiche del recupero</span><span class="st" style="display:block">Servono iOS 16.4 o successivo</span></span></div>`;
+  else if (PUSH.on) rows = `<div class="row ind">${iconTile(bell, 'red')}<span class="grow tt">Notifiche del recupero</span><span class="val">Attive</span></div>
+      <button class="row" data-a="pushtest"><span class="grow tt link">Manda una notifica di prova</span></button>
+      <button class="row" data-a="pushoff"><span class="grow tt destr">Disattiva</span></button>`;
+  else if (PUSH.perm === 'denied') { rows = `<div class="row ind">${iconTile(bell, 'gray')}<span class="grow"><span class="tt" style="display:block">Notifiche bloccate</span><span class="st" style="display:block">Impostazioni › Notifiche › Di&amp;T › Consenti notifiche</span></span></div>`; }
+  else rows = `<button class="row ind" data-a="pushon">${iconTile(bell, 'red')}<span class="grow"><span class="tt link" style="display:block">Attiva le notifiche del recupero</span><span class="st" style="display:block">Ti avviso quando è ora della serie successiva</span></span>${I.chev}</button>`;
+  return `<div class="sec" style="margin-top:28px"><div class="sec-h">Notifiche</div><div class="list">${rows}</div><div class="sec-f">${foot}</div></div>`;
+}
+document.addEventListener('visibilitychange', () => pushSync());
+navigator.serviceWorker && navigator.serviceWorker.addEventListener && navigator.serviceWorker.addEventListener('message', ev => { if (ev.data && ev.data.t === 'push-open' && W() && !WO_OPEN) openWorkout(); });
 /* ---------- storico ---------- */
 function fmtDT(ts){ const d = new Date(ts); return ['dom','lun','mar','mer','gio','ven','sab'][d.getDay()] + ' ' + d.getDate() + ' ' + MESI[d.getMonth()] + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function histSum(s){ const r = histSets(s.id); return {n: r.length, vol: Math.round(r.reduce((a, x) => a + (x.kg || 0) * x.rip, 0))}; }
@@ -2983,7 +3093,7 @@ cleanOld(); ledgerBackfill();
 Promise.all([Photos.load(), histLoad()]).then(() => { buysBackfill(); render(); if (Photos.legacy.length || Store.get('sessions', []).length) setTimeout(askMigration, 600); });
 setInterval(() => { if ((S.tab === 'spesa' || S.tab === 'menu') && !$('#sheet').classList.contains('on')) render(); }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('#sheet').classList.contains('on')) render(); });
-if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+if ('serviceWorker' in navigator) addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); pushInit(); });
 </script>
 </body>
 </html>
