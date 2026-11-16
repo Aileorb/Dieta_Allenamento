@@ -322,6 +322,13 @@ img.fig{object-fit:cover}
 .pgbar .pgr{justify-self:end;border:none;background:none;color:var(--blue);font-size:17px;font-weight:600;padding:8px 6px}
 .pgb{max-width:720px;margin:0 auto;padding:14px 16px calc(40px + env(safe-area-inset-bottom))}
 .pzl{color:var(--label2);transition:color .15s}.pzl.k{color:var(--red)}.pzl.p{color:var(--blue)}.pzl.c{color:var(--green)}.pzl.g{color:var(--orange)}
+.mpdays{display:grid;grid-template-columns:repeat(7,1fr);margin:0 0 14px;padding:0;gap:4px;overflow:visible}.mpdays button{padding:6px 0;text-align:center;font-size:14px}
+.mpdays button[aria-pressed="true"]{background:var(--blue);color:#fff}
+.card.mpsum{background:var(--card);border-radius:12px;padding:12px 0 2px;margin-bottom:14px}
+.mpb{padding:4px 16px 8px}.mpbh{display:flex;align-items:baseline;gap:6px;font-size:13px}.mpbh span{font-weight:600;width:74px}.mpbh b{font:700 17px/22px var(--rounded);font-variant-numeric:tabular-nums}.mpbh small{color:var(--label2);font-variant-numeric:tabular-nums}
+.mpbt{height:6px;border-radius:3px;background:var(--fill);overflow:hidden;margin-top:4px}.mpbt i{display:block;height:100%;border-radius:3px;transition:width .3s}
+.c-kcal-bg{background:var(--red)}.c-p-bg{background:var(--blue)}.c-c-bg{background:var(--green)}.c-g-bg{background:var(--orange)}.mpbt i.over{opacity:.55}
+.sec-h.mph{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px}.lnk{border:none;background:none;color:var(--blue);font-size:15px;text-transform:none;letter-spacing:0;padding:0}
 .mlink{display:flex;align-items:center;gap:10px;width:100%;border:none;background:none;text-align:left;color:inherit;font:inherit}
 .mlink .grow{flex:1;min-width:0}
 .mlink .chev{width:8px;height:14px;color:var(--label3);flex:none}
@@ -735,7 +742,7 @@ const S = {
   rsrc: 'menu', rtag: 'Tutte', rq: '', rec: null,
   prog: Store.get('prog', 'A'), tday: ['lun','mar','mer','gio','ven','sab','dom'][todayIdx], scroll: {}
 };
-if (!DIET[S.phase]) S.phase = 'f1';
+if (S.phase !== 'my' && !DIET[S.phase]) S.phase = 'f1';
 if (S.prog !== 'U' && !TRAIN.programs.some(p => p.id === S.prog && p.id !== 'R')) S.prog = 'A';
 const PH = () => DIET[S.phase];
 const DAYK = ['lun','mar','mer','gio','ven','sab','dom'];
@@ -1461,6 +1468,7 @@ function renderMenu(){
   h += `<div class="dayh"><h2>${d.name} ${weekDate(wk, S.day).getDate()}</h2><span class="badge"><i class="${TYPEDOT[d.type]}"></i>${esc(d.typeLabel)}</span></div>`;
   h += `<p class="sub-lt" style="margin:-4px 0 12px">${esc(d.session)}${isNow && S.day === todayIdx ? ' · oggi' : ''}</p>`;
   h += `<div class="macros"><div><span class="c-kcal">Calorie</span><b>${nf(tot.k)}</b><small>kcal</small></div><div><span class="c-p">Proteine</span><b>${tot.p}</b><small>g</small></div><div><span class="c-c">Carbo</span><b>${tot.c}</b><small>g</small></div><div><span class="c-g">Grassi</span><b>${tot.g}</b><small>g</small></div></div>`;
+  if (S.phase === 'my'){ const T = myPlanRaw().target; h += `<div class="list" style="margin:-10px 0 22px"><button class="row ind" data-myplan="${S.day}">${iconTile(PENCIL, 'indigo')}<span class="grow"><span class="tt" style="display:block">Modifica il mio piano</span><span class="st" style="display:block">${T ? `Obiettivo ${nf(T.k)} kcal · ${tot.k - T.k > 0 ? '+' : tot.k - T.k < 0 ? '−' : '±'}${nf(Math.abs(tot.k - T.k))} oggi` : 'Pasti, porzioni e obiettivo giornaliero'}</span></span>${I.chev}</button></div>`; }
   h += `<div class="sec"><div class="list">${swRow('veg', veg, 'Versione vegana', 'Usa le alternative vegetali come proposta di base', iconTile(I.leaf, 'green'))}`;
   if (d.mod) h += swRow('mod', modOn, d.mod === 'corsa' ? 'Oggi corro' : 'Oggi mi alleno', d.mod === 'corsa' ? 'Aggiunge il modulo corsa' : 'Aggiunge il modulo palestra', iconTile(d.mod === 'corsa' ? I.run : I.dumbs, d.mod === 'corsa' ? 'orange' : 'indigo'));
   h += `</div>${locked ? `<div class="sec-f">${I.lock} Menu di questa settimana approvato${r0.status === 'auto' ? ' automaticamente' : ''}: per cambiare un pasto apri le alternative e sbloccalo.</div>` : `<div class="sec-f">Ogni pasto ha delle alternative: se ne scegli una, la lista della spesa si aggiorna.</div>`}</div>`;
@@ -1498,7 +1506,7 @@ function renderMenu(){
   h += `<div class="sec phasebox${open ? ' open' : ''}"><div class="sec-h"><span style="display:inline-flex;align-items:center;gap:6px">Fase del piano
       <button class="lockbtn" data-phlock="1" aria-pressed="${open}" aria-label="${open ? 'Blocca la scelta della fase' : 'Sblocca per cambiare fase'}">${open ? I.unlockL : I.lockL}</button></span>
       <span class="r">${open ? 'sbloccato' : 'bloccato'}</span></div>
-    <div class="phaseseg" ${open ? '' : 'aria-disabled="true"'}>${seg([['f1','Ricomposizione'],['f2','Mantenimento']], S.phase, 'ph', 'Fase del piano')}</div>
+    <div class="phaseseg" ${open ? '' : 'aria-disabled="true"'}>${seg([['f1','Ricomposizione'],['f2','Mantenimento'],['my','Il mio piano']], S.phase, 'ph', 'Fase del piano')}</div>
     <div class="sec-f">${open ? 'Scegli la fase: il menu, le ricette e la spesa si aggiornano. Dopo la scelta si blocca di nuovo.' : 'Tocca il lucchetto per cambiare fase.'}</div></div>`;
   return h + `</div>`;
 }
@@ -1602,7 +1610,7 @@ function openPage(title, body, left, right){
   const R = $('#pgR'); R.textContent = right ? right[0] : ''; R.style.visibility = right ? 'visible' : 'hidden'; R.onclick = right ? right[1] : null;
   $('#pgB').innerHTML = body;
 }
-function closePage(){ $('#pg').hidden = true; document.body.style.overflow = ''; S.pz = null; S.gs = null; render(); }
+function closePage(){ $('#pg').hidden = true; document.body.style.overflow = ''; S.pz = null; S.gs = null; S.mp = null; render(); }
 /* ---------- Personalizza la giornata: cosa hai mangiato davvero, a confronto con il piano ---------- */
 // salvato per data: {m: {indice pasto: voce}, x: [voci fuori pasto]}; non cambia il menu né la lista della spesa
 const PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>';
@@ -1657,9 +1665,9 @@ function drawPz(){
       <div class="sec-f" style="margin:10px 4px 0">Serve a tenere il conto quando non segui il menu: non cambia il menu della settimana né la lista della spesa.</div>`;
     openPage('Personalizza la giornata', body, ['Menu', closePage]);
   } else if (z.view === 'pick'){
-    const meal = z.target !== 'x' ? d.meals[+z.target] : null;
+    const meal = z.mode === 'plan' ? myPlanRaw().days[z.di].meals[+z.target] : z.target !== 'x' ? d.meals[+z.target] : null;
     body += `<input class="bigin" type="search" data-pzq placeholder="Cerca un piatto o una ricetta" value="${esc(z.q || '')}" autocomplete="off">
-      <div class="list">${meal ? `<button class="row ind" data-pz="set|plan">${iconTile(I.undo, 'blue')}<span class="grow tt">Come da piano</span></button><button class="row ind" data-pz="set|skip">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', 'gray')}<span class="grow tt">Ho saltato il pasto</span></button>` : ''}
+      <div class="list">${meal && z.mode !== 'plan' ? `<button class="row ind" data-pz="set|plan">${iconTile(I.undo, 'blue')}<span class="grow tt">Come da piano</span></button><button class="row ind" data-pz="set|skip">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', 'gray')}<span class="grow tt">Ho saltato il pasto</span></button>` : ''}
         <button class="row ind" data-pz="food">${iconTile(I.leaf, 'green')}<span class="grow tt">Un alimento, a grammi</span>${I.chev}</button>
         <button class="row ind" data-pz="free">${iconTile(PENCIL, 'orange')}<span class="grow"><span class="tt" style="display:block">Inserisci a mano</span><span class="st" style="display:block">Pizza, pranzo fuori, aperitivo…</span></span>${I.chev}</button></div>
       <div id="pzList">${pzList()}</div>`;
@@ -1667,13 +1675,13 @@ function drawPz(){
   } else if (z.view === 'portion'){
     const base = entryInfo(Object.assign({}, z.sel, {f: 1})), cur = mul(base, z.f || 1);
     body += `<h3 style="margin:4px 0 12px;font-size:20px">${esc(base.title)}</h3>
-      <div class="sec-h">Quanto ne hai mangiato?</div><div class="chips" style="flex-wrap:wrap;overflow:visible">${PZF.map(f => `<button data-pz="f|${f}" aria-pressed="${f === (z.f || 1)}" style="margin-bottom:6px">${portionTxt(f)}</button>`).join('')}</div>
-      ${pzPrev(cur)}<button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
+      <div class="sec-h">${z.mode === 'plan' ? 'Che porzione?' : 'Quanto ne hai mangiato?'}</div><div class="chips" style="flex-wrap:wrap;overflow:visible">${PZF.map(f => `<button data-pz="f|${f}" aria-pressed="${f === (z.f || 1)}" style="margin-bottom:6px">${portionTxt(f)}</button>`).join('')}</div>
+      ${pzPrev(cur)}<button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' || z.mode === 'plan' ? 'Aggiungi' : 'Usa questo'}</button>`;
     openPage('Porzione', body, ['Indietro', () => pzAct('pick|' + z.target)]);
   } else if (z.view === 'food'){
     const v = z.fk && DIET.mac[z.fk];
     if (v) body += `<h3 style="margin:4px 0 12px;font-size:20px">${esc(v[0])}</h3><div class="list"><label class="row frow"><span class="grow tt">Quantità</span><input class="fin" data-pzg type="text" inputmode="decimal" value="${z.g || ''}" placeholder="100"><span class="eu">${v[1]}</span></label></div>
-      <div id="pzPrev">${pzPrev(foodMac(z.fk, +z.g || 0))}</div><button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
+      <div id="pzPrev">${pzPrev(foodMac(z.fk, +z.g || 0))}</div><button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' || z.mode === 'plan' ? 'Aggiungi' : 'Usa questo'}</button>`;
     else body += `<input class="bigin" type="search" data-pzq placeholder="Cerca un alimento" value="${esc(z.q || '')}" autocomplete="off"><div id="pzList">${pzFoods()}</div>`;
     openPage('Alimento', body, ['Indietro', () => pzAct(v ? 'fk|' : 'pick|' + z.target)]);
   } else if (z.view === 'free'){
@@ -1681,7 +1689,7 @@ function drawPz(){
     body += `<input class="bigin" data-pzf="title" placeholder="Cosa hai mangiato (es. pizza margherita)" value="${esc(f.title)}" autocomplete="off">
       <div class="list">${num('k', 'Calorie', 'kcal')}${num('p', 'Proteine', 'g')}${num('c', 'Carboidrati', 'g')}${num('g', 'Grassi', 'g')}</div>
       <div class="sec-f" style="margin:6px 4px 0">Se non conosci i macro, basta una stima delle calorie: ti servono per vedere quanto ti sei allontanato dal piano.</div>
-      <button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' ? 'Aggiungi' : 'Usa questo'}</button>`;
+      <button class="btn wo-start" data-pz="ok" style="margin-top:14px">${z.target === 'x' || z.mode === 'plan' ? 'Aggiungi' : 'Usa questo'}</button>`;
     openPage('Inserisci a mano', body, ['Indietro', () => pzAct('pick|' + z.target)]);
   }
   $('#pg').scrollTop = z.view === z.lastView ? keep : 0; z.lastView = z.view;
@@ -1689,7 +1697,7 @@ function drawPz(){
 const pzPrev = m => `<div class="macros pzc" style="margin:12px 0 0"><div><span class="c-kcal">Calorie</span><b>${nf(m.k)}</b><small>kcal</small></div><div><span class="c-p">Proteine</span><b>${m.p}</b><small>g</small></div><div><span class="c-c">Carbo</span><b>${m.c}</b><small>g</small></div><div><span class="c-g">Grassi</span><b>${m.g}</b><small>g</small></div></div>`;
 function pzList(){
   const q = (S.pz.q || '').trim().toLowerCase(), ok = t => !q || t.toLowerCase().includes(q), seen = new Set(), menu = [];
-  PH().days.forEach((d, di) => d.meals.forEach((m, mi) => [[m, 0], [m.alt, 1]].forEach(([o, alt]) => { if (o && !seen.has(o.title) && ok(o.title)){ seen.add(o.title); menu.push({key: `menu|${di}|${mi}|${alt}`, o, sub: m.name + (alt ? ' · ' + (m.alt.tipo || 'alternativa').toLowerCase() : '')}); } })));
+  ['f1', 'f2'].forEach(ph => DIET[ph].days.forEach((d, di) => d.meals.forEach((m, mi) => [[m, 0], [m.alt, 1]].forEach(([o, alt]) => { if (o && !seen.has(o.title) && ok(o.title)){ seen.add(o.title); menu.push({key: `menu|${di}|${mi}|${alt}|${ph}`, o, sub: m.name + (alt ? ' · ' + (m.alt.tipo || 'alternativa').toLowerCase() : '')}); } }))));
   const rec = DIET.extra.filter(r => ok(r.title)).map(r => ({key: `rec|extra|${r.n}`, o: r, sub: r.slot}));
   const mine = myRecList().filter(r => ok(r.title)).map(r => ({key: `rec|mine|${r.n}`, o: r, sub: 'Ricetta tua'}));
   const sec = (lab, l) => l.length ? `<div class="sec-h" style="margin-top:18px">${lab}<span class="r">${l.length}</span></div><div class="list">${l.map(x => `<button class="row" data-pz="sel|${x.key}">${protIcon(x.o.items || [])}<span class="grow"><span class="tt" style="display:block">${esc(x.o.title)}</span><span class="st" style="display:block">${esc(x.sub)}</span></span><span class="val"><b class="kv">${nf(x.o.k)}</b> <span class="c-kcal">kcal</span></span>${I.chev}</button>`).join('')}</div>` : '';
@@ -1705,6 +1713,7 @@ function pzFoods(){
   return `<div class="list" style="margin-bottom:14px">${l.map(([k, v]) => `<button class="row" data-pz="fk|${k}"><span class="grow"><span class="tt" style="display:block">${esc(v[0])}</span><span class="st" style="display:block">per 100 ${v[1]}: ${nf(Math.round(4 * v[2] + 4 * v[3] + 9 * v[4]))} kcal · P ${v[2]} · C ${v[3]} · G ${v[4]}</span></span>${I.chev}</button>`).join('')}</div>` + add;
 }
 function pzSave(entry){
+  if (S.pz.mode === 'plan'){ const P = myPlanRaw(), di = S.pz.di; if (entry) P.days[di].meals[+S.pz.target].items.push(entry); myPlanSave(P); openMyPlan(di); return; }
   const z = S.pz, date = dKey(z.wk, z.di), D = diaryDay(date);
   if (z.target === 'x'){ if (entry) D.x.push(entry); }
   else if (!entry) delete D.m[z.target]; else D.m[z.target] = entry;
@@ -1712,7 +1721,7 @@ function pzSave(entry){
 }
 function pzAct(a){
   const z = S.pz; if (!z) return; const [t, ...r] = a.split('|');
-  if (t === 'main'){ z.view = 'main'; z.q = ''; }
+  if (t === 'main'){ if (z.mode === 'plan'){ openMyPlan(z.di); return; } z.view = 'main'; z.q = ''; }
   else if (t === 'pick'){ Object.assign(z, {view: 'pick', target: r[0], q: '', sel: null, f: 1, fk: '', g: '', free: null}); }
   else if (t === 'set'){ pzSave(r[0] === 'skip' ? {t: 'skip'} : null); return; }
   else if (t === 'xdel'){ const date = dKey(z.wk, z.di), D = diaryDay(date); D.x.splice(+r[0], 1); diarySet(date, D); }
@@ -1721,7 +1730,7 @@ function pzAct(a){
   else if (t === 'fk'){ z.fk = r[0]; z.g = r[0] ? (z.g || 100) : ''; z.q = ''; }
   else if (t === 'free'){ z.view = 'free'; }
   else if (t === 'newfree'){ z.free = {title: (z.q || '').trim(), k: '', p: '', c: '', g: ''}; z.view = 'free'; z.q = ''; }
-  else if (t === 'sel'){ z.sel = r[0] === 'menu' ? {t: 'menu', ph: S.phase, di: +r[1], mi: +r[2], alt: r[3] === '1'} : {t: 'rec', src: r[1], n: r[2], ph: S.phase}; z.f = 1; z.view = 'portion'; }
+  else if (t === 'sel'){ z.sel = r[0] === 'menu' ? {t: 'menu', ph: r[4] || 'f1', di: +r[1], mi: +r[2], alt: r[3] === '1'} : {t: 'rec', src: r[1], n: r[2], ph: S.phase}; z.f = 1; z.view = 'portion'; }
   else if (t === 'f'){ z.f = +r[0]; }
   else if (t === 'ok'){
     if (z.view === 'portion'){ pzSave(Object.assign({}, z.sel, {f: z.f || 1})); return; }
@@ -1813,6 +1822,149 @@ function gsAct(d){
   if (d.gsx){ const id = d.gsx; if (z.sel[id]){ delete z.sel[id]; z.order = z.order.filter(x => x !== id); } else { const e = exLibrary().find(x => x.id === id); z.sel[id] = {sets: e ? e.sets : 3, reps: e ? e.reps : '8-12'}; z.order.push(id); } drawGroupSession(); return true; }
   if (d.gsdel){ if (!confirm('Eliminare la scheda «' + (z.title || 'senza nome') + '»? Gli allenamenti già salvati nello storico restano.')) return true;
     const gid = z.gid, sid = z.sid; groupSave(gid, g => { g.sessions = g.sessions.filter(s => s.id !== sid); return g; }); S.gs = null; openGroupPage(gid); toast('Scheda eliminata'); return true; }
+  return false;
+}
+
+/* ---------- Il mio piano: menu settimanale fatto da te ---------- */
+// Store 'myplan': {target: {k,p,c,g} | null, days: [7 × {type: 'pesi'|'riposo', meals: [{name, time, items: [voce come in Personalizza]}]}]}
+// Diventa una terza «fase» (DIET.my) con la stessa struttura delle altre: menu, pagine dei pasti, spesa e «Da preparare» funzionano uguali.
+const DNAMES = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'], DSHORT = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+const DEF_MEALS = [['Colazione', '7:00'], ['Spuntino', '10:30'], ['Pranzo', '13:00'], ['Spuntino', '16:30'], ['Cena', '20:00']];
+const emptyDay = () => ({type: 'pesi', meals: DEF_MEALS.map(([name, time]) => ({name, time, items: []}))});
+const myPlanRaw = () => { const p = Store.get('myplan', null); return p && p.days && p.days.length === 7 ? JSON.parse(JSON.stringify(p)) : {target: null, days: Array.from({length: 7}, emptyDay)}; };
+const myPlanSave = p => { Store.set('myplan', p); MYC = null; };
+const myPlanEmpty = () => !myPlanRaw().days.some(d => d.meals.some(m => m.items.length));
+function entryItems(e){
+  const sc = (its, f) => its.map(([k, g]) => [k, roundG(k, g * (f || 1))]);
+  if (e.t === 'food') return [[e.k, e.g]];
+  if (e.t === 'menu'){ const m = DIET[e.ph] && DIET[e.ph].days[e.di] && DIET[e.ph].days[e.di].meals[e.mi], o = m && (e.alt && m.alt ? m.alt : m); return o ? sc(o.items, e.f) : []; }
+  if (e.t === 'rec'){ const r = recOf(e.src, e.n, e.ph); return r ? sc(r.items || [], e.f) : []; }
+  return [];
+}
+function entrySteps(e){
+  if (e.t === 'menu'){ const m = DIET[e.ph] && DIET[e.ph].days[e.di] && DIET[e.ph].days[e.di].meals[e.mi], o = m && (e.alt && m.alt ? m.alt : m); return (o && o.steps) || []; }
+  if (e.t === 'rec'){ const r = recOf(e.src, e.n, e.ph); return (r && r.steps) || []; }
+  return [];
+}
+function entryPrep(e, name){
+  if (e.t === 'rec'){ const r = recOf(e.src, e.n, e.ph); if (!r) return []; return [r.thaw, r.prep].filter(Boolean).map(x => name + ': ' + dot(x)); }
+  if (e.t === 'menu'){ const d = DIET[e.ph] && DIET[e.ph].days[e.di], m = d && d.meals[e.mi]; if (!m) return [];
+    if (e.alt && m.alt) return m.alt.prep ? [name + ': ' + m.alt.prep] : [];
+    return (d.prep || []).filter(p => p.split(':')[0] === m.name).map(p => name + p.slice(m.name.length)); }
+  return [];
+}
+function planMeal(m){
+  const infos = m.items.map(e => [e, entryInfo(e)]).filter(x => x[1]), t = {k: 0, p: 0, c: 0, g: 0};
+  infos.forEach(([, i]) => { t.k += i.k; t.p += i.p; t.c += i.c; t.g += i.g; });
+  const items = [].concat(...infos.map(([e]) => entryItems(e)));
+  const foods = [].concat(...infos.map(([e, i]) => e.t === 'free' ? [{q: nf(i.k) + ' kcal', n: i.title, h: 'inserito a mano'}] : entryItems(e).map(([k, g]) => fmtFood(k, g))));
+  const many = infos.filter(([e]) => entrySteps(e).length).length > 1;
+  const steps = [].concat(...infos.map(([e, i]) => entrySteps(e).map(s => many ? i.title + ': ' + s : s)));
+  return Object.assign({name: m.name, time: m.time, title: infos.length ? infos.map(([, i]) => i.title).join(' + ') : 'Da scegliere', foods, items, note: infos.length ? '' : 'Pasto ancora vuoto: aggiungilo da «Modifica il mio piano».', mod: null, alt: null, steps, mine: true}, t);
+}
+let MYC = null, MYK = '';
+function buildMyPlan(){
+  const raw = myPlanRaw(), key = JSON.stringify(raw) + '|' + (Store.get('myrec', []) || []).length;
+  if (MYC && MYK === key) return MYC;
+  const days = raw.days.map((d, di) => {
+    const meals = d.meals.map(planMeal), tot = meals.reduce((a, m) => ({k: a.k + m.k, p: a.p + m.p, c: a.c + m.c, g: a.g + m.g}), {k: 0, p: 0, c: 0, g: 0});
+    const prep = [].concat(...d.meals.map(m => [].concat(...m.items.map(e => entryPrep(e, m.name)))));
+    return {name: DNAMES[di], short: DSHORT[di], type: d.type === 'riposo' ? 'riposo' : 'pesi', typeLabel: d.type === 'riposo' ? 'Riposo' : 'Allenamento', session: 'Il mio piano', mod: null, base: tot, full: tot, veg: tot, meals, prep};
+  });
+  MYC = {label: 'Il mio piano', desc: 'Menu settimanale fatto da te', days, recipes: DIET.f1.recipes, mine: true}; MYK = key;
+  return MYC;
+}
+Object.defineProperty(DIET, 'my', {get: buildMyPlan, enumerable: false, configurable: true});
+// obiettivo suggerito dal profilo: Mifflin-St Jeor × attività (3-4 allenamenti + bici), corretto per l'obiettivo
+function suggestTarget(){
+  const p = profile(), w = parseFloat(String(p.weight || '').replace(',', '.')), h = parseFloat(String(p.height || '').replace(',', '.')), a = parseFloat(p.age);
+  if (!w || !h || !a) return null;
+  const bmr = 10 * w + 6.25 * h - 5 * a + (p.sex === 'Donna' ? -161 : 5), goals = p.goals || [];
+  const adj = goals.includes('Perdere grasso') ? -.15 : goals.includes('Ricomposizione corporea') ? -.1 : goals.includes('Aumentare la massa muscolare') ? .1 : 0;
+  const k = Math.round(bmr * 1.55 * (1 + adj) / 10) * 10, pr = Math.round(w * 2), g = Math.round(w * .8), c = Math.max(0, Math.round((k - pr * 4 - g * 9) / 4));
+  return {k, p: pr, c, g, why: `${nf(Math.round(bmr))} kcal a riposo × 1,55 (attività)${adj ? (adj > 0 ? ' +' : ' −') + Math.abs(adj * 100) + '% per l’obiettivo' : ''} · proteine 2 g/kg, grassi 0,8 g/kg, il resto carboidrati`};
+}
+function mpBar(lab, cls, v, t){ const pc = t ? Math.min(100, Math.round(v / t * 100)) : 0, over = t && v > t * 1.05;
+  return `<div class="mpb"><div class="mpbh"><span class="${cls}">${lab}</span><b>${nf(v)}</b><small>${t ? '/ ' + nf(t) : ''}</small></div><div class="mpbt"><i class="${cls}-bg${over ? ' over' : ''}" style="width:${pc}%"></i></div></div>`; }
+function openMyPlan(di){
+  S.pz = null; S.mp = Object.assign({di: S.mp ? S.mp.di : S.day, view: 'main'}, di !== undefined ? {di: +di} : {}); drawMyPlan();
+}
+function drawMyPlan(){
+  const z = S.mp, P = myPlanRaw(), d = P.days[z.di], D = buildMyPlan().days[z.di], T = P.target, keep = $('#pg').hidden ? 0 : $('#pg').scrollTop;
+  let body = '';
+  if (z.view === 'main'){
+    body += `<div class="chips mpdays" style="flex-wrap:nowrap">${DSHORT.map((s, i) => `<button data-mpday="${i}" aria-pressed="${i === z.di}">${s}</button>`).join('')}</div>
+      <div class="card mpsum">${mpBar('Calorie', 'c-kcal', D.base.k, T && T.k)}${mpBar('Proteine', 'c-p', D.base.p, T && T.p)}${mpBar('Carbo', 'c-c', D.base.c, T && T.c)}${mpBar('Grassi', 'c-g', D.base.g, T && T.g)}
+        <button class="row" data-mptarget="1" style="margin-top:6px"><span class="grow tt">${T ? 'Obiettivo giornaliero' : 'Imposta l’obiettivo giornaliero'}</span><span class="val">${T ? nf(T.k) + ' kcal' : ''}</span>${I.chev}</button></div>
+      <div class="list" style="margin-bottom:18px"><div class="row frow"><span class="grow tt">${DNAMES[z.di]}</span><span class="miniseg">${[['pesi', 'Allenamento'], ['riposo', 'Riposo']].map(([k, l]) => `<button data-mptype="${k}" aria-pressed="${(d.type || 'pesi') === k}">${l}</button>`).join('')}</span></div></div>`;
+    d.meals.forEach((m, mi) => {
+      const pm = D.meals[mi];
+      body += `<div class="sec-h mph"><span>${esc(m.name)} · ${esc(m.time)}</span><button class="lnk" data-mpmeal="${mi}">Modifica</button></div><div class="list">
+        ${m.items.map((e, ii) => { const i = entryInfo(e); return i ? `<div class="row"><span class="grow"><span class="tt" style="display:block">${esc(i.title)}</span><span class="st" style="display:block">${esc(i.sub)}</span></span><span class="val"><b class="kv">${nf(i.k)}</b> <span class="c-kcal">kcal</span></span><button class="xbtn" data-mpdel="${mi}|${ii}" aria-label="Togli">×</button></div>` : ''; }).join('')}
+        <button class="row" data-mpadd="${mi}"><span class="grow tt link">+ Aggiungi</span>${m.items.length ? `<span class="val">${nf(pm.k)} kcal</span>` : ''}</button></div>`;
+    });
+    body += `<div class="list" style="margin-top:18px"><button class="row" data-mpnewmeal="1"><span class="grow tt link">+ Aggiungi un pasto</span></button></div>
+      <div class="list" style="margin-top:18px"><button class="row ind" data-mpcopy="1">${iconTile('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>', 'blue')}<span class="grow tt">Copia ${DNAMES[z.di].toLowerCase()} su altri giorni</span>${I.chev}</button>
+        <button class="row ind" data-mpfrom="1">${iconTile(I.book, 'orange')}<span class="grow tt">Parti da un piano esistente</span>${I.chev}</button>
+        <button class="row" data-mpclear="1"><span class="grow tt destr">Svuota ${DNAMES[z.di].toLowerCase()}</span></button></div>
+      <div class="sec-f" style="margin:10px 4px 0">I pasti con ricette e alimenti a grammi finiscono nella lista della spesa con le confezioni Esselunga; quelli inseriti a mano contano solo per calorie e macro.</div>`;
+    openPage('Il mio piano', body, ['Menu', closePage]);
+  } else if (z.view === 'target'){
+    const f = z.t || (z.t = T ? {k: T.k, p: T.p, c: T.c, g: T.g} : {k: '', p: '', c: '', g: ''}), sg = suggestTarget();
+    const num = (k, lab, u) => `<label class="row frow"><span class="grow tt pzl${String(f[k]).trim() ? ' ' + k : ''}">${lab}</span><input class="fin" data-mpt="${k}" type="text" inputmode="decimal" value="${esc(f[k])}" placeholder="0"><span class="eu">${u}</span></label>`;
+    body += `<div class="list">${num('k', 'Calorie', 'kcal')}${num('p', 'Proteine', 'g')}${num('c', 'Carboidrati', 'g')}${num('g', 'Grassi', 'g')}</div>
+      <div class="list" style="margin-top:16px"><button class="row ind" data-mpsuggest="1">${iconTile(I.person, 'indigo')}<span class="grow"><span class="tt" style="display:block">Calcola dal profilo</span><span class="st" style="display:block">${sg ? `${nf(sg.k)} kcal · P ${sg.p} · C ${sg.c} · G ${sg.g}` : 'Inserisci età, sesso, peso e altezza nel profilo'}</span></span></button></div>
+      ${sg ? `<div class="sec-f" style="margin:6px 4px 0">${esc(sg.why)}. È una stima di partenza: correggila in base a come va il peso nelle settimane.</div>` : ''}
+      <button class="btn wo-start" data-mpsavet="1" style="margin-top:16px">Salva l’obiettivo</button>`;
+    openPage('Obiettivo giornaliero', body, ['Indietro', () => { z.view = 'main'; z.t = null; drawMyPlan(); }]);
+  } else if (z.view === 'meal'){
+    const m = d.meals[z.mi], f = z.m || (z.m = {name: m.name, time: m.time});
+    body += `<input class="bigin" data-mpm="name" placeholder="Nome del pasto" value="${esc(f.name)}" autocomplete="off">
+      <div class="list"><label class="row frow"><span class="grow tt">Orario</span><input class="fin" data-mpm="time" type="time" value="${esc(String(f.time).padStart(5, '0'))}"></label></div>
+      <div class="list" style="margin-top:16px">${z.mi > 0 ? `<button class="row" data-mpmove="-1"><span class="grow tt">Sposta prima</span></button>` : ''}${z.mi < d.meals.length - 1 ? `<button class="row" data-mpmove="1"><span class="grow tt">Sposta dopo</span></button>` : ''}
+        <button class="row" data-mpmealdel="1"><span class="grow tt destr">Elimina il pasto</span></button></div>
+      <button class="btn wo-start" data-mpmealsave="1" style="margin-top:16px">Salva</button>`;
+    openPage(m.name || 'Pasto', body, ['Indietro', () => { z.view = 'main'; z.m = null; drawMyPlan(); }]);
+  } else if (z.view === 'copy'){
+    const sel = z.cp || (z.cp = {});
+    body += `<p class="sec-f" style="margin:0 0 12px">I pasti di ${DNAMES[z.di].toLowerCase()} sostituiscono quelli dei giorni che scegli.</p>
+      <div class="list">${DNAMES.map((n, i) => i === z.di ? '' : `<div class="row ck${sel[i] ? ' on' : ''}" role="checkbox" aria-checked="${!!sel[i]}" tabindex="0" data-mpcpd="${i}"><span class="chk">${I.check}</span><span class="grow tt">${n}</span></div>`).join('')}</div>
+      <button class="btn plain" data-mpcpall="1" style="margin-top:8px">Seleziona tutti</button>
+      <button class="btn wo-start" data-mpcopydo="1" style="margin-top:10px">Copia</button>`;
+    openPage('Copia il giorno', body, ['Indietro', () => { z.view = 'main'; z.cp = null; drawMyPlan(); }]);
+  } else if (z.view === 'from'){
+    body += `<p class="sec-f" style="margin:0 0 12px">Copia i 7 giorni di un piano nel tuo, poi cambi solo quello che vuoi. Quello che hai già inserito viene sostituito.</p>
+      <div class="list">${[['f1', 'Ricomposizione'], ['f2', 'Mantenimento']].map(([k, l]) => `<button class="row" data-mpfromdo="${k}"><span class="grow"><span class="tt" style="display:block">${l}</span><span class="st" style="display:block">${esc(DIET[k].desc || '')}</span></span>${I.chev}</button>`).join('')}</div>`;
+    openPage('Parti da un piano', body, ['Indietro', () => { z.view = 'main'; drawMyPlan(); }]);
+  }
+  $('#pg').scrollTop = z.view === z.lastView ? keep : 0; z.lastView = z.view;
+}
+function mpAct(d){
+  const z = S.mp; if (!z) return false;
+  const P = myPlanRaw(), day = P.days[z.di], save = () => { myPlanSave(P); drawMyPlan(); };
+  if (d.mpday !== undefined){ z.di = +d.mpday; drawMyPlan(); return true; }
+  if (d.mptype){ day.type = d.mptype; save(); return true; }
+  if (d.mpdel){ const [mi, ii] = d.mpdel.split('|').map(Number); day.meals[mi].items.splice(ii, 1); save(); return true; }
+  if (d.mpadd !== undefined){ S.pz = {mode: 'plan', wk: menuWk(), di: z.di, view: 'pick', target: d.mpadd, q: ''}; drawPz(); return true; }
+  if (d.mpnewmeal){ day.meals.push({name: 'Spuntino', time: '18:00', items: []}); myPlanSave(P); z.view = 'meal'; z.mi = day.meals.length - 1; z.m = null; drawMyPlan(); return true; }
+  if (d.mpmeal !== undefined){ z.view = 'meal'; z.mi = +d.mpmeal; z.m = null; drawMyPlan(); return true; }
+  if (d.mpmealsave){ const m = day.meals[z.mi]; m.name = (z.m.name || '').trim() || 'Pasto'; m.time = z.m.time || m.time; day.meals.sort((a, b) => String(a.time).padStart(5, '0').localeCompare(String(b.time).padStart(5, '0'))); z.view = 'main'; z.m = null; save(); return true; }
+  if (d.mpmove){ const j = z.mi + +d.mpmove, m = day.meals.splice(z.mi, 1)[0]; day.meals.splice(j, 0, m); z.mi = j; save(); return true; }
+  if (d.mpmealdel){ const m = day.meals[z.mi]; if (m.items.length && !confirm('Eliminare «' + m.name + '» con quello che contiene?')) return true; day.meals.splice(z.mi, 1); z.view = 'main'; save(); return true; }
+  if (d.mptarget){ z.view = 'target'; z.t = null; drawMyPlan(); return true; }
+  if (d.mpsuggest){ const s = suggestTarget(); if (!s){ toast('Completa età, sesso, peso e altezza nel profilo'); return true; } z.t = {k: s.k, p: s.p, c: s.c, g: s.g}; drawMyPlan(); return true; }
+  if (d.mpsavet){ const n = v => Math.max(0, Math.round(parseFloat(String(v).replace(',', '.')) || 0)), t = {k: n(z.t.k), p: n(z.t.p), c: n(z.t.c), g: n(z.t.g)};
+    if (!t.k) t.k = 4 * t.p + 4 * t.c + 9 * t.g; P.target = t.k ? t : null; z.view = 'main'; z.t = null; save(); toast('Obiettivo salvato'); return true; }
+  if (d.mpcopy){ z.view = 'copy'; z.cp = {}; drawMyPlan(); return true; }
+  if (d.mpcpd !== undefined){ z.cp[d.mpcpd] = !z.cp[d.mpcpd]; drawMyPlan(); return true; }
+  if (d.mpcpall){ DNAMES.forEach((n, i) => { if (i !== z.di) z.cp[i] = true; }); drawMyPlan(); return true; }
+  if (d.mpcopydo){ const to = Object.keys(z.cp).filter(i => z.cp[i]).map(Number); if (!to.length){ toast('Scegli almeno un giorno'); return true; }
+    to.forEach(i => { P.days[i].meals = JSON.parse(JSON.stringify(day.meals)); }); z.view = 'main'; z.cp = null; save(); toast('Copiato su ' + to.length + (to.length === 1 ? ' giorno' : ' giorni')); return true; }
+  if (d.mpfrom){ z.view = 'from'; drawMyPlan(); return true; }
+  if (d.mpfromdo){ if (!myPlanEmpty() && !confirm('Sostituire tutto il tuo piano con ' + DIET[d.mpfromdo].label + '?')) return true;
+    P.days = DIET[d.mpfromdo].days.map((sd, di) => ({type: sd.type === 'riposo' ? 'riposo' : 'pesi', meals: sd.meals.filter(m => !m.mod).map((m, mi) => ({name: m.name, time: m.time, items: [{t: 'menu', ph: d.mpfromdo, di, mi: sd.meals.indexOf(m), alt: false, f: 1}]}))}));
+    z.view = 'main'; save(); toast('Piano copiato: ora cambia quello che vuoi'); return true; }
+  if (d.mpclear){ if (!confirm('Svuotare tutti i pasti di ' + DNAMES[z.di].toLowerCase() + '?')) return true; day.meals.forEach(m => { m.items = []; }); save(); return true; }
   return false;
 }
 
@@ -2310,9 +2462,11 @@ function toggleCheck(el){
 }
 document.addEventListener('click', ev => {
   const fc = ev.target.closest('[data-face]'); if (fc){ faceTap(fc); return; }
-  const b = ev.target.closest('button, [data-chk], [data-prep], [data-gsx]'); if (!b) return;
+  const b = ev.target.closest('button, [data-chk], [data-prep], [data-gsx], [data-mpcpd]'); if (!b) return;
   const d = b.dataset;
   if (S.gs && gsAct(d)) return;
+  if (S.mp && !S.pz && mpAct(d)) return;
+  if (d.myplan !== undefined){ openMyPlan(d.myplan); return; }
   if (d.tab) switchTab(d.tab);
   else if (d.pzopen){ S.pz = {wk: menuWk(), di: S.day, view: 'main', q: ''}; drawPz(); }
   else if (d.pz) pzAct(d.pz);
@@ -2325,7 +2479,7 @@ document.addEventListener('click', ev => {
   else if (d.gdel){ const g = myGroups().find(x => x.id === d.gdel); if (g && confirm('Eliminare il gruppo «' + g.name + '» con le sue schede? Gli allenamenti già salvati nello storico restano.')){ Store.set('mygroups', myGroups().filter(x => x.id !== d.gdel)); S.oth = null; $('#pg').hidden = true; document.body.style.overflow = ''; render(); openOther(); toast('Gruppo eliminato'); } }
   else if (d.chk || d.prep) toggleCheck(b);
   else if (d.phlock){ S.phaseOpen = !S.phaseOpen; render(); }
-  else if (d.ph){ if (S.tab === 'menu' && !S.phaseOpen) return; const ch = d.ph !== S.phase; S.phase = d.ph; Store.set('phase', d.ph); S.phaseOpen = false; render(); if (ch) toast('Fase: ' + PH().label); }
+  else if (d.ph){ if (S.tab === 'menu' && !S.phaseOpen) return; const ch = d.ph !== S.phase; S.phase = d.ph; Store.set('phase', d.ph); S.phaseOpen = false; render(); if (ch) toast('Fase: ' + PH().label); if (d.ph === 'my' && myPlanEmpty()) openMyPlan(S.day); }
   else if (d.day !== undefined){ S.day = +d.day; render(); }
   else if (d.wkm){ S.wkm = d.wkm; render(); }
   else if (d.photo){ const [a, c] = d.photo.split('|'); openPhoto(a, c); }
@@ -2420,6 +2574,8 @@ document.addEventListener('input', ev => { const t = ev.target, ds = t.dataset |
   if (ds.pzq !== undefined && S.pz){ S.pz.q = t.value; const l = $('#pzList'); if (l) l.innerHTML = S.pz.view === 'food' ? pzFoods() : pzList(); return; }
   if (ds.pzg !== undefined && S.pz){ S.pz.g = t.value; const p = $('#pzPrev'); if (p) p.innerHTML = pzPrev(foodMac(S.pz.fk, parseFloat(String(t.value).replace(',', '.')) || 0)); return; }
   if (ds.pzf !== undefined && S.pz && S.pz.free){ S.pz.free[ds.pzf] = t.value; const l = t.closest('.row') && t.closest('.row').querySelector('.pzl'); if (l) l.classList.toggle(ds.pzf, !!t.value.trim()); return; }
+  if (ds.mpt !== undefined && S.mp && S.mp.t){ S.mp.t[ds.mpt] = t.value; const l = t.closest('.row') && t.closest('.row').querySelector('.pzl'); if (l) l.classList.toggle(ds.mpt, !!t.value.trim()); return; }
+  if (ds.mpm !== undefined && S.mp && S.mp.m){ S.mp.m[ds.mpm] = t.value; return; }
   if (ds.gsf !== undefined && S.gs){ S.gs[ds.gsf] = t.value; return; }
   if (ds.gsq !== undefined && S.gs){ S.gs.q = t.value; const l = $('#gsList'); if (l) l.innerHTML = gsList(); return; }
   if (ds.gss !== undefined && S.gs){ const [id, f] = ds.gss.split('|'); if (S.gs.sel[id]) S.gs.sel[id][f] = t.value; return; }
