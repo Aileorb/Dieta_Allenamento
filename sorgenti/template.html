@@ -2408,7 +2408,7 @@ function adjRir(e, wi){
   const n = e.rir.split('-').map(x => Math.max(min, parseInt(x, 10) + wi.d));
   return n[0] === n[1] || n.length === 1 ? String(n[0]) : n.join('-');
 }
-function adjSets(e, wi){ if (wi.rientro) return wi.rientro.sets(e.sets); return wi.deload ? Math.ceil(e.sets/2) : e.sets; }
+function adjSets(e, wi){ if (wi.rientro) return (typeof wi.rientro.sets === 'function' ? wi.rientro : wiFix(wi).rientro).sets(e.sets); return wi.deload ? Math.ceil(e.sets/2) : e.sets; }
 const loads = () => Store.get('loads', {});
 function suggest(load, wi){
   if (!wi.rientro || !load) return '';
@@ -2797,7 +2797,14 @@ let T = null, tick = null, actx = null, wake = null;   // T resta per compatibil
 function beep(f = 880, ms = 160){ try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.2, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + ms/1000); o.start(); o.stop(actx.currentTime + ms/1000); } catch(e) {} }
 const mmss = s => { s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ':' + String(s%60).padStart(2, '0'); };
 const hmm = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600); return h ? h + ':' + pad(Math.floor(s % 3600 / 60)) + ':' + pad(s % 60) : mmss(s); };
-const W = () => Store.get('wsession', null);
+// la settimana di rientro contiene funzioni (serie ridotte) che si perdono nel salvataggio: alla riapertura le ricollego
+function wiFix(wi){
+  if (!wi || !wi.rientro || typeof wi.rientro.sets === 'function') return wi;
+  const r = wi.rientro, all = R4.concat(R6);
+  wi.rientro = all.find(x => x.txt === r.txt) || all.find(x => x.lo === r.lo && x.hi === r.hi) || RT()[0];
+  return wi;
+}
+const W = () => { const w = Store.get('wsession', null); if (w) wiFix(w.wi); return w; };
 const wsetS = w => { Store.set('wsession', w); pushSync(w); };
 let WO_OPEN = false;
 // ricostruisce gruppi ed esercizi della seduta salvata
@@ -2907,7 +2914,7 @@ function woFail(err){
     <button class="btn" data-w="retry">Riprova</button><button class="btn plain" data-w="min">Torna all'app</button><button class="btn plain destr" data-w="close">Termina e salva</button></div>`;
 }
 function errLog(err, where){
-  try { const l = Store.get('errlog', []), m = String(err && err.message || err).slice(0, 200); if (l[0] && l[0].msg === m && Date.now() - l[0].at < 30000) return; l.unshift({at: Date.now(), where: where || '', msg: String(err && err.message || err).slice(0, 200), st: String(err && err.stack || '').split('\n').slice(0, 3).join(' | ').slice(0, 300), v: 'v67'}); Store.set('errlog', l.slice(0, 15)); } catch(e) {}
+  try { const l = Store.get('errlog', []), m = String(err && err.message || err).slice(0, 200); if (l[0] && l[0].msg === m && Date.now() - l[0].at < 30000) return; l.unshift({at: Date.now(), where: where || '', msg: String(err && err.message || err).slice(0, 200), st: String(err && err.stack || '').split('\n').slice(0, 3).join(' | ').slice(0, 300), v: 'v68'}); Store.set('errlog', l.slice(0, 15)); } catch(e) {}
 }
 function drawWorkout0(){
   const w = W(); if (!w){ minimizeWorkout(); return; }
