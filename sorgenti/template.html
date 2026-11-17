@@ -517,7 +517,7 @@ button.row:disabled{opacity:.4}
 .nx{text-align:center;font-size:13px;color:var(--label2);min-height:18px;margin-bottom:14px}
 .clock{display:flex;justify-content:space-between;align-items:center;padding:0 8px;margin-bottom:16px}
 .cbtn{width:84px;height:84px;border-radius:50%;border:none;padding:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;line-height:18px;font-weight:500;position:relative;flex:none}
-.wo{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.wo{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;display:none;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 body.wo-on .wo{display:block}
 body.wo-on{overflow:hidden}
 .wo-top{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
@@ -1019,6 +1019,7 @@ async function openSpace(){
       ${row('Acquisti della spesa', `${nb} ${nb === 1 ? 'prodotto registrato' : 'prodotti registrati'}`, kb(bb))}
       ${row('Storico allenamenti', `${HIST.sedute.length} ${HIST.sedute.length === 1 ? 'seduta' : 'sedute'} · ${HIST.serie.length} ${HIST.serie.length === 1 ? 'serie' : 'serie'}`, kb(hs))}
       ${row('Foto', `${keys.length} foto con miniature${Photos.legacy.length ? ' · ' + Photos.legacy.length + ' da alleggerire' : ''}`, kb(ph))}</div>
+    ${(() => { const el = Store.get('errlog', []); return el.length ? `<div class="sec" style="margin-top:18px"><div class="sec-h">Errori registrati<span class="r"><button class="lnkbtn" data-a="errclear">Cancella</button></span></div><div class="list">${el.slice(0, 5).map(x => `<div class="row"><span class="grow"><span class="tt" style="display:block;font-size:14px;word-break:break-word">${esc(x.msg)}</span><span class="st" style="display:block;font-size:12px;word-break:break-all">${fmtDT(x.at)} · ${esc(x.where)} · ${esc(x.v || '')}${x.st ? ' · ' + esc(x.st) : ''}</span></span></div>`).join('')}</div><div class="sec-f">Se qualcosa non funziona, fai uno screenshot di questa lista: aiuta a capire il problema.</div></div>` : ''; })()}
     ${est && est.usage ? `<div class="list" style="margin-top:12px">${row('Totale indicato dal telefono', est.quota ? 'Disponibili per l\'app: ' + kb(est.quota) : '', kb(est.usage))}</div>` : ''}
     <div class="sec-f" style="margin:8px 4px 16px">Le spunte della spesa e dei «Da preparare» più vecchie di 8 settimane si cancellano da sole. «Libera spazio» le pulisce subito e toglie le foto rimaste senza ricetta o esercizio${orph ? ` (ora ${orph})` : ''}.</div>
     <div class="list"><button class="row" data-a="freespace"><span class="grow tt link" style="text-align:center">Libera spazio</span></button>
@@ -2652,6 +2653,7 @@ document.addEventListener('click', ev => {
   else if (d.olon){ const [id, v] = d.olon.split('|'); if (S.ol && S.ol.ex[id]){ S.ol.ex[id].on = v === '1'; drawOtherLog(); } }
   else if (d.olset){ const [id, v] = d.olset.split('|'), x = S.ol && S.ol.ex[id]; if (x){ if (+v > 0){ const last = x.sets[x.sets.length - 1] || {l: '', r: ''}; x.sets.push({l: last.l, r: last.r}); } else if (x.sets.length > 1) x.sets.pop(); drawOtherLog(); } }
   else if (d.a === 'space') openSpace();
+  else if (d.a === 'errclear'){ Store.set('errlog', []); closeSheetQuiet(); openSpace(); }
   else if (d.a === 'freespace') freeSpace();
   else if (d.a === 'migrate') runMigration(d.bk === '1');
   else if (d.a === 'export') exportLoads();
@@ -2827,10 +2829,12 @@ function nextSetFor(w, gi){
   return Math.min(c.N, done + 1);
 }
 function openWorkout(){
-  WO_OPEN = true; document.body.classList.add('wo-on');
+  WO_OPEN = true; document.body.classList.add('wo-on'); const o = $('#wo'); o.scrollTop = 0;
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume && actx.resume(); } catch(e) {}
   try { if (navigator.wakeLock && !wake) navigator.wakeLock.request('screen').then(x => { wake = x; }).catch(() => {}); } catch(e) {}
   drawWorkout(); ensureTick(); renderMini();
+  // iOS a volte non ridisegna il livello a schermo intero appena riaperta l'app: lo forzo al frame successivo
+  requestAnimationFrame(() => { if (!WO_OPEN) return; o.style.transform = 'translateZ(0)'; requestAnimationFrame(() => { o.style.transform = ''; if (!o.firstElementChild) drawWorkout(); }); });
 }
 function minimizeWorkout(){ WO_OPEN = false; document.body.classList.remove('wo-on'); $('#wo').innerHTML = ''; try { wake && wake.release(); } catch(e) {} wake = null; renderMini(); render(); }
 function ensureTick(){ clearInterval(tick); if (W()) tick = setInterval(woStep, 250); }
@@ -2869,7 +2873,8 @@ function woAct(a){
   wsetS(w); drawWorkout();
 }
 function woEndRest(w, c){ w.set++; w.i = Math.max(0, c.sets.findIndex(x => x >= w.set)); w.phase = 'ready'; beep(990, 260); wsetS(w); if (WO_OPEN) drawWorkout(); else { renderMini(); toast('Recupero finito: serie ' + w.set); } }
-function woStep(){
+function woStep(){ try { woStep0(); } catch(err){ errLog(err, 'timer'); } }
+function woStep0(){
   const w = W(); if (!w){ clearInterval(tick); return; }
   if (w.phase === 'rest' && !w.paused){ const left = (w.end - Date.now())/1000, sec = Math.ceil(left);
     if (sec <= 3 && sec > 0 && w.last !== sec){ w.last = sec; wsetS(w); beep(720, 90); }
@@ -2888,7 +2893,23 @@ function woClock(w){
   else { ring.style.stroke = 'var(--green)'; ring.style.strokeDashoffset = w.phase === 'finished' ? 0 : C; big.textContent = w.phase === 'finished' ? '✓' : mmss(0); }
 }
 function repsGuess(e, L){ const last = L && L.sets.length ? L.sets[L.sets.length - 1].reps : 0; if (last) return last; const m = String(e.reps).match(/\d+/g); return m ? m[m.length - 1] : ''; }
+// se qualcosa va storto la schermata non resta mai vuota: mostra l'errore e le vie d'uscita
 function drawWorkout(){
+  try { drawWorkout0(); } catch(err){ woFail(err); }
+  const o = $('#wo'); if (WO_OPEN && o && !o.firstElementChild) woFail(new Error('schermata vuota'));
+}
+function woFail(err){
+  errLog(err, 'allenamento');
+  const w = W(), msg = String(err && err.message || err);
+  $('#wo').innerHTML = `<div class="wo-top"><div class="wo-meta"><span class="wo-step">${esc(w ? w.title : 'Allenamento')}</span></div></div>
+    <div class="wo-in"><p class="sub-lt" style="margin-top:40px;text-align:center">Non riesco a mostrare l'allenamento.<br>Le serie registrate sono al sicuro.</p>
+    <p class="sec-f" style="text-align:center;margin:8px 0 22px;word-break:break-word">Errore: ${esc(msg)}</p>
+    <button class="btn" data-w="retry">Riprova</button><button class="btn plain" data-w="min">Torna all'app</button><button class="btn plain destr" data-w="close">Termina e salva</button></div>`;
+}
+function errLog(err, where){
+  try { const l = Store.get('errlog', []), m = String(err && err.message || err).slice(0, 200); if (l[0] && l[0].msg === m && Date.now() - l[0].at < 30000) return; l.unshift({at: Date.now(), where: where || '', msg: String(err && err.message || err).slice(0, 200), st: String(err && err.stack || '').split('\n').slice(0, 3).join(' | ').slice(0, 300), v: 'v67'}); Store.set('errlog', l.slice(0, 15)); } catch(e) {}
+}
+function drawWorkout0(){
   const w = W(); if (!w){ minimizeWorkout(); return; }
   const c = woCtx(w); if (!c){ $('#wo').innerHTML = `<div class="wo-in"><p class="sub-lt" style="margin-top:80px;text-align:center">Questa seduta non esiste più.</p><button class="btn" data-w="close">Chiudi e salva</button></div>`; return; }
   const e = c.e, wi = w.wi, L = w.log[e.id], ld = loads()[e.id] || {}, df = (w.dft || {})[e.id] || {}, sg = wi.rientro ? suggest(ld.c || (prevLoad(e) || {}).c, wi) : '';
@@ -2958,7 +2979,7 @@ document.addEventListener('input', ev => {
 });
 document.addEventListener('click', ev => {
   const b = ev.target.closest('[data-w]'); if (!b) return; const a = b.dataset.w;
-  if (a === 'min') minimizeWorkout(); else if (a === 'open') openWorkout(); else if (a === 'close') askFinish(); else woAct(a);
+  if (a === 'min') minimizeWorkout(); else if (a === 'open') openWorkout(); else if (a === 'retry') drawWorkout(); else if (a === 'close') askFinish(); else { try { woAct(a); } catch(err){ woFail(err); } }
 });
 /* ---------- Notifiche di fine recupero (Worker Cloudflare in /api) ---------- */
 // Il server tiene un solo timer per iPhone: l'app gli dice quando finisce il recupero (o il tempo di un esercizio a tempo)
@@ -3084,6 +3105,9 @@ function openHistory(id){
     <div class="list"><button class="row" data-histdel="${x.id}"><span class="grow tt destr" style="text-align:center">Elimina dallo storico</span></button></div>`, 'Chiudi');
 }
 
+/* ---------- errori ---------- */
+addEventListener('error', ev => { errLog(ev.error || ev.message, 'globale'); if (WO_OPEN) toast('Errore: ' + String(ev.message || '').slice(0, 80)); });
+addEventListener('unhandledrejection', ev => errLog(ev.reason, 'promessa'));
 /* ---------- avvio ---------- */
 renderTabbar();
 setTimeout(() => { if (W()){ renderMini(); ensureTick(); } }, 0);
